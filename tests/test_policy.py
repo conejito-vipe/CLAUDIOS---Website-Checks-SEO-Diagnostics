@@ -28,9 +28,11 @@ def test_no_shell_execution():
 
 
 def test_no_command_line_scan_interface():
+    import tomllib
+
     assert _scan(r"^\s*(import argparse|from argparse|import click|import typer)") == []
-    pyproject = (ROOT / "pyproject.toml").read_text("utf-8")
-    assert "[project.scripts]" not in pyproject and "[project.gui-scripts]" not in pyproject
+    data = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))
+    assert "scripts" not in data["project"] and "gui-scripts" not in data["project"]
 
 
 def test_numbers_are_formatted_only_via_numfmt():
