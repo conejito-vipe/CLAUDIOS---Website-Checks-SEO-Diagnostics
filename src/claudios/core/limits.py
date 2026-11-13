@@ -22,6 +22,8 @@ class Limits:
     max_queued_urls: int = 5000
     max_external_links_stored: int = 500
     external_links_checked: int = 200
+    external_links_budget_seconds: float = 300.0
+    dns_queries_max: int = 40
     browser_sample_standard: int = 10
     browser_sample_deep: int = 25
     gsc_inspections: int = 100

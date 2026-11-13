@@ -8,12 +8,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ..checks import load_all
+from ..checks._util import CheckSkipped
 from .audit_log import AuditLog
 from .crawler import crawl
 from .errors import ClaudiosError, ErrorCode as E, describe
 from .findings import Finding
 from .guard import DohResolver, normalize_input
 from .net import Gatekeeper
+from .probes import gather_probes
 from .quota import ScanLock, check_quota
 from .registry import REGISTRY
 from .scoring import compute_scores
@@ -56,6 +58,8 @@ def run_checks(snap: Snapshot, level: int, profile: str,
         try:
             findings.extend(rc.fn(snap))
             executed[cid] = "ran"
+        except CheckSkipped as skip:  # z. B. fehlende Daten aus der Probe-Phase
+            executed[cid] = f"skipped:{skip.reason}"
         except Exception as exc:  # noqa: BLE001
             log.error("check %s failed: %r", cid, exc)
             executed[cid] = f"failed:{E.INTERNAL.value}"
@@ -83,10 +87,12 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
     snap = Snapshot(target=target, level=level, profile=profile)
     requests = bytes_total = 0
     with ScanLock(lock_path):
-        gk = Gatekeeper(target, resolver=resolver or DohResolver(), allow_localhost=allow_localhost, cancel=cancel)
+        doh = resolver or DohResolver()
+        gk = Gatekeeper(target, resolver=doh, allow_localhost=allow_localhost, cancel=cancel)
         audit.append("scan_start", domain=target.registrable, level=level, profile=profile)
         try:
             await crawl(gk, snap, progress=progress)
+            await gather_probes(gk, snap, doh)
             snap.status = "complete"
         except ClaudiosError as e:
             snap.status, snap.abort = "aborted", _abort_info(e.code, **e.ctx)
