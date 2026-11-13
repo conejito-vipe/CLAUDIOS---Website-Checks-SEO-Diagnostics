@@ -1,4 +1,5 @@
 import time
+from dataclasses import FrozenInstanceError
 
 import pytest
 
@@ -33,7 +34,7 @@ def test_every_error_code_has_catalog_entry_in_both_languages():
 def test_limits_are_fixed():
     assert LIMITS.max_depth == 6
     assert LIMITS.pages_for(1) == 25 and LIMITS.pages_for(2) == 100 and LIMITS.pages_for(2, "quick") == 5
-    with pytest.raises(Exception):
+    with pytest.raises(FrozenInstanceError):
         LIMITS.max_depth = 99  # frozen dataclass
 
 
