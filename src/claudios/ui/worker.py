@@ -6,7 +6,15 @@ import threading
 
 from PySide6.QtCore import QThread, Signal
 
+from ..components.manager import component_checker
 from ..core.engine import run_scan
+
+
+def _components():
+    try:
+        return component_checker()
+    except (ValueError, KeyError, OSError):
+        return lambda _name: False
 
 
 class ScanThread(QThread):
@@ -34,8 +42,10 @@ class ScanThread(QThread):
         self._event = asyncio.Event()
         if self._cancel_requested.is_set():
             self._event.set()
+        kwargs = dict(self._kwargs)
+        kwargs.setdefault("components", _components())
         return await run_scan(
-            **self._kwargs,
+            **kwargs,
             cancel=self._event,
             progress=lambda stage, cur, total: self.progress.emit(stage, cur, total),
         )
