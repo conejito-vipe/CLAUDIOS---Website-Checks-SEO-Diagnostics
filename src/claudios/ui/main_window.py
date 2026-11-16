@@ -3,14 +3,16 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QHBoxLayout, QListWidget, QListWidgetItem, QStackedWidget
 
-from ..i18n.strings import set_lang, t
+from ..i18n.strings import get_lang, set_lang, t
 from ..settings import save as save_settings
+from .components_page import ComponentsPage
 from .dialogs import AboutDialog
 from .pages import DocPage, ResultsPage, ScanPage, SettingsPage
 from .widgets import CardWindow, Footer
 
-NAV_KEYS = ("nav.scan", "nav.results", "nav.handbook", "nav.tech", "nav.settings", "nav.about")
-ABOUT_ROW = 5
+NAV_KEYS = ("nav.scan", "nav.results", "nav.handbook", "nav.tech", "nav.components", "nav.settings",
+            "nav.about")
+ABOUT_ROW = 6
 
 
 class MainWindow(CardWindow):
@@ -30,8 +32,9 @@ class MainWindow(CardWindow):
         self.results = ResultsPage()
         self.handbook = DocPage("handbook")
         self.tech = DocPage("tech")
+        self.components = ComponentsPage()
         self.settings_page = SettingsPage(settings)
-        self.pages = (self.scan, self.results, self.handbook, self.tech, self.settings_page)
+        self.pages = (self.scan, self.results, self.handbook, self.tech, self.components, self.settings_page)
         self.stack = QStackedWidget()
         for page in self.pages:
             self.stack.addWidget(page)
@@ -49,15 +52,9 @@ class MainWindow(CardWindow):
         self.footer.clicked.connect(self.show_about)
         self.nav.currentRowChanged.connect(self._on_nav)
         self.scan.scan_finished.connect(self._on_result)
-        self.titlebar.set_lang(self._lang())
+        self.titlebar.set_lang(get_lang())
         self.retranslate()
         self.nav.setCurrentRow(0)
-
-    @staticmethod
-    def _lang() -> str:
-        from ..i18n.strings import get_lang
-
-        return get_lang()
 
     def retranslate(self) -> None:
         self.setWindowTitle(t("app.title"))
@@ -94,4 +91,5 @@ class MainWindow(CardWindow):
 
     def closeEvent(self, event) -> None:  # noqa: N802
         self.scan.shutdown()
+        self.components.shutdown()
         super().closeEvent(event)
