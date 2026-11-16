@@ -164,9 +164,9 @@ async def test_probes_report_progress_for_each_step():
     await gather_probes(FakeGK({}), snap, FakeResolver(),
                         progress=lambda stage, cur, total: seen.append((stage, cur, total)))
     assert [s[0] for s in seen] == ["probe:dns", "probe:takeover", "probe:ads", "probe:sitemap",
-                                    "probe:soft404", "probe:links"]
-    assert seen[-1][1:] == (6, 6)
-    assert "sitemap" in snap.extra and "soft404" in snap.extra
+                                    "probe:soft404", "probe:assets", "probe:tls", "probe:links"]
+    assert seen[-1][1:] == (8, 8)
+    assert "sitemap" in snap.extra and "soft404" in snap.extra and "assets" in snap.extra
 
 
 def test_numbers_in_findings_are_grouped_by_language():
