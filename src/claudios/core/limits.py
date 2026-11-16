@@ -24,6 +24,12 @@ class Limits:
     external_links_checked: int = 200
     external_links_budget_seconds: float = 300.0
     dns_queries_max: int = 40
+    takeover_hosts_max: int = 20
+    takeover_queries_max: int = 80
+    ads_bytes_max: int = 200_000
+    sitemap_bytes_max: int = 2_000_000
+    sitemap_urls_stored: int = 2000
+    sitemap_urls_checked: int = 20
     browser_sample_standard: int = 10
     browser_sample_deep: int = 25
     gsc_inspections: int = 100

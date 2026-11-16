@@ -92,7 +92,7 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
         audit.append("scan_start", domain=target.registrable, level=level, profile=profile)
         try:
             await crawl(gk, snap, progress=progress)
-            await gather_probes(gk, snap, doh)
+            await gather_probes(gk, snap, doh, progress)
             snap.status = "complete"
         except ClaudiosError as e:
             snap.status, snap.abort = "aborted", _abort_info(e.code, **e.ctx)
