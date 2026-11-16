@@ -5,33 +5,38 @@
       "name": "java",
       "title": "Java (Eclipse Temurin JRE 21)",
       "kind": "archive",
-      "version": "",
-      "url": "",
-      "sha256": "",
-      "size": 0,
+      "version": "jdk-21.0.13+9",
+      "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jre_x64_windows_hotspot_21.0.13_9.zip",
+      "sha256": "2332c0b4cff6bed722da3567c91d5e47568bcba863fa4945d0a8d6fc76158628",
+      "size": 49106397,
       "license": "GPL-2.0 with Classpath Exception (Eclipse Temurin)",
       "source": "https://adoptium.net/",
       "depends": [],
       "exe": "**/bin/java.exe",
       "filename": "",
       "strip_top": true,
-      "resolver": {"type": "adoptium", "major": 21}
+      "resolver": {
+        "type": "adoptium",
+        "major": 21
+      }
     },
     {
       "name": "node",
       "title": "Node.js (LTS)",
       "kind": "archive",
-      "version": "",
-      "url": "",
-      "sha256": "",
-      "size": 0,
+      "version": "26.13.1",
+      "url": "https://nodejs.org/dist/v26.13.1/node-v26.13.1-win-x64.zip",
+      "sha256": "e2edda75bfb089654705cf65a13b58933bfd5f57148e8ebda916f58a2474f1f7",
+      "size": 41166246,
       "license": "MIT",
       "source": "https://nodejs.org/",
       "depends": [],
       "exe": "**/node.exe",
       "filename": "",
       "strip_top": true,
-      "resolver": {"type": "node"}
+      "resolver": {
+        "type": "node"
+      }
     },
     {
       "name": "vnu",
@@ -43,43 +48,61 @@
       "size": 0,
       "license": "MIT",
       "source": "https://github.com/validator/validator",
-      "depends": ["java"],
+      "depends": [
+        "java"
+      ],
       "exe": "**/vnu.jar",
       "filename": "",
       "strip_top": false,
-      "resolver": {"type": "github", "repo": "validator/validator", "asset": "^vnu\\.jar_.*\\.zip$"}
+      "resolver": {
+        "type": "github",
+        "repo": "validator/validator",
+        "asset": "^vnu\\.jar_.*\\.zip$"
+      }
     },
     {
       "name": "css-validator",
       "title": "W3C CSS Validator",
       "kind": "file",
-      "version": "",
-      "url": "",
-      "sha256": "",
-      "size": 0,
+      "version": "cssval-20250226",
+      "url": "https://github.com/w3c/css-validator/releases/download/cssval-20250226/css-validator.jar",
+      "sha256": "5f764d63be946cce3940deb154759bdc4413b898f766ae48f5f0e5c2212c8afd",
+      "size": 9980883,
       "license": "W3C Software License (bitte prüfen)",
       "source": "https://github.com/w3c/css-validator",
-      "depends": ["java"],
+      "depends": [
+        "java"
+      ],
       "exe": "css-validator.jar",
       "filename": "css-validator.jar",
       "strip_top": false,
-      "resolver": {"type": "github", "repo": "w3c/css-validator", "asset": "^css-validator\\.jar$"}
+      "resolver": {
+        "type": "github",
+        "repo": "w3c/css-validator",
+        "asset": "^css-validator\\.jar$"
+      }
     },
     {
       "name": "zap",
       "title": "OWASP ZAP (Core)",
       "kind": "archive",
-      "version": "",
-      "url": "",
-      "sha256": "",
-      "size": 0,
+      "version": "2.17.0",
+      "url": "https://github.com/zaproxy/zaproxy/releases/download/v2.17.0/ZAP_2.17.0_Core.zip",
+      "sha256": "0cb73b7f72d12c263fb61de304edb82a455d7aa4e1813c216c061765c306f5b7",
+      "size": 108340737,
       "license": "Apache-2.0",
       "source": "https://www.zaproxy.org/",
-      "depends": ["java"],
+      "depends": [
+        "java"
+      ],
       "exe": "**/zap-*.jar",
       "filename": "",
       "strip_top": false,
-      "resolver": {"type": "github", "repo": "zaproxy/zaproxy", "asset": "^ZAP_.*_Core\\.zip$"}
+      "resolver": {
+        "type": "github",
+        "repo": "zaproxy/zaproxy",
+        "asset": "^ZAP_.*_Core\\.zip$"
+      }
     }
   ]
 }
