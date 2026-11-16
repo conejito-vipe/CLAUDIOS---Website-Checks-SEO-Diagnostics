@@ -35,6 +35,9 @@ class Limits:
     assets_bytes_max: int = 500_000
     tool_timeout_seconds: float = 120.0
     tool_output_max: int = 2_000_000
+    browser_timeout_seconds: float = 60.0
+    sslyze_timeout_seconds: float = 300.0
+    zap_timeout_seconds: float = 600.0
     browser_sample_standard: int = 10
     browser_sample_deep: int = 25
     gsc_inspections: int = 100
