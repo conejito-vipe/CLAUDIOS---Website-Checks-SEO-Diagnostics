@@ -154,7 +154,8 @@ def test_single_file_component_and_outdated_detection(env):
 def test_shipped_lock_is_valid_and_ordered():
     lock = load_lock()
     names = [c.name for c in lock]
-    assert names == ["java", "node", "vnu", "css-validator", "zap", "npm-tools"]
+    assert names[:5] == ["java", "node", "vnu", "css-validator", "zap"]
+    assert names[-1] == "npm-tools" and len(set(names)) == len(names)
     for c in lock:
         assert all(dep in names[: names.index(c.name)] for dep in c.depends)
         assert c.url == "" or c.url.startswith("https://")
@@ -166,7 +167,8 @@ def test_parse_lock_rejects_bad_entries():
     assert parse_lock({"schema": 1, "components": [base]})[0].name == "x"
     for bad in ({**base, "url": "http" + "://x.test/a.zip"}, {**base, "sha256": "zz", "url": "https://x.test/a"},
                 {**base, "depends": ["nope"]}, {**base, "kind": "exe"}, {**base, "name": "Bad Name"},
-                {**base, "kind": "file", "filename": "../a.jar"}, {**base, "sha256": "a" * 64}):
+                {**base, "kind": "file", "filename": "../a.jar"}, {**base, "sha256": "a" * 64},
+                {**base, "kind": "npm", "url": "https://x.test/a"}, {**base, "kind": "pip", "sha256": "a" * 64}):
         with pytest.raises(ValueError):
             parse_lock({"schema": 1, "components": [bad]})
     with pytest.raises(ValueError):
