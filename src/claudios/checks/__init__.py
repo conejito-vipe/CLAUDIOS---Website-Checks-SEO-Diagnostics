@@ -1,15 +1,16 @@
+"""Lädt jede Prüfungsdatei in diesem Ordner automatisch. Neue Prüfung = neue Datei, keine Änderung hier."""
 from __future__ import annotations
 
 import importlib
+import pkgutil
 
-_MODULES = ("system", "html_checks", "security", "seo", "dns", "links", "takeover", "ads", "hardening",
-            "privacy", "seo_more", "tools_html", "codequality", "tls", "npmchecks")
 _loaded = False
 
 
 def load_all() -> None:
     global _loaded
     if not _loaded:
-        for name in _MODULES:
-            importlib.import_module(f"{__name__}.{name}")
+        for info in sorted(pkgutil.iter_modules(__path__), key=lambda i: i.name):
+            if not info.name.startswith("_"):
+                importlib.import_module(f"{__name__}.{info.name}")
         _loaded = True
