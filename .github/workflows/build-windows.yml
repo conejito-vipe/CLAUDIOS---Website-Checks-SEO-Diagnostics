@@ -1,0 +1,28 @@
+name: Windows-Build und Installer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[gui]" pyinstaller
+      - run: python tools/count_loc.py
+      - name: Programm bauen (onedir, ohne Konsolenfenster)
+        run: pyinstaller --noconfirm --onedir --windowed --name Claudios --collect-submodules claudios --collect-data claudios --add-data "assets;claudios/assets" installer/launcher.py
+      - name: Installer bauen (Inno Setup)
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\claudios.iss
+      - name: Prüfsumme berechnen
+        run: |
+          Get-FileHash installer\Output\*.exe -Algorithm SHA256 | Format-List | Out-String | Write-Host
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Claudios-Setup
+          path: installer/Output/*.exe

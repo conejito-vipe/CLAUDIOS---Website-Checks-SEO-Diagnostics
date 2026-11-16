@@ -1,0 +1,51 @@
+name: pip-Sperrliste für sslyze erzeugen
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Liste mit Prüfsummen für alle Plattformen erzeugen
+        run: |
+          pip install uv
+          echo "sslyze>=6,<7" > /tmp/req.in
+          uv pip compile /tmp/req.in --universal --generate-hashes --python-version 3.12 --no-header -o /tmp/req.txt
+          python - <<'PY'
+          import json, pathlib
+          text = pathlib.Path("/tmp/req.txt").read_text()
+          assert "--hash=sha256:" in text
+          pathlib.Path("src/claudios/components/pip-sslyze.json").write_text(
+              json.dumps({"python": "3.12", "requirements": text}, indent=2) + "\n")
+          PY
+      - name: Liste hochladen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/claudios/components/pip-sslyze.json
+          git diff --cached --quiet || (git commit -m "Add pip lock for sslyze (pinned versions with hashes)" && git push)
+      - name: Installation mit Prüfsummen ausprobieren
+        run: |
+          python -m venv /tmp/env
+          /tmp/env/bin/pip install --require-hashes --no-deps --only-binary=:all: --disable-pip-version-check -r /tmp/req.txt
+          /tmp/env/bin/python -m sslyze --help | head -n 5
+      - name: sslyze und IP-Schreibweise ausprobieren
+        run: |
+          set +e
+          IP=$(getent ahostsv4 example.com | awk '{print $1}' | head -n 1)
+          cd /tmp
+          /tmp/env/bin/python -m sslyze --tlsv1_3 --json_out out1.json "example.com{$IP}:443" > o1.txt 2> e1.txt
+          echo "Schreibweise A (host{ip}:443) exit $?" > codes.txt
+          /tmp/env/bin/python -m sslyze --tlsv1_3 --json_out out2.json "example.com:443{$IP}" > o2.txt 2> e2.txt
+          echo "Schreibweise B (host:443{ip}) exit $?" >> codes.txt
+          echo "::notice title=Exit-Codes::$(tr '\n' ' ' < codes.txt)"
+          for f in o1.txt e1.txt o2.txt e2.txt; do
+            echo "::notice title=$f::$(head -c 400 $f 2>/dev/null | tr '\n' ' ')"
+          done
+          echo "::notice title=out1.json::$(head -c 600 out1.json 2>/dev/null | tr '\n' ' ')"
+          exit 0
