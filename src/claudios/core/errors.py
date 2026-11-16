@@ -37,6 +37,10 @@ class ErrorCode(str, Enum):
     CHECKSUM_MISMATCH = "CLA-CMP-005"
     UNSAFE_ARCHIVE = "CLA-CMP-006"
     INSTALL_CANCELLED = "CLA-CMP-007"
+    BROWSER_FAILED = "CLA-BRW-001"
+    GOOGLE_AUTH = "CLA-GGL-001"
+    GOOGLE_PROPERTY = "CLA-GGL-002"
+    GOOGLE_IMPORT = "CLA-GGL-003"
     EXPORT_FAILED = "CLA-EXP-001"
     FS_ERROR = "CLA-FS-001"
     INTERNAL = "CLA-INT-001"
@@ -44,7 +48,7 @@ class ErrorCode(str, Enum):
 
 # Diese Fehler brechen nur die einzelne Seite/Prüfung ab, nicht den ganzen Scan.
 NON_FATAL = {ErrorCode.NET_TIMEOUT, ErrorCode.NET_CONNECT, ErrorCode.NET_REDIRECTS,
-             ErrorCode.TOOL_FAILED, ErrorCode.COMPONENT_MISSING}
+             ErrorCode.TOOL_FAILED, ErrorCode.COMPONENT_MISSING, ErrorCode.BROWSER_FAILED}
 
 
 class ClaudiosError(Exception):
@@ -65,10 +69,12 @@ class _Safe(dict):
 
 @lru_cache(maxsize=1)
 def catalog() -> dict:
+    """Liest jede Datei errors*.json im Ordner i18n. Neue Meldungen = neue Datei."""
     data: dict = {}
     base = resources.files("claudios.i18n")
-    for name in ("errors.json", "errors_components.json"):
-        data.update(json.loads(base.joinpath(name).read_text("utf-8")))
+    for item in sorted(base.iterdir(), key=lambda p: p.name):
+        if item.name.startswith("errors") and item.name.endswith(".json"):
+            data.update(json.loads(item.read_text("utf-8")))
     return data
 
 
