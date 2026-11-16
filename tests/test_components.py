@@ -154,7 +154,7 @@ def test_single_file_component_and_outdated_detection(env):
 def test_shipped_lock_is_valid_and_ordered():
     lock = load_lock()
     names = [c.name for c in lock]
-    assert names == ["java", "node", "vnu", "css-validator", "zap"]
+    assert names == ["java", "node", "vnu", "css-validator", "zap", "npm-tools"]
     for c in lock:
         assert all(dep in names[: names.index(c.name)] for dep in c.depends)
         assert c.url == "" or c.url.startswith("https://")
