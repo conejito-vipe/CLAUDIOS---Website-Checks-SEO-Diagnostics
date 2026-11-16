@@ -30,21 +30,23 @@ def ensure_in_tools(program: Path | str, root: Path | None = None) -> None:
         raise ClaudiosError(E.TOOL_FAILED, reason="program outside of the tools folder")
 
 
-def _env() -> dict[str, str]:
-    return {key: os.environ[key] for key in _KEEP_ENV if key in os.environ}
+def _env(extra: dict[str, str] | None) -> dict[str, str]:
+    env = {key: os.environ[key] for key in _KEEP_ENV if key in os.environ}
+    env.update(extra or {})
+    return env
 
 
 def _decode(data: bytes, limit: int) -> tuple[str, bool]:
     return data[:limit].decode("utf-8", errors="replace"), len(data) > limit
 
 
-def run_tool(args: list, *, cwd: Path | str, timeout: float | None = None,
-             root: Path | None = None) -> ToolResult:
+def run_tool(args: list, *, cwd: Path | str, timeout: float | None = None, root: Path | None = None,
+             extra_env: dict[str, str] | None = None) -> ToolResult:
     ensure_in_tools(args[0], root)
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     try:
         proc = subprocess.run(
-            [str(a) for a in args], cwd=str(cwd), env=_env(), capture_output=True,
+            [str(a) for a in args], cwd=str(cwd), env=_env(extra_env), capture_output=True,
             timeout=timeout or LIMITS.tool_timeout_seconds, shell=False, creationflags=flags, check=False)
     except subprocess.TimeoutExpired:
         raise ClaudiosError(E.TOOL_FAILED, reason="timeout") from None
