@@ -133,11 +133,17 @@ def test_attack_checks_run_only_at_level_2(env, monkeypatch):
             "openssl_ccs_injection": {"status": "COMPLETED", "result": {"is_vulnerable_to_ccs_injection": False}},
             "robot": {"status": "COMPLETED", "result": {"robot_result": "VULNERABLE_STRONG_ORACLE"}}}
     fake = FakeSslyze(scan)
+    # Stufe 1: die passive Prüfung darf laufen, aber kein Aufruf darf die aktiven Tests enthalten.
     found, executed = run("TLS-ATK", fake, monkeypatch, level=1)
-    assert found == [] and fake.calls == [] and executed["TLS-ATK-001"] == "skipped:level2_required"
+    assert found == [] and executed["TLS-ATK-001"] == "skipped:level2_required"
+    assert not any("--heartbleed" in call or "--robot" in call for call in fake.calls)
+    fake.calls.clear()
+    # Stufe 2: die aktive Prüfung läuft mit genau ihren Tests.
     found, executed = run("TLS-ATK", fake, monkeypatch, level=2)
     assert pairs(found) == {("TLS-ATK-001", S.CRITICAL), ("TLS-ATK-001", S.ERROR)} and len(found) == 2
-    assert executed["TLS-ATK-001"] == "ran" and "--robot" in fake.calls[0] and "--sslv2" not in fake.calls[0]
+    assert executed["TLS-ATK-001"] == "ran"
+    attack = next(call for call in fake.calls if "--robot" in call)
+    assert "--heartbleed" in attack and "--openssl_ccs" in attack and "--sslv2" not in attack
     clean = {"heartbleed": {"status": "COMPLETED", "result": {"is_vulnerable_to_heartbleed": False}},
              "robot": {"status": "COMPLETED", "result": {"robot_result": "NOT_VULNERABLE_NO_ORACLE"}}}
     found, executed = run("TLS-ATK", FakeSslyze(clean), monkeypatch, level=2)
@@ -196,7 +202,8 @@ def test_pip_install_is_hash_pinned_isolated_and_https_only(fake_pip, monkeypatc
     manager.install(SSLYZE)
     assert manager.status(SSLYZE) == "installed"
     args, requirements = calls[0]
-    for flag in ("--require-hashes", "--no-deps", "--only-binary=:all:", "https://pypi.org/simple"):
+    for flag in ("--require-hashes", "--no-deps", "--only-binary=:all:", "--no-binary=sslyze",
+                 "https://pypi.org/simple"):
         assert flag in args
     assert "--hash=sha256:" in requirements
     assert manager.component_checker(lock=[SSLYZE])("sslyze") is True
