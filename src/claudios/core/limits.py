@@ -30,6 +30,11 @@ class Limits:
     sitemap_bytes_max: int = 2_000_000
     sitemap_urls_stored: int = 2000
     sitemap_urls_checked: int = 20
+    assets_css_max: int = 6
+    assets_js_max: int = 10
+    assets_bytes_max: int = 500_000
+    tool_timeout_seconds: float = 120.0
+    tool_output_max: int = 2_000_000
     browser_sample_standard: int = 10
     browser_sample_deep: int = 25
     gsc_inspections: int = 100
