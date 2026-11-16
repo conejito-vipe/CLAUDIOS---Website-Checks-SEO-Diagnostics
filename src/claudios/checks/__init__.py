@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 
 _MODULES = ("system", "html_checks", "security", "seo", "dns", "links", "takeover", "ads", "hardening",
-            "privacy", "seo_more")
+            "privacy", "seo_more", "tools_html", "codequality", "tls")
 _loaded = False
 
 
