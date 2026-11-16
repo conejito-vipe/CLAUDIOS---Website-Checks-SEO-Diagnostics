@@ -41,24 +41,18 @@
     {
       "name": "vnu",
       "title": "W3C Nu Html Checker (vnu.jar)",
-      "kind": "archive",
+      "kind": "file",
       "version": "",
       "url": "",
       "sha256": "",
       "size": 0,
       "license": "MIT",
       "source": "https://github.com/validator/validator",
-      "depends": [
-        "java"
-      ],
-      "exe": "**/vnu.jar",
-      "filename": "",
+      "depends": ["java"],
+      "exe": "vnu.jar",
+      "filename": "vnu.jar",
       "strip_top": false,
-      "resolver": {
-        "type": "github",
-        "repo": "validator/validator",
-        "asset": "^vnu\\.jar_.*\\.zip$"
-      }
+      "resolver": {"type": "github", "repo": "validator/validator", "asset": "^vnu\\.jar$"}
     },
     {
       "name": "css-validator",
