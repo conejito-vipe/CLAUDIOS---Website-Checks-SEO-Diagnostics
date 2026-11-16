@@ -1,8 +1,10 @@
 """Komponenten-Manager: Download nur per HTTPS mit SHA256-Prüfung, sicheres Entpacken, Installation, Entfernen.
-Ungeprüfte Komponenten (ohne Prüfsumme in der Lock-Datei) werden nie installiert."""
+Ungeprüfte Komponenten (ohne Prüfsumme in der Lock-Datei) werden nie installiert.
+Komponenten der Art npm oder pip haben ein eigenes Modul <art>tools.py (npmtools, piptools)."""
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
 import os
 import shutil
@@ -20,7 +22,6 @@ import httpx
 
 from .. import paths
 from ..core.errors import ClaudiosError, ErrorCode as E
-from . import npmtools
 from .lock import Component, load_lock
 
 MAX_DOWNLOAD = 700 * 1024 * 1024
@@ -29,6 +30,13 @@ MAX_FILES = 50_000
 MARKER = ".claudios-installed.json"
 _REDIRECTS = {301, 302, 303, 307, 308}
 Progress = Callable[[str, str, int, int], None]
+
+
+def _handler(kind: str):
+    """None für archive und file; sonst das Modul <kind>tools (npm -> npmtools, pip -> piptools)."""
+    if kind in ("archive", "file"):
+        return None
+    return importlib.import_module(f"{__package__}.{kind}tools")
 
 
 # ---------------------------------------------------------------- Status
@@ -40,8 +48,9 @@ def find_exe(comp: Component, base: Path) -> Path | None:
 
 def status(comp: Component, root: Path | None = None) -> str:
     """installed | missing | outdated | not_pinned"""
-    if comp.kind == "npm":
-        return npmtools.status(comp, root)
+    handler = _handler(comp.kind)
+    if handler is not None:
+        return handler.status(comp, root)
     if not comp.sha256:
         return "not_pinned"
     base = (root or paths.tools_dir()) / comp.name
@@ -190,8 +199,9 @@ def extract(archive: Path, dest: Path, strip_top: bool) -> None:
 
 def install(comp: Component, *, root: Path | None = None, client: httpx.Client | None = None,
             progress: Progress | None = None, cancel: threading.Event | None = None) -> None:
-    if comp.kind == "npm":
-        return npmtools.install(comp, root=root, progress=progress, cancel=cancel)
+    handler = _handler(comp.kind)
+    if handler is not None:
+        return handler.install(comp, root=root, progress=progress, cancel=cancel)
     report = progress or (lambda *_: None)
     target = (root or paths.tools_dir()) / comp.name
     try:
