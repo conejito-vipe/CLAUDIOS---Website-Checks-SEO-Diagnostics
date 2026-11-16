@@ -52,6 +52,10 @@ class FakeTools:
             return ToolResult(self.codes.get("retire", 0), "", "", False)
         return ToolResult(self.codes.get("eslint", 1), self.outputs["eslint"], "", False)
 
+    def call_of(self, tool):
+        """Der Aufruf eines bestimmten Werkzeugs (es laufen mehrere Prüfungen mit demselben Fake)."""
+        return next(c for c in self.calls if tool in c[1])
+
 
 def patch(monkeypatch, fake):
     monkeypatch.setattr(npmchecks, "tool_path", lambda name: Path("/t") / "node.exe")
@@ -82,8 +86,9 @@ def test_eslint_results_are_mapped_and_tools_never_get_an_address(env, monkeypat
     warn = next(f for f in found if f.severity == S.WARNING)
     assert warn.url == "https://example.com/app.js" and warn.evidence == "Line 3: bad regex"
     assert executed["JSS-ESL-001"] == "ran"
-    args = fake.calls[0]
-    assert "-c" in args and "--format" in args and not any(a.startswith("https:") for a in args)
+    args = fake.call_of("eslint")
+    assert "-c" in args and "--format" in args
+    assert not any(a.startswith("https:") for call in fake.calls for a in call)
 
 
 def test_stylelint_results_and_config_problems(env, monkeypatch):
