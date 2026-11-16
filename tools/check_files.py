@@ -1,4 +1,4 @@
-"""Prüft, ob alle Dateien der Pakete 1 bis 4b vorhanden und aktuell sind (läuft in GitHub Actions, ohne Konsole)."""
+"""Prüft, ob alle Dateien der Pakete 1 bis 4c-1 vorhanden und aktuell sind (läuft in GitHub Actions, ohne Konsole)."""
 from __future__ import annotations
 
 import sys
@@ -35,27 +35,33 @@ P4A = [SRC + "components/__init__.py", SRC + "components/components.lock.json", 
 P4B = [SRC + "core/toolrunner.py", SRC + "core/assetprobe.py", SRC + "core/tlsprobe.py",
        SRC + "checks/tools_html.py", SRC + "checks/codequality.py", SRC + "checks/tls.py",
        SRC + "i18n/strings_tools.py", "tests/test_tools.py"]
+P4C1 = [SRC + "components/npmtools.py", SRC + "components/npm/package.json",
+        SRC + "components/npm/eslint.config.mjs", SRC + "components/npm/stylelint.config.json",
+        SRC + "checks/npmchecks.py", SRC + "i18n/errors_extra.json", "tests/test_npmchecks.py",
+        ".github/workflows/npm-lock.yml"]
 
 # (Datei, Text, der in der neuen Fassung stehen muss, Paket)
 CONTENT = [
     (SRC + "core/limits.py", "takeover_hosts_max", "3b-1"), (SRC + "core/limits.py", "sitemap_urls_checked", "3b-2"),
-    (SRC + "core/limits.py", "assets_css_max", "4b"),
-    (SRC + "checks/__init__.py", "hardening", "3b-1"), (SRC + "checks/__init__.py", "seo_more", "3b-2"),
-    (SRC + "checks/__init__.py", '"tls"', "4b"),
+    (SRC + "core/limits.py", "assets_css_max", "4b"), (SRC + "core/limits.py", "browser_timeout_seconds", "Struktur"),
     (SRC + "core/probes.py", "collect_sitemap", "3b-2"), (SRC + "core/probes.py", "probe_tls", "4b"),
     (SRC + "core/engine.py", "gather_probes(gk, snap, doh, progress)", "3b-2"),
     (SRC + "checks/_util.py", "group_digits", "3b-2"),
+    (SRC + "checks/__init__.py", "pkgutil", "Struktur"), (SRC + "i18n/__init__.py", "pkgutil", "Struktur"),
+    (SRC + "core/errors.py", "GOOGLE_PROPERTY", "Struktur"),
+    (SRC + "components/lock.py", "_extras", "Struktur"), (SRC + "components/manager.py", "_handler", "Struktur"),
+    (SRC + "ui/main_window.py", "_discover_pages", "Struktur"),
     (SRC + "ui/worker.py", "component_checker", "4b"), (SRC + "ui/pages.py", "scan.probe", "3b-2"),
-    (SRC + "i18n/strings.py", "probe.sitemap", "3b-2"),
-    (SRC + "i18n/__init__.py", "strings_components", "4a"), (SRC + "i18n/__init__.py", "strings_tools", "4b"),
-    (SRC + "ui/main_window.py", "ComponentsPage", "4a"), (SRC + "core/errors.py", "COMPONENT_NOT_PINNED", "4a"),
-    ("pyproject.toml", "components/*.json", "4a"), ("tests/test_privacy_seo.py", "probe:tls", "4b"),
+    (SRC + "i18n/strings.py", "probe.sitemap", "3b-2"), (SRC + "ui/main_window.py", "ComponentsPage", "4a"),
+    ("pyproject.toml", "components/npm", "4c-1"), ("tests/test_privacy_seo.py", "probe:tls", "4b"),
+    ("tests/test_components.py", 'names[-1] == "npm-tools"', "Struktur"),
 ]
 
 
 def main() -> int:
     problems = 0
-    for group, label in ((BASE, "Pakete 1-3b"), (P4A, "Paket 4a"), (P4B, "Paket 4b")):
+    groups = ((BASE, "Pakete 1-3b"), (P4A, "Paket 4a"), (P4B, "Paket 4b"), (P4C1, "Paket 4c-1"))
+    for group, label in groups:
         for rel in group:
             if not (ROOT / rel).is_file():
                 problems += 1
