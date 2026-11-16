@@ -25,6 +25,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Werkzeuge ausprobieren
         run: |
+          set +e
           NPM="$GITHUB_WORKSPACE/src/claudios/components/npm"
           mkdir -p /tmp/t && cd /tmp/t
           printf 'eval(x);\nvar r = new RegExp(y);\nvar bad = /(a+)+$/;\n' > f0.js
@@ -40,3 +41,4 @@ jobs:
           for f in eslint.json eslint.err style.json style.err retire.json retire.err; do
             echo "::notice title=$f::$(head -c 500 $f 2>/dev/null | tr '\n' ' ')"
           done
+          exit 0
