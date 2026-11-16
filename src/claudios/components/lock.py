@@ -9,7 +9,7 @@ from pathlib import Path
 
 _HEX = re.compile(r"^[0-9a-f]{64}$")
 _NAME = re.compile(r"^[a-z0-9-]+$")
-_KINDS = ("archive", "file")
+_KINDS = ("archive", "file", "npm")
 
 
 @dataclass(frozen=True)
@@ -27,6 +27,13 @@ class Component:
     exe: str
     filename: str
     strip_top: bool
+
+
+# Fest im Code: Die Prüfsumme ist die der mitgelieferten package-lock.json (npm prüft damit jedes Paket).
+NPM_TOOLS = Component(
+    name="npm-tools", title="ESLint, Stylelint, retire.js (npm)", kind="npm", version="", url="", sha256="",
+    size=0, license="MIT / Apache-2.0 (bitte prüfen)", source="https://www.npmjs.com/", depends=("node",),
+    exe="node_modules/eslint/bin/eslint.js", filename="", strip_top=False)
 
 
 def parse_lock(raw: dict) -> list[Component]:
@@ -55,14 +62,18 @@ def parse_lock(raw: dict) -> list[Component]:
             raise ValueError(f"{comp.name}: sha256 without url")
         if comp.kind == "file" and (not comp.filename or "/" in comp.filename or "\\" in comp.filename):
             raise ValueError(f"{comp.name}: invalid filename")
+        if comp.kind == "npm" and (comp.url or comp.sha256):
+            raise ValueError(f"{comp.name}: npm components are pinned by their package-lock.json")
         seen.add(comp.name)
         out.append(comp)
     return out
 
 
 def load_lock(path: Path | str | None = None) -> list[Component]:
-    if path is None:
-        text = resources.files("claudios.components").joinpath("components.lock.json").read_text("utf-8")
-    else:
-        text = Path(path).read_text("utf-8")
-    return parse_lock(json.loads(text))
+    if path is not None:
+        return parse_lock(json.loads(Path(path).read_text("utf-8")))
+    text = resources.files("claudios.components").joinpath("components.lock.json").read_text("utf-8")
+    comps = parse_lock(json.loads(text))
+    if all(c.name != NPM_TOOLS.name for c in comps):
+        comps.append(NPM_TOOLS)
+    return comps

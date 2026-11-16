@@ -20,6 +20,7 @@ import httpx
 
 from .. import paths
 from ..core.errors import ClaudiosError, ErrorCode as E
+from . import npmtools
 from .lock import Component, load_lock
 
 MAX_DOWNLOAD = 700 * 1024 * 1024
@@ -39,6 +40,8 @@ def find_exe(comp: Component, base: Path) -> Path | None:
 
 def status(comp: Component, root: Path | None = None) -> str:
     """installed | missing | outdated | not_pinned"""
+    if comp.kind == "npm":
+        return npmtools.status(comp, root)
     if not comp.sha256:
         return "not_pinned"
     base = (root or paths.tools_dir()) / comp.name
@@ -187,6 +190,8 @@ def extract(archive: Path, dest: Path, strip_top: bool) -> None:
 
 def install(comp: Component, *, root: Path | None = None, client: httpx.Client | None = None,
             progress: Progress | None = None, cancel: threading.Event | None = None) -> None:
+    if comp.kind == "npm":
+        return npmtools.install(comp, root=root, progress=progress, cancel=cancel)
     report = progress or (lambda *_: None)
     target = (root or paths.tools_dir()) / comp.name
     try:
