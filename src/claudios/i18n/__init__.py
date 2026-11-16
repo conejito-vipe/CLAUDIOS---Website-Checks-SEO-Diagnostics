@@ -1,1 +1,1 @@
-from . import strings_components  # noqa: F401  (ergänzt die UI-Texte um die Komponenten-Texte)
+from . import strings_components, strings_tools  # noqa: F401  (ergänzen die UI-Texte)
