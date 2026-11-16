@@ -32,6 +32,11 @@ class ErrorCode(str, Enum):
     SCAN_CANCELLED = "CLA-SCN-001"
     COMPONENT_MISSING = "CLA-CMP-001"
     TOOL_FAILED = "CLA-CMP-002"
+    COMPONENT_NOT_PINNED = "CLA-CMP-003"
+    DOWNLOAD_FAILED = "CLA-CMP-004"
+    CHECKSUM_MISMATCH = "CLA-CMP-005"
+    UNSAFE_ARCHIVE = "CLA-CMP-006"
+    INSTALL_CANCELLED = "CLA-CMP-007"
     EXPORT_FAILED = "CLA-EXP-001"
     FS_ERROR = "CLA-FS-001"
     INTERNAL = "CLA-INT-001"
@@ -60,7 +65,11 @@ class _Safe(dict):
 
 @lru_cache(maxsize=1)
 def catalog() -> dict:
-    return json.loads(resources.files("claudios.i18n").joinpath("errors.json").read_text("utf-8"))
+    data: dict = {}
+    base = resources.files("claudios.i18n")
+    for name in ("errors.json", "errors_components.json"):
+        data.update(json.loads(base.joinpath(name).read_text("utf-8")))
+    return data
 
 
 def describe(code: ErrorCode | str, lang: str = "en", **ctx: object) -> dict[str, str]:
