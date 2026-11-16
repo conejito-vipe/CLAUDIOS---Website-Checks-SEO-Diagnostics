@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import importlib
 
-_MODULES = ("system", "html_checks", "security", "seo", "dns", "links")
+_MODULES = ("system", "html_checks", "security", "seo", "dns", "links", "takeover", "ads", "hardening",
+            "privacy", "seo_more")
 _loaded = False
 
 
