@@ -10,7 +10,7 @@ from ..core.engine import run_scan
 
 
 class ScanThread(QThread):
-    progress = Signal(int, int)
+    progress = Signal(str, int, int)
     done = Signal(object)
     failed = Signal(object)
 
@@ -37,7 +37,7 @@ class ScanThread(QThread):
         return await run_scan(
             **self._kwargs,
             cancel=self._event,
-            progress=lambda _stage, cur, total: self.progress.emit(cur, total),
+            progress=lambda stage, cur, total: self.progress.emit(stage, cur, total),
         )
 
     def cancel(self) -> None:

@@ -150,9 +150,12 @@ class ScanPage(QWidget):
             thread.cancel()
             thread.wait(20000)
 
-    def _on_progress(self, cur: int, total: int) -> None:
+    def _on_progress(self, stage: str, cur: int, total: int) -> None:
         self.bar.setValue(int(cur / max(total, 1) * 100))
-        message = t("scan.progress", cur=n(cur), total=n(total))
+        if stage.startswith("probe:"):
+            message = t("scan.probe", cur=n(cur), total=n(total), name=t("probe." + stage[6:]))
+        else:
+            message = t("scan.progress", cur=n(cur), total=n(total))
         self.status.setText(message)
         self.log.appendPlainText(message)
 
