@@ -216,7 +216,8 @@ def test_uninstall_ignores_unknown_and_unsafe_keys(env):
 
 def test_affected_checks_counts_checks_that_need_removed_tools(env):
     lock = [comp(), comp(name="vnu", depends=("java",), exe="**/vnu.jar")]
-    before = manager.affected_checks(["java"], lock)
+    before_java = manager.affected_checks(["java"], lock)
+    before_vnu = manager.affected_checks(["vnu"], lock)
 
     @check("TST-NDS-001", title="T ## T", why="w ## w", method="m ## m", logic="l ## l", fix="f ## f",
            refs=["https://example.com/"], needs=("vnu",))
@@ -224,8 +225,8 @@ def test_affected_checks_counts_checks_that_need_removed_tools(env):
         return []
 
     try:
-        assert manager.affected_checks(["java"], lock) == before + 1
-        assert manager.affected_checks(["vnu"], lock) == before + 1
+        assert manager.affected_checks(["java"], lock) == before_java + 1
+        assert manager.affected_checks(["vnu"], lock) == before_vnu + 1
     finally:
         REGISTRY.pop("TST-NDS-001")
 
