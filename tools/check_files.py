@@ -11,10 +11,6 @@ BASE = [
     "pyproject.toml", "LICENSE", ".gitignore", ".github/workflows/ci.yml", "tools/count_loc.py",
     SRC + "__init__.py", SRC + "__main__.py", SRC + "app.py", SRC + "buildinfo.py", SRC + "docs.py",
     SRC + "paths.py", SRC + "settings.py",
-    *[SRC + "core/" + n for n in (
-        "__init__", "adsprobe", "audit_log", "crawler", "dnsprobe", "engine", "errors", "findings", "guard",
-        "limits", "linkprobe", "net", "numfmt", "probes", "quota", "redact", "registry", "scoring", "seoprobe",
-        "snapshot", "takeoverprobe")] if False else [],
 ]
 for name in ("__init__", "adsprobe", "audit_log", "crawler", "dnsprobe", "engine", "errors", "findings", "guard",
              "limits", "linkprobe", "net", "numfmt", "probes", "quota", "redact", "registry", "scoring",
