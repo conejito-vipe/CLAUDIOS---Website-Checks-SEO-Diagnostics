@@ -1,6 +1,10 @@
 """Installation von Python-Werkzeugen (sslyze) in eine eigene, isolierte Umgebung.
 pip läuft nur mit --require-hashes und --no-deps aus einer festen Liste (components/pip-sslyze.json),
-nur gegen die offizielle Registry über HTTPS. Ohne Prüfsummen in der Liste wird nichts installiert."""
+nur gegen die offizielle Registry über HTTPS. Ohne Prüfsummen in der Liste wird nichts installiert.
+
+Wheels sind Pflicht. Ausnahme ist das Werkzeug selbst (sslyze hat bei PyPI kein Wheel): sein Quellarchiv wird gegen
+die Prüfsumme der Liste geprüft und dann gebaut. Die Build-Werkzeuge dafür (setuptools o. ä.) lädt pip in eine
+Hilfsumgebung und prüft sie nicht gegen die Liste."""
 from __future__ import annotations
 
 import hashlib
@@ -100,7 +104,8 @@ def install(comp: Component, *, root: Path | None = None,
             requirements.write_text(_requirements(), "utf-8")
             result = run_tool(
                 [venv_python, "-m", "pip", "install", "--require-hashes", "--no-deps", "--only-binary=:all:",
-                 "--disable-pip-version-check", "--index-url", INDEX_URL, "-r", requirements],
+                 f"--no-binary={comp.name}", "--disable-pip-version-check", "--index-url", INDEX_URL,
+                 "-r", requirements],
                 cwd=tmp, timeout=PIP_TIMEOUT, root=base,
                 extra_env={"PIP_DISABLE_PIP_VERSION_CHECK": "1", "PIP_NO_INPUT": "1", "PYTHONNOUSERSITE": "1"})
         if result.returncode != 0:
