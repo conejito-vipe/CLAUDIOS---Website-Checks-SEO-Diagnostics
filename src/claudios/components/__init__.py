@@ -1,0 +1,1 @@
+"""Komponenten-Manager: Download, Prüfung, Installation und Entfernen externer Prüfwerkzeuge."""
