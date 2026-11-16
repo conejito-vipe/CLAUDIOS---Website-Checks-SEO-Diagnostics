@@ -210,4 +210,16 @@ def cms(snap):
         sources.append(pg.headers.get("x-generator", ""))
         for text in sources:
             for name in _CMS_NAMES:
-                if name.l
+                if name.lower() in text.lower():
+                    match = _VERSION.search(text)
+                    note(name, pg.url, match.group(1) if match else None, text[:80])
+    out = []
+    for name, entry in sorted(found.items()):
+        if entry["version"]:
+            out.append(F("SEC-CMS-001", S.NOTE, entry["url"], f"{name} {entry['version']} verrät seine Version",
+                         f"{name} {entry['version']} reveals its version", entry["evidence"]))
+        else:
+            out.append(F("SEC-CMS-001", S.INFO, entry["url"],
+                         f"{name} erkannt (Version nicht sichtbar, bitte Updates prüfen)",
+                         f"{name} detected (version not visible, please check for updates)"))
+    return out
