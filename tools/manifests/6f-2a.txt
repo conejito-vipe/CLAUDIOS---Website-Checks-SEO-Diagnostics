@@ -1,0 +1,4 @@
+# Pflichtdateien aus Paket 6f-2a (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/core/audit_anchor.py
+src/claudios/i18n/errors_audit.json
+tests/test_audit_anchor.py
