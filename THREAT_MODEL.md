@@ -19,7 +19,7 @@ aber bisher nur gegen simulierte Daten. / Describes what Claudios protects, agai
 |---|---|---|
 | **Missbraucher** (Nutzer, der fremde oder viele Seiten prüfen will) | Massen- oder Fremdscans, aktive Tests ohne Berechtigung | Eine Domain pro Scan, Tiefe 6, 25 oder 100 Seiten, Drosselung, Abkühlzeit und Stundenlimit, nur HTTPS, keine privaten Adressen, keine Kommandozeile, kein Plugin-System. Aktive Prüfungen nur mit Stufe 2 (Search Console, Inhaber- oder Vollzugriff, bei jedem Scan neu geprüft). |
 | **Feindliche Website** | Programm blockieren, Berichte vergiften, Rechner angreifen | Alle Muster in linearer Zeit, Größen- und Zeitgrenzen, Maskierung aller Inhalte in der Oberfläche und im HTML-Bericht (CSP), Werkzeuge bekommen nur Dateien, nie Adressen, Browser mit gesperrten Service Workern und Anfragen nur über HTTPS an öffentliche Namen. |
-| **Lieferkette** (manipulierter Download oder Paket) | Schadcode über Werkzeuge | Feste Versionen mit SHA256 oder Sperrdatei, sicheres Entpacken (kein Zip-Slip, keine Symlinks, Größenlimit), `npm ci --ignore-scripts`, `pip --require-hashes --no-deps`, nur Aktionen von GitHub selbst in den Workflows. |
+| **Lieferkette** (manipulierter Download oder Paket) | Schadcode über Werkzeuge | Feste Versionen mit SHA256 oder Sperrdatei, sicheres Entpacken (kein Zip-Slip, keine Symlinks, Größenlimit), `npm ci --ignore-scripts`, `pip --require-hashes --no-deps`, nur Aktionen von GitHub selbst in den Workflows. Der Workflow „Sicherheitsprüfung“ prüft die festen Versionen auf bekannte Lücken. |
 | **Anderes Programm auf dem Rechner** | Token abgreifen | Token nur im Arbeitsspeicher oder im Windows-Anmeldeinformationsspeicher, nie in Dateien, Protokollen oder ZIP-Dateien. Schwärzung beim Einlesen und vor dem Export. |
 
 ## Bewusst nicht geschützt / Not protected
@@ -42,7 +42,13 @@ aber bisher nur gegen simulierte Daten. / Describes what Claudios protects, agai
 - Das Audit-Protokoll erkennt Änderungen, aber nicht das Löschen der ganzen Datei (6f).
 - Workflows referenzieren Aktionen per Versions-Tag, nicht per Commit-Prüfsumme. Dependabot hält sie aktuell.
 - sslyze (AGPL-3.0) wird aus dem Quellarchiv gebaut, die Build-Werkzeuge dafür sind nicht per Prüfsumme gesichert.
+- **sslyze läuft mit einer neueren `cryptography`, als es selbst erlaubt.** Der Workflow „pip-Sperrliste“ erzwingt sie,
+  weil die vom Paket erlaubte Version bekannte Lücken hat, und übernimmt sie nur nach einem erfolgreichen
+  sslyze-Lauf gegen eine echte Seite. Das beweist nicht, dass jedes Zertifikat korrekt verarbeitet wird. Ein
+  Fehler würde als „nicht ausgeführt“ sichtbar, nie als „bestanden“.
 - Die Git-Historie wird nicht automatisch nach Geheimnissen durchsucht, nur der aktuelle Stand.
+- Befunde enthalten Text fremder Websites. Für Excel- und CSV-Export (geplant in 6c) wird gegen Formel-Injektion
+  neutralisiert.
 
 ## Regelmäßige Prüfung / Routine checks
 
