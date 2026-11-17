@@ -93,7 +93,8 @@ class SetupPage(QWidget):
         for comp in lock:
             state = manager.status(comp)
             installed += state == "installed"
-            self.components.addItem(f"{comp.title}: {t('cmp.st.' + state)}")
+            state_key = "cmp.st." + state
+            self.components.addItem(f"{comp.title}: {t(state_key)}")
         self.status.setText(t("setup.status", ok=n(installed), total=n(len(lock))))
 
     def showEvent(self, event) -> None:  # noqa: N802 (Name von Qt)
