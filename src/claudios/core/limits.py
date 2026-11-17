@@ -37,10 +37,9 @@ class Limits:
     tool_output_max: int = 2_000_000
     browser_timeout_seconds: float = 60.0
     sslyze_timeout_seconds: float = 300.0
-    zap_timeout_seconds: float = 600.0
     browser_sample_standard: int = 10
     browser_sample_deep: int = 25
-    gsc_inspections: int = 100
+    gsc_inspections: int = 10               # URL-Inspektionen je Scan (Search Console)
     cooldown_seconds: int = 120
     scans_per_hour: int = 5
     scans_per_domain_day_level1: int = 3
