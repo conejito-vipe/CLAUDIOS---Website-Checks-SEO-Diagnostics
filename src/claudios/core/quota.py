@@ -25,8 +25,11 @@ def check_quota(log: AuditLog, domain: str, level: int, now: float | None = None
         raise ClaudiosError(E.LIMIT_COOLDOWN, seconds=LIMITS.cooldown_seconds)
     if log.count("scan_start", 3600, now=now) >= LIMITS.scans_per_hour:
         raise ClaudiosError(E.LIMIT_HOURLY, limit=LIMITS.scans_per_hour)
-    if level == 1 and log.count("scan_start", 86400, domain=domain, now=now) >= LIMITS.scans_per_domain_day_level1:
+    per_domain = log.count("scan_start", 86400, domain=domain, now=now)
+    if level == 1 and per_domain >= LIMITS.scans_per_domain_day_level1:
         raise ClaudiosError(E.LIMIT_DOMAIN_DAY, limit=LIMITS.scans_per_domain_day_level1)
+    if level == 2 and per_domain >= LIMITS.scans_per_domain_day_level2:
+        raise ClaudiosError(E.LIMIT_DOMAIN_DAY_L2, limit=LIMITS.scans_per_domain_day_level2)
 
 
 class ScanLock:
