@@ -17,6 +17,8 @@ from claudios.core.guard import normalize_input
 from claudios.core.snapshot import Page, Snapshot
 from claudios.core.toolrunner import ToolResult
 
+TARGET = sslchecks.TARGET_FORMAT.format(host="example.com", ip="93.184.216.34")
+
 
 @pytest.fixture
 def env(tmp_path, monkeypatch):
@@ -70,7 +72,7 @@ class FakeSslyze:
 
 def patch(monkeypatch, fake):
     monkeypatch.setattr(sslchecks, "tool_path", lambda name: Path("/t/sslyze/Scripts/python.exe"))
-    monkeypatch.setattr(sslchecks, "_target", lambda snap: "example.com{93.184.216.34}:443")
+    monkeypatch.setattr(sslchecks, "_target", lambda snap: TARGET)
     monkeypatch.setattr(sslchecks, "run_tool", fake)
 
 
@@ -82,6 +84,11 @@ def run(prefix, fake, monkeypatch, level=1, components=lambda name: True):
 
 def pairs(found):
     return {(f.check_id, f.severity) for f in found}
+
+
+def test_the_verified_target_notation_is_host_port_then_ip_in_braces():
+    # Im Workflow "pip-Sperrliste" geprüft: host{ip}:443 scheitert mit Verbindungsfehler, host:443{ip} funktioniert.
+    assert TARGET == "example.com:443{93.184.216.34}"
 
 
 def test_old_protocols_weak_ciphers_and_missing_tls13_are_reported(env, monkeypatch):
@@ -96,7 +103,7 @@ def test_old_protocols_weak_ciphers_and_missing_tls13_are_reported(env, monkeypa
     assert executed["TLS-PRO-001"] == "ran"
     args = fake.calls[0]
     assert "--tlsv1" in args and "--json_out" in args and "--heartbleed" not in args
-    assert args[-1] == "example.com{93.184.216.34}:443"
+    assert args[-1] == TARGET
 
 
 def test_modern_server_has_no_findings(env, monkeypatch):
@@ -158,7 +165,7 @@ def test_target_uses_a_verified_public_address(monkeypatch):
             return self.answers[rtype]
 
     monkeypatch.setattr(sslchecks, "DohResolver", FakeDoh)
-    assert sslchecks._target(make_snap()) == "example.com{93.184.216.34}:443"
+    assert sslchecks._target(make_snap()) == TARGET
     FakeDoh.answers = {"A": ["93.184.216.34", "10.0.0.1"], "AAAA": []}
     with pytest.raises(CheckSkipped):
         sslchecks._target(make_snap())
