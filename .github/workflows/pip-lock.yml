@@ -15,7 +15,15 @@ jobs:
         run: |
           pip install uv
           echo "sslyze>=6,<7" > /tmp/req.in
-          uv pip compile /tmp/req.in --universal --generate-hashes --python-version 3.12 --no-header -o /tmp/req.txt
+          echo "cryptography>=48.0.1" >> /tmp/req.in
+          if uv pip compile /tmp/req.in --universal --generate-hashes --python-version 3.12 --no-header -o /tmp/req.txt; then
+            echo "::notice title=cryptography::Mindestversion 48.0.1 ist mit sslyze vereinbar"
+          else
+            echo "::warning title=cryptography::sslyze erlaubt keine neuere cryptography, es wird die ältere Version mit bekannten Lücken gepinnt"
+            echo "sslyze>=6,<7" > /tmp/req.in
+            uv pip compile /tmp/req.in --universal --generate-hashes --python-version 3.12 --no-header -o /tmp/req.txt
+          fi
+          echo "::notice title=Gepinnt::$(grep -E '^(sslyze|cryptography|nassl)==' /tmp/req.txt | tr '\n' ' ')"
           python - <<'PY'
           import json, pathlib
           text = pathlib.Path("/tmp/req.txt").read_text()
@@ -28,24 +36,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/claudios/components/pip-sslyze.json
-          git diff --cached --quiet || (git commit -m "Add pip lock for sslyze (pinned versions with hashes)" && git push)
+          git diff --cached --quiet || (git commit -m "Update pip lock for sslyze (pinned versions with hashes)" && git push)
       - name: Installation mit Prüfsummen ausprobieren (wie im Programm)
         run: |
           python -m venv /tmp/env
           /tmp/env/bin/pip install --require-hashes --no-deps --only-binary=:all: --no-binary=sslyze --disable-pip-version-check -r /tmp/req.txt
           /tmp/env/bin/python -m sslyze --help | head -n 5
-      - name: sslyze und IP-Schreibweise ausprobieren
+      - name: sslyze mit der gewählten Version ausprobieren
         run: |
           set +e
           IP=$(getent ahostsv4 example.com | awk '{print $1}' | head -n 1)
           cd /tmp
-          /tmp/env/bin/python -m sslyze --tlsv1_3 --json_out out1.json "example.com{$IP}:443" > o1.txt 2> e1.txt
-          echo "Schreibweise A (host{ip}:443) exit $?" > codes.txt
-          /tmp/env/bin/python -m sslyze --tlsv1_3 --json_out out2.json "example.com:443{$IP}" > o2.txt 2> e2.txt
-          echo "Schreibweise B (host:443{ip}) exit $?" >> codes.txt
-          echo "::notice title=Exit-Codes::$(tr '\n' ' ' < codes.txt)"
-          for f in o1.txt e1.txt o2.txt e2.txt; do
-            echo "::notice title=$f::$(head -c 400 $f 2>/dev/null | tr '\n' ' ')"
-          done
-          echo "::notice title=out1.json::$(head -c 600 out1.json 2>/dev/null | tr '\n' ' ')"
+          /tmp/env/bin/python -m sslyze --tlsv1_3 --certinfo --json_out out.json "example.com:443{$IP}" > o.txt 2> e.txt
+          echo "::notice title=Exit-Code::sslyze exit $?"
+          echo "::notice title=o.txt::$(head -c 500 o.txt 2>/dev/null | tr '\n' ' ')"
+          echo "::notice title=e.txt::$(head -c 500 e.txt 2>/dev/null | tr '\n' ' ')"
           exit 0
