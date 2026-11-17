@@ -43,6 +43,7 @@ class Limits:
     cooldown_seconds: int = 120
     scans_per_hour: int = 5
     scans_per_domain_day_level1: int = 3
+    scans_per_domain_day_level2: int = 10
     active_paths_max: int = 40
 
     def pages_for(self, level: int, profile: str = "standard") -> int:
