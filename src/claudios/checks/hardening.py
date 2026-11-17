@@ -14,7 +14,8 @@ MDN = "https://developer.mozilla.org/en-US/docs/Web/HTTP/"
 _LOGIN_PATH = re.compile(
     r"/(login|signin|sign-in|anmelden|konto|account|my-account|admin|wp-admin|checkout|kasse|warenkorb|cart)(/|$)",
     re.I)
-_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.([A-Za-z]{2,})")
+# Lookbehind: ein Treffer beginnt nur am Anfang eines Zeichenlaufs (sonst quadratische Laufzeit bei langem Text).
+_EMAIL = re.compile(r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.([A-Za-z]{2,})")
 _IMAGE_TLDS = {"png", "jpg", "jpeg", "gif", "webp", "svg", "avif"}
 _VERSION = re.compile(r"(\d+(?:\.\d+){1,3})")
 _CMS_PATHS = (
