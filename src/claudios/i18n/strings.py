@@ -81,7 +81,6 @@ TEXTS: dict[str, dict[str, str]] = {
                       "Freeware · vipecoded with Claude (Anthropic) by fuhfux with love ♥\n"
                       "{lines} Zeilen Python\n\n"
                       "Keine Gewährleistung und Haftung, soweit gesetzlich zulässig.\n"
-                      "Nicht mit Anthropic, Google, W3C oder dem OWASP-ZAP-Projekt verbunden.\n"
                       "Nur für eigene oder ausdrücklich freigegebene Websites. Ergebnisse sind technische "
                       "Indizien, keine Rechtsberatung.\n\nProjekt: {repo}",
         "about.licenses": "Code: MIT-Lizenz.\nLogo: © fuhfux, mit KI-Unterstützung erstellt, Nutzung nur zusammen "
@@ -145,7 +144,6 @@ TEXTS: dict[str, dict[str, str]] = {
                       "Freeware · vipecoded with Claude (Anthropic) by fuhfux with love ♥\n"
                       "{lines} lines of Python\n\n"
                       "No warranty and no liability, as far as legally permitted.\n"
-                      "Not affiliated with Anthropic, Google, W3C or the OWASP ZAP project.\n"
                       "Only for your own or explicitly authorised websites. Results are technical "
                       "indications, not legal advice.\n\nProject: {repo}",
         "about.licenses": "Code: MIT licence.\nLogo: © fuhfux, created with AI assistance, use only together "
