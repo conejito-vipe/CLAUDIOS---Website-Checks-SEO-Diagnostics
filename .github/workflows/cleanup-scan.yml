@@ -12,42 +12,41 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install vulture ruff
-      - name: Messen (ändert nichts)
+      - name: Messen (ändert nichts). Der volle Bericht steht in der Zusammenfassung des Laufs.
         run: |
           set +e
-          show() {
-            TOTAL=$(grep -c . "$2")
-            echo "::notice title=$1 ($TOTAL)::$(head -n 40 "$2" | tr '\n' ' ' | head -c 1500)"
+          S=$GITHUB_STEP_SUMMARY
+          section() {
+            N=$(grep -c . "$2")
+            echo "::notice title=$1 ($N)::$(head -n 6 "$2" | tr '\n' ' ' | head -c 500)"
+            { echo "## $1 ($N)"; echo '```'; if [ "$N" -eq 0 ]; then echo "(keine)"; else cat "$2"; fi; echo '```'; } >> "$S"
           }
-          cat > /tmp/whitelist.py <<'PY'
-          showEvent; highlightBlock; closeEvent; mousePressEvent; paintEvent; do_GET; log_message
-          filter; run; collect; install; status; create; retranslate; refresh; shutdown
-          PY
-          vulture src /tmp/whitelist.py --min-confidence 80 --exclude "*/checks/*" > /tmp/dead80.txt 2>&1
-          show "vulture 80 % (sicher tot)" /tmp/dead80.txt
-          vulture src /tmp/whitelist.py --min-confidence 60 --exclude "*/checks/*" > /tmp/dead60.txt 2>&1
-          show "vulture 60 % (Kandidaten)" /tmp/dead60.txt
-          ruff check src tests tools --select F401,F841,ARG001,ARG002,B007 --output-format concise > /tmp/ruff.txt 2>&1
-          show "ruff (ungenutzt)" /tmp/ruff.txt
+          IGN="license,secure,httponly,samesite,lifetime_days,content_type,Type,TargetName,Persist,UserName,Flags,Comment,CredentialBlobSize,CredentialBlob,AttributeCount,Attributes,TargetAlias,LastWritten,_fields_,dwLowDateTime,dwHighDateTime,showEvent,highlightBlock,closeEvent,mousePressEvent,paintEvent,do_GET,log_message,filter,expected_state,result,timeout"
+          vulture src tests --min-confidence 60 --ignore-names "$IGN" --ignore-decorators "@check,@pytest.fixture" > /tmp/v.txt 2>&1
+          grep '^src/' /tmp/v.txt > /tmp/dead.txt
+          section "vulture (ungenutzt, src, mit checks und tests als Nutzung)" /tmp/dead.txt
+          ruff check src --select F401,F841,B007,ARG --output-format concise 2>&1 | grep -vE '`(gk|resolver|snap|event|args|window|lang)`' | grep -v '^Found\|^\[\*\]\|^All checks' > /tmp/ruff-src.txt
+          section "ruff ungenutzt (src, ohne Schnittstellen-Parameter)" /tmp/ruff-src.txt
+          ruff check tests --select F401,F841,B007 --output-format concise 2>&1 | grep -v '^Found\|^\[\*\]\|^All checks' > /tmp/ruff-tests.txt
+          section "ruff ungenutzt (tests)" /tmp/ruff-tests.txt
           python tools/find_duplicates.py > /tmp/dups.txt 2>&1
-          show "Doppelungen" /tmp/dups.txt
+          section "Doppelungen" /tmp/dups.txt
           python - <<'PY' > /tmp/limits.txt
           import re, pathlib
-          src = "\n".join(p.read_text() for p in pathlib.Path("src").rglob("*.py") if p.name != "limits.py")
+          src = "\n".join(p.read_text() for p in pathlib.Path("src").rglob("*.py"))
           fields = re.findall(r"^    (\w+): (?:int|float) =", pathlib.Path("src/claudios/core/limits.py").read_text(), re.M)
           for f in fields:
-              if f not in src:
+              if not re.search(r"\." + f + r"\b", src):
                   print("Grenzwert nie gelesen:", f)
           PY
-          show "Ungenutzte Grenzwerte" /tmp/limits.txt
+          section "Ungenutzte Grenzwerte" /tmp/limits.txt
           python - <<'PY' > /tmp/texts.txt
           import re, pathlib
           src = "\n".join(p.read_text() for p in pathlib.Path("src").rglob("*.py") if "i18n" not in p.parts)
           txt = "\n".join(p.read_text() for p in pathlib.Path("src/claudios/i18n").glob("strings*.py"))
-          keys = set(re.findall(r'"([a-z]+\.[a-z_0-9.]+)"\s*:', txt))
-          for k in sorted(keys):
-              if k not in src and not k.endswith(".") and not re.match(r"(sev|cmp\.st|cmp\.phase|probe|status|profile|unin\.item)\.", k):
+          for k in sorted(set(re.findall(r'"([a-z]+\.[a-z_0-9.]+)"\s*:', txt))):
+              if k not in src and not re.match(r"(sev|cmp\.st|cmp\.phase|probe|status|profile|unin\.item)\.", k):
                   print("Text nie benutzt:", k)
           PY
-          show "Ungenutzte Texte" /tmp/texts.txt
+          section "Ungenutzte Texte" /tmp/texts.txt
           exit 0
