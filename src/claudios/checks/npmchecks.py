@@ -21,6 +21,7 @@ TIMEOUT = 180.0
 _ESLINT_WARN = {"security/detect-eval-with-expression", "security/detect-unsafe-regex"}
 _STYLE_WARN = {"color-no-invalid-hex", "property-no-unknown", "unit-no-unknown"}
 _RETIRE = {"critical": S.CRITICAL, "high": S.ERROR, "medium": S.WARNING, "low": S.NOTE}
+_RETIRE_FALLBACK = "node_modules/retire/bin/retire"
 
 
 def _node() -> Path:
@@ -35,6 +36,22 @@ def _script(rel: str) -> Path:
     if not path.is_file():
         raise CheckSkipped("tool_not_found")
     return path
+
+
+def _retire_rel() -> str:
+    """Einstiegsdatei von retire.js laut dessen package.json (Feld 'bin'); der Dateiname ändert sich zwischen Versionen."""
+    package = paths.tools_dir() / "npm-tools" / "node_modules" / "retire" / "package.json"
+    try:
+        entry = json.loads(package.read_text("utf-8")).get("bin")
+    except (OSError, ValueError, AttributeError):
+        entry = None
+    if isinstance(entry, dict):
+        entry = entry.get("retire")
+    if isinstance(entry, str) and entry:
+        parts = entry.replace("\\", "/").split("/")
+        if not entry.startswith("/") and ".." not in parts:
+            return "node_modules/retire/" + entry.replace("\\", "/").removeprefix("./")
+    return _RETIRE_FALLBACK
 
 
 def _run(args: list, cwd: str):
@@ -218,7 +235,7 @@ def retire(snap):
     items = _js_sources(snap, _assets(snap))
     if not items:
         return []
-    node, script = _node(), _script("node_modules/retire/bin/retire")
+    node, script = _node(), _script(_retire_rel())
     with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as tmp:
         scan = Path(tmp) / "scan"
         scan.mkdir()
