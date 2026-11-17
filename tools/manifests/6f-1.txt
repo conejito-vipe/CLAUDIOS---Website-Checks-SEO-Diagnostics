@@ -1,0 +1,4 @@
+# Pflichtdateien aus Paket 6f-1 (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/core/proof.py
+src/claudios/i18n/errors_abuse.json
+tests/test_abuse_protection.py
