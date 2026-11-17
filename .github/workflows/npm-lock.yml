@@ -34,11 +34,17 @@ jobs:
           echo "eslint exit $?" > codes.txt
           node "$NPM/node_modules/stylelint/bin/stylelint.mjs" --config "$NPM/stylelint.config.json" --formatter json --output-file style.json f0.css 2> style.err
           echo "stylelint exit $?" >> codes.txt
-          mkdir -p scan && cp f0.js scan/
-          node "$NPM/node_modules/retire/bin/retire" --path scan --outputformat json --outputpath retire.json --exitwith 0 2> retire.err
+          RB=$(node -p "const p=require('$NPM/node_modules/retire/package.json'); typeof p.bin==='string' ? p.bin : (p.bin && p.bin.retire) || ''" 2>&1)
+          echo "::notice title=Retire-Pfad::$RB"
+          RB=${RB#./}
+          jq_version=$(node -p "require('$NPM/node_modules/retire/package.json').version" 2>&1)
+          echo "::notice title=Retire-Version::$jq_version"
+          printf 'var jQuery = function(){}; jQuery.fn = {jquery: "1.8.0"};\n/*! jQuery v1.8.0 | (c) jQuery Foundation | jquery.org/license */\n' > f1.js
+          mkdir -p scan && cp f0.js f1.js scan/
+          node "$NPM/node_modules/retire/$RB" --path scan --outputformat json --outputpath retire.json --exitwith 0 > retire.out 2> retire.err
           echo "retire exit $?" >> codes.txt
           echo "::notice title=Exit-Codes::$(tr '\n' ' ' < codes.txt)"
-          for f in eslint.json eslint.err style.json style.err retire.json retire.err; do
+          for f in eslint.json eslint.err style.json style.err retire.json retire.err retire.out; do
             echo "::notice title=$f::$(head -c 500 $f 2>/dev/null | tr '\n' ' ')"
           done
           exit 0
