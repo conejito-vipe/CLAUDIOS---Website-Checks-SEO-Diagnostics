@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 import time
-from urllib.parse import urlsplit
 
 import httpx
 
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.guard import normalize_input
+from ..core.proof import issue, property_covers
 from . import api, oauth
 from .credstore import get_store
 
@@ -22,17 +22,11 @@ def match_property(sites: list[dict], host: str) -> str | None:
     """Property, die die GANZE Domain abdeckt und für die du Inhaber- oder Vollzugriff hast."""
     best: tuple[int, str] | None = None
     for entry in sites:
-        site, permission = str(entry.get("siteUrl", "")), entry.get("permissionLevel")
-        if permission not in OK_LEVELS:
+        site = str(entry.get("siteUrl", ""))
+        if entry.get("permissionLevel") not in OK_LEVELS or not property_covers(site, host):
             continue
-        if site.startswith("sc-domain:"):
-            domain = site[10:].lower().rstrip(".")
-            covers, rank = host == domain or host.endswith("." + domain), 0
-        else:
-            parts = urlsplit(site)
-            covers = parts.scheme == "https" and (parts.hostname or "").lower() == host and parts.path in ("", "/")
-            rank = 1
-        if covers and (best is None or rank < best[0]):
+        rank = 0 if site.startswith("sc-domain:") else 1
+        if best is None or rank < best[0]:
             best = (rank, site)
     return best[1] if best else None
 
@@ -115,6 +109,7 @@ class Session:
         if prop is None:
             raise ClaudiosError(E.GOOGLE_PROPERTY, host=target.host)
         self.last_verified = (target.host, prop)
+        issue(target.host, prop)  # Beleg für genau diesen Scan: 15 Minuten, einmal
         return prop
 
 
