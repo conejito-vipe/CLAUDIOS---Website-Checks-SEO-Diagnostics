@@ -1,79 +1,172 @@
-"""Prüft, ob alle Dateien der Pakete 1 bis 4c-1 vorhanden und aktuell sind (läuft in GitHub Actions, ohne Konsole)."""
+"""Prüft das ganze Projekt (Stand: Ende der Entwicklung, Pakete 1 bis 5e): fehlende, leere, abgeschnittene oder doppelt
+eingefügte Dateien, alte Fassungen, fehlende Prüfsummen und verbotene Texte. Läuft in GitHub Actions, ohne Konsole.
+Meldet immer Exit-Code 0, damit der Autofix-Workflow weiterläuft; Funde stehen als Annotations im Lauf."""
 from __future__ import annotations
 
+import ast
+import json
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = "src/claudios/"
 
-BASE = [
-    "pyproject.toml", "LICENSE", ".gitignore", ".github/workflows/ci.yml", "tools/count_loc.py",
-    SRC + "__init__.py", SRC + "__main__.py", SRC + "app.py", SRC + "buildinfo.py", SRC + "docs.py",
-    SRC + "paths.py", SRC + "settings.py",
+
+def files(prefix: str, suffix: str, names: str) -> list[str]:
+    return [f"{prefix}{name}{suffix}" for name in names.split()]
+
+
+REQUIRED: list[tuple[str, list[str]]] = [
+    ("Hauptordner", ["pyproject.toml", "LICENSE", ".gitignore", "README.de.md", "README.en.md", "SECURITY.md",
+                     "FAQ.md", "CONTRIBUTING.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md", "THIRD_PARTY_NOTICES.md",
+                     "assets/ASSETS.md", "assets/logo-full.png", "docs/GOOGLE_SETUP.md",
+                     "installer/launcher.py", "installer/claudios.iss"]),
+    ("Werkzeuge", files("tools/", ".py", "count_loc update_lock check_files")),
+    ("GitHub", [".github/dependabot.yml", ".github/pull_request_template.md",
+                ".github/ISSUE_TEMPLATE/bug_report.yml"]
+     + files(".github/workflows/", ".yml", "ci autofix update-lock npm-lock pip-lock pw-lock zap-try build-windows")),
+    ("Programm", files(SRC, ".py", "__init__ __main__ app buildinfo docs paths settings")),
+    ("core", files(SRC + "core/", ".py",
+                   "__init__ adsprobe assetprobe audit_log crawler dnsprobe engine errors findings guard limits "
+                   "linkprobe net numfmt probe_gsc probe_paths probe_zap probes quota redact registry scoring "
+                   "seoprobe snapshot takeoverprobe tlsprobe toolrunner")),
+    ("checks", files(SRC + "checks/", ".py",
+                     "__init__ _browser _util activechecks ads browserchecks codequality dns gscchecks hardening "
+                     "html_checks links npmchecks privacy security seo seo_more sslchecks system takeover tls "
+                     "tools_html zapchecks")),
+    ("components", files(SRC + "components/", ".py",
+                         "__init__ extra_playwright extra_sslyze lock manager npmtools piptools playwrighttools")
+     + [SRC + "components/components.lock.json"]
+     + files(SRC + "components/npm/", "", "package.json eslint.config.mjs stylelint.config.json pw-package.json "
+                                          "browser_probe.js zap_probe.js")),
+    ("gsc", files(SRC + "gsc/", ".py", "__init__ api credstore csvimport oauth session")),
+    ("i18n", files(SRC + "i18n/", ".py", "__init__ strings strings_active strings_components strings_gsc "
+                                        "strings_setup strings_tools strings_zap")
+     + files(SRC + "i18n/", ".json", "errors errors_components errors_extra")),
+    ("report", files(SRC + "report/", ".py", "__init__ report")),
+    ("ui", files(SRC + "ui/", ".py", "__init__ components_page dialogs highlight main_window page_gsc page_setup "
+                                    "pages splash theme widgets worker")),
+    ("tests", files("tests/", ".py", "conftest test_active_paths test_browser test_checks_and_report "
+                                     "test_components test_core test_crawler test_dns_links test_gsc test_gui "
+                                     "test_hardening test_i18n test_notices test_npmchecks test_policy "
+                                     "test_privacy_seo test_setup_highlight test_ssl test_tools test_zap")),
 ]
-for name in ("__init__", "adsprobe", "audit_log", "crawler", "dnsprobe", "engine", "errors", "findings", "guard",
-             "limits", "linkprobe", "net", "numfmt", "probes", "quota", "redact", "registry", "scoring",
-             "seoprobe", "snapshot", "takeoverprobe"):
-    BASE.append(f"{SRC}core/{name}.py")
-for name in ("__init__", "_util", "ads", "dns", "hardening", "html_checks", "links", "privacy", "security",
-             "seo", "seo_more", "system", "takeover"):
-    BASE.append(f"{SRC}checks/{name}.py")
-for name in ("__init__.py", "errors.json", "strings.py"):
-    BASE.append(f"{SRC}i18n/{name}")
-for name in ("__init__", "report"):
-    BASE.append(f"{SRC}report/{name}.py")
-for name in ("__init__", "dialogs", "main_window", "pages", "splash", "theme", "widgets", "worker"):
-    BASE.append(f"{SRC}ui/{name}.py")
-for name in ("conftest", "test_checks_and_report", "test_core", "test_crawler", "test_dns_links", "test_gui",
-             "test_hardening", "test_i18n", "test_policy", "test_privacy_seo"):
-    BASE.append(f"tests/{name}.py")
 
-P4A = [SRC + "components/__init__.py", SRC + "components/components.lock.json", SRC + "components/lock.py",
-       SRC + "components/manager.py", SRC + "i18n/errors_components.json", SRC + "i18n/strings_components.py",
-       SRC + "ui/components_page.py", "tools/update_lock.py", "tests/test_components.py"]
-P4B = [SRC + "core/toolrunner.py", SRC + "core/assetprobe.py", SRC + "core/tlsprobe.py",
-       SRC + "checks/tools_html.py", SRC + "checks/codequality.py", SRC + "checks/tls.py",
-       SRC + "i18n/strings_tools.py", "tests/test_tools.py"]
-P4C1 = [SRC + "components/npmtools.py", SRC + "components/npm/package.json",
-        SRC + "components/npm/eslint.config.mjs", SRC + "components/npm/stylelint.config.json",
-        SRC + "checks/npmchecks.py", SRC + "i18n/errors_extra.json", "tests/test_npmchecks.py",
-        ".github/workflows/npm-lock.yml"]
+# Von Workflows erzeugte Dateien: (Pfad, Text, der darin stehen muss, Workflow)
+GENERATED = [
+    (SRC + "components/npm/package-lock.json", "node_modules/", "npm-Sperrdatei erzeugen"),
+    (SRC + "components/npm/pw-package-lock.json", "node_modules/", "Playwright-Sperrdatei erzeugen"),
+    (SRC + "components/pip-sslyze.json", "--hash=sha256:", "pip-Sperrliste für sslyze erzeugen"),
+]
 
-# (Datei, Text, der in der neuen Fassung stehen muss, Paket)
+# (Datei, Text, der in der finalen Fassung stehen muss)
 CONTENT = [
-    (SRC + "core/limits.py", "takeover_hosts_max", "3b-1"), (SRC + "core/limits.py", "sitemap_urls_checked", "3b-2"),
-    (SRC + "core/limits.py", "assets_css_max", "4b"), (SRC + "core/limits.py", "browser_timeout_seconds", "Struktur"),
-    (SRC + "core/probes.py", "collect_sitemap", "3b-2"), (SRC + "core/probes.py", "probe_tls", "4b"),
-    (SRC + "core/engine.py", "gather_probes(gk, snap, doh, progress)", "3b-2"),
-    (SRC + "checks/_util.py", "group_digits", "3b-2"),
-    (SRC + "checks/__init__.py", "pkgutil", "Struktur"), (SRC + "i18n/__init__.py", "pkgutil", "Struktur"),
-    (SRC + "core/errors.py", "GOOGLE_PROPERTY", "Struktur"),
-    (SRC + "components/lock.py", "_extras", "Struktur"), (SRC + "components/manager.py", "_handler", "Struktur"),
-    (SRC + "ui/main_window.py", "_discover_pages", "Struktur"),
-    (SRC + "ui/worker.py", "component_checker", "4b"), (SRC + "ui/pages.py", "scan.probe", "3b-2"),
-    (SRC + "i18n/strings.py", "probe.sitemap", "3b-2"), (SRC + "ui/main_window.py", "ComponentsPage", "4a"),
-    ("pyproject.toml", "components/npm", "4c-1"), ("tests/test_privacy_seo.py", "probe:tls", "4b"),
-    ("tests/test_components.py", 'names[-1] == "npm-tools"', "Struktur"),
+    (SRC + "core/limits.py", "takeover_hosts_max"), (SRC + "core/limits.py", "sitemap_urls_checked"),
+    (SRC + "core/limits.py", "assets_css_max"), (SRC + "core/limits.py", "browser_timeout_seconds"),
+    (SRC + "core/limits.py", "sslyze_timeout_seconds"),
+    (SRC + "core/probes.py", "_extension_steps"), (SRC + "core/probes.py", "probe_tls"),
+    (SRC + "core/engine.py", "gather_probes(gk, snap, doh, progress)"),
+    (SRC + "core/errors.py", "GOOGLE_PROPERTY"), (SRC + "core/toolrunner.py", "extra_env"),
+    (SRC + "checks/__init__.py", "pkgutil"), (SRC + "checks/_util.py", "group_digits"),
+    (SRC + "checks/sslchecks.py", "TARGET_FORMAT"),
+    (SRC + "i18n/__init__.py", "pkgutil"), (SRC + "i18n/strings.py", "probe.sitemap"),
+    (SRC + "components/lock.py", "_extras"), (SRC + "components/manager.py", "_handler"),
+    (SRC + "components/piptools.py", "--no-binary"),
+    (SRC + "ui/main_window.py", "_discover_pages"), (SRC + "ui/main_window.py", "nav_keys"),
+    (SRC + "ui/pages.py", "scan.probe"), (SRC + "ui/worker.py", "scan_overrides"),
+    ("pyproject.toml", "components/npm"), (".github/workflows/ci.yml", "QT_QPA_PLATFORM"),
+    (".gitignore", "client_secret"), ("README.de.md", "assets/logo-full.png"),
+    ("README.en.md", "assets/logo-full.png"), ("THIRD_PARTY_NOTICES.md", "Playwright"),
+    ("tests/test_privacy_seo.py", "BASE_STEPS"), ("tests/test_active_paths.py", "probe_zap"),
+    ("tests/test_components.py", 'names[-1] == "npm-tools"'), ("tests/test_notices.py", "Chromium"),
 ]
+
+# (Datei, Text, der NICHT darin stehen darf)
+FORBIDDEN = [
+    (SRC + "i18n/strings.py", "Nicht mit Anthropic"), (SRC + "i18n/strings.py", "Not affiliated with Anthropic"),
+    ("README.de.md", "nicht mit Anthropic verbunden"), ("README.en.md", "not affiliated with Anthropic"),
+]
+
+problems = 0
+
+
+def report(level: str, title: str, message: str) -> None:
+    global problems
+    if level == "error":
+        problems += 1
+    print(f"::{level} title={title}::{message}")
+    print(f"{level.upper():8}[{title}] {message}")
+
+
+def read(rel: str) -> str:
+    return (ROOT / rel).read_text("utf-8", errors="replace")
+
+
+def check_python() -> None:
+    for folder in ("src", "tests", "tools", "installer"):
+        for path in sorted((ROOT / folder).rglob("*.py")):
+            rel = path.relative_to(ROOT).as_posix()
+            text = path.read_text("utf-8", errors="replace")
+            if path.name != "__init__.py" and not text.strip():
+                report("error", "Datei leer", rel)
+                continue
+            try:
+                tree = ast.parse(text)
+            except SyntaxError as exc:
+                report("error", "Python-Syntax (abgeschnitten?)", f"{rel} Zeile {exc.lineno}")
+                continue
+            seen: set[str] = set()
+            for node in tree.body:
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    if node.name in seen:
+                        report("warning", "Doppelt definiert (doppelt eingefügt?)", f"{rel}: {node.name}")
+                    seen.add(node.name)
+
+
+def check_json() -> None:
+    for folder in (SRC + "i18n", SRC + "components"):
+        for path in sorted((ROOT / folder).rglob("*.json")):
+            try:
+                json.loads(path.read_text("utf-8"))
+            except ValueError as exc:
+                report("error", "JSON unlesbar", f"{path.relative_to(ROOT).as_posix()}: {exc}")
+
+
+def check_checksums() -> None:
+    lock = ROOT / SRC / "components" / "components.lock.json"
+    if lock.is_file():
+        try:
+            items = json.loads(lock.read_text("utf-8")).get("components", [])
+        except ValueError:
+            return
+        for item in items:
+            if not item.get("sha256") or not str(item.get("url", "")).startswith("https://"):
+                report("warning", "Nicht gepinnt", f"{item.get('name')}: Workflow 'Werkzeug-Prüfsummen eintragen' starten")
+    for rel, needle, workflow in GENERATED:
+        path = ROOT / rel
+        if not path.is_file():
+            report("warning", "Sperrdatei fehlt", f"{rel}: Workflow '{workflow}' starten")
+        elif needle not in path.read_text("utf-8", errors="replace"):
+            report("warning", "Sperrdatei ohne Prüfsummen", f"{rel}: Workflow '{workflow}' starten")
 
 
 def main() -> int:
-    problems = 0
-    groups = ((BASE, "Pakete 1-3b"), (P4A, "Paket 4a"), (P4B, "Paket 4b"), (P4C1, "Paket 4c-1"))
-    for group, label in groups:
+    total = 0
+    for label, group in REQUIRED:
         for rel in group:
+            total += 1
             if not (ROOT / rel).is_file():
-                problems += 1
-                print(f"::error title=Datei fehlt ({label})::{rel}")
-                print(f"FEHLT   [{label}] {rel}")
-    for rel, needle, label in CONTENT:
-        path = ROOT / rel
-        if path.is_file() and needle not in path.read_text("utf-8"):
-            problems += 1
-            print(f"::error title=Datei noch alt? (Paket {label})::{rel} enthaelt nicht: {needle}")
-            print(f"ALT?    [Paket {label}] {rel} enthaelt nicht: {needle}")
-    print(f"\n{problems} Problem(e) gefunden." if problems else "\nAlle Dateien vorhanden und aktuell.")
+                report("error", f"Datei fehlt ({label})", rel)
+    for rel, needle in CONTENT:
+        if (ROOT / rel).is_file() and needle not in read(rel):
+            report("error", "Datei noch alt?", f"{rel} enthält nicht: {needle}")
+    for rel, needle in FORBIDDEN:
+        if (ROOT / rel).is_file() and needle in read(rel):
+            report("error", "Verbotener Text", f"{rel} enthält noch: {needle}")
+    check_python()
+    check_json()
+    check_checksums()
+    print(f"\n{total} Pflichtdateien geprüft. " + (f"{problems} Fehler gefunden." if problems else "Keine Fehler."))
     return 0
 
 
