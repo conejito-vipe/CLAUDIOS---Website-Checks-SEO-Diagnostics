@@ -16,6 +16,7 @@ from .findings import Finding
 from .guard import DohResolver, normalize_input
 from .net import Gatekeeper
 from .probes import gather_probes
+from .proof import require as require_proof
 from .quota import ScanLock, check_quota
 from .registry import REGISTRY
 from .scoring import compute_scores
@@ -80,9 +81,11 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
         raise ClaudiosError(E.PERM_MISSING)
     if level not in (1, 2) or profile not in ("quick", "standard", "deep"):
         raise ClaudiosError(E.INTERNAL, reason="invalid level/profile")
-    if level == 2 and not verified_property:  # die Verifizierung liefert das GSC-Modul (Paket 5)
+    if level == 2 and not verified_property:
         raise ClaudiosError(E.PERM_LEVEL2)
     target = normalize_input(raw_url, allow_localhost)
+    if level == 2:  # frischer Beleg der Live-Prüfung für genau diese Domain, gilt einmal
+        require_proof(target.host, verified_property)
     check_quota(audit, target.registrable, level)
     snap = Snapshot(target=target, level=level, profile=profile)
     requests = bytes_total = 0
