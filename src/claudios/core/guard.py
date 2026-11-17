@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import re
 from dataclasses import dataclass
 from urllib.parse import urlsplit, urlunsplit
 
@@ -15,6 +16,8 @@ from .errors import ClaudiosError, ErrorCode as E
 
 DOH_URL = "https://dns.quad9.net/dns-query"
 DOH_BOOTSTRAP = "9.9.9.9"
+_LABEL = re.compile(r"^(?!-)[a-z0-9-]{1,63}(?<!-)$")
+_LOCAL_SUFFIXES = (".local", ".localhost", ".internal", ".lan", ".home.arpa")
 
 
 @dataclass(frozen=True)
@@ -41,6 +44,11 @@ def ip_allowed(ip: str, allow_loopback: bool = False) -> bool:
     if addr.is_loopback:
         return allow_loopback
     return addr.is_global and not addr.is_multicast
+
+
+def valid_hostname(host: str) -> bool:
+    """Nur a-z, 0-9 und Bindestrich je Label (nach der Umwandlung in Punycode), Label bis 63, Name bis 253 Zeichen."""
+    return len(host) <= 253 and all(_LABEL.match(label) for label in host.split("."))
 
 
 def normalize_input(raw: str, allow_localhost: bool = False) -> Target:
@@ -77,6 +85,10 @@ def normalize_input(raw: str, allow_localhost: bool = False) -> Target:
             pass
         else:
             raise ClaudiosError(E.INPUT_INVALID, reason="IP address")
+        if not valid_hostname(host):
+            raise ClaudiosError(E.INPUT_INVALID, reason="hostname")
+        if host.endswith(_LOCAL_SUFFIXES):
+            raise ClaudiosError(E.TARGET_PRIVATE, host=host)
         if port not in (None, 443):
             raise ClaudiosError(E.INPUT_INVALID, reason="port")
         if "." not in host:
