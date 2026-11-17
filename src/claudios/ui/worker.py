@@ -1,4 +1,5 @@
-"""Scan im Hintergrund-Thread, damit die Oberfläche nie einfriert. Abbruch über ein Ereignis."""
+"""Scan im Hintergrund-Thread, damit die Oberfläche nie einfriert. Abbruch über ein Ereignis.
+Ist Stufe 2 eingeschaltet, wird die Google-Berechtigung hier vor jedem Scan live geprüft."""
 from __future__ import annotations
 
 import asyncio
@@ -8,6 +9,7 @@ from PySide6.QtCore import QThread, Signal
 
 from ..components.manager import component_checker
 from ..core.engine import run_scan
+from ..gsc.session import scan_overrides
 
 
 def _components():
@@ -44,6 +46,7 @@ class ScanThread(QThread):
             self._event.set()
         kwargs = dict(self._kwargs)
         kwargs.setdefault("components", _components())
+        kwargs.update(await asyncio.to_thread(scan_overrides, kwargs["raw_url"], bool(kwargs.get("allow_localhost"))))
         return await run_scan(
             **kwargs,
             cancel=self._event,
