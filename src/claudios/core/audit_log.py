@@ -1,4 +1,5 @@
-"""Audit-Log mit Hash-Kette. Nur Zeit, Ereignis, Domain, Stufe, Profil. Keine personenbezogenen Daten."""
+"""Audit-Log mit Hash-Kette. Nur Zeit, Ereignis, Domain, Stufe, Profil. Keine personenbezogenen Daten.
+Optional mit Kontrollwert (core/audit_anchor.py) gegen das Löschen der Datei."""
 from __future__ import annotations
 
 import hashlib
@@ -6,6 +7,10 @@ import json
 import threading
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .audit_anchor import Anchor
 
 _ZERO = "0" * 64
 
@@ -16,9 +21,10 @@ def _digest(prev: str, rec: dict) -> str:
 
 
 class AuditLog:
-    def __init__(self, path: Path | str) -> None:
+    def __init__(self, path: Path | str, anchor: Anchor | None = None) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.anchor = anchor
         self._lock = threading.Lock()
 
     def records(self) -> list[dict]:
@@ -34,6 +40,8 @@ class AuditLog:
             rec["hash"] = _digest(prev, rec)
             with self.path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(rec, ensure_ascii=True) + "\n")
+            if self.anchor is not None:
+                self.anchor.save(len(recs) + 1, rec["hash"])
 
     def verify(self) -> bool:
         prev = _ZERO
@@ -42,6 +50,11 @@ class AuditLog:
                 return False
             prev = rec["hash"]
         return True
+
+    def guard(self, now: float | None = None) -> None:
+        """Prüft das Protokoll gegen den Kontrollwert. Ohne Kontrollwert passiert nichts."""
+        if self.anchor is not None:
+            self.anchor.check(self, now)
 
     def count(self, event: str, within: float, *, domain: str | None = None, now: float | None = None) -> int:
         now = time.time() if now is None else now
