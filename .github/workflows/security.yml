@@ -50,7 +50,8 @@ jobs:
           text = json.load(open("src/claudios/components/pip-sslyze.json"))["requirements"]
           pathlib.Path("/tmp/sslyze-req.txt").write_text(text)
           PY
-          pip-audit -r /tmp/sslyze-req.txt --no-deps > /tmp/sslyze-audit.txt 2>&1
+          echo "::notice title=sslyze gepinnt::$(grep -E '^(sslyze|cryptography|nassl)==' /tmp/sslyze-req.txt | tr '\n' ' ')"
+          pip-audit -r /tmp/sslyze-req.txt --no-deps --disable-pip > /tmp/sslyze-audit.txt 2>&1
           report "pip-audit (sslyze)" $? /tmp/sslyze-audit.txt
           for pair in "package.json:package-lock.json" "pw-package.json:pw-package-lock.json"; do
             PKG=${pair%%:*}
