@@ -11,19 +11,40 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Liste mit Prüfsummen für alle Plattformen erzeugen
+      - name: Liste erzeugen (neuere cryptography erzwingen, nur mit bestandenem sslyze-Test)
         run: |
+          set +e
           pip install uv
           echo "sslyze>=6,<7" > /tmp/req.in
-          echo "cryptography>=48.0.1" >> /tmp/req.in
-          if uv pip compile /tmp/req.in --universal --generate-hashes --python-version 3.12 --no-header -o /tmp/req.txt; then
-            echo "::notice title=cryptography::Mindestversion 48.0.1 ist mit sslyze vereinbar"
+          echo "cryptography>=48.0.1" > /tmp/override.txt
+          IP=$(getent ahostsv4 example.com | awk '{print $1}' | head -n 1)
+
+          smoke() {
+            rm -rf /tmp/env && python -m venv /tmp/env || return 1
+            /tmp/env/bin/pip install -q --require-hashes --no-deps --only-binary=:all: --no-binary=sslyze \
+              --disable-pip-version-check -r /tmp/req.txt > /tmp/pipinst.txt 2>&1 || return 1
+            (cd /tmp && /tmp/env/bin/python -m sslyze --tlsv1_3 --certinfo --json_out /tmp/smoke.json \
+              "example.com:443{$IP}" > /tmp/smoke.txt 2>&1) || return 1
+            python - <<'PY'
+          import json, sys
+          data = json.load(open("/tmp/smoke.json"))
+          first = data["server_scan_results"][0]
+          sys.exit(0 if first.get("scan_status") == "COMPLETED" else 1)
+          PY
+          }
+
+          MODE=override
+          uv pip compile /tmp/req.in --override /tmp/override.txt --universal --generate-hashes \
+            --python-version 3.12 --no-header -o /tmp/req.txt > /tmp/compile.txt 2>&1
+          if [ $? -eq 0 ] && smoke; then
+            echo "::notice title=cryptography::neuere Version erzwungen und sslyze-Test bestanden"
           else
-            echo "::warning title=cryptography::sslyze erlaubt keine neuere cryptography, es wird die ältere Version mit bekannten Lücken gepinnt"
-            echo "sslyze>=6,<7" > /tmp/req.in
+            MODE=fallback
+            echo "::warning title=cryptography::Erzwingen oder sslyze-Test fehlgeschlagen, es bleibt die Auflösung von sslyze mit bekannten Lücken. Grund: $(tail -n 3 /tmp/compile.txt /tmp/pipinst.txt /tmp/smoke.txt 2>/dev/null | tr '\n' ' ' | head -c 600)"
             uv pip compile /tmp/req.in --universal --generate-hashes --python-version 3.12 --no-header -o /tmp/req.txt
+            smoke || echo "::error title=sslyze::auch die Standard-Auflösung besteht den sslyze-Test nicht"
           fi
-          echo "::notice title=Gepinnt::$(grep -E '^(sslyze|cryptography|nassl)==' /tmp/req.txt | tr '\n' ' ')"
+          echo "::notice title=Gepinnt ($MODE)::$(grep -E '^(sslyze|cryptography|nassl)==' /tmp/req.txt | tr '\n' ' ')"
           python - <<'PY'
           import json, pathlib
           text = pathlib.Path("/tmp/req.txt").read_text()
@@ -31,24 +52,10 @@ jobs:
           pathlib.Path("src/claudios/components/pip-sslyze.json").write_text(
               json.dumps({"python": "3.12", "requirements": text}, indent=2) + "\n")
           PY
+          exit 0
       - name: Liste hochladen
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/claudios/components/pip-sslyze.json
           git diff --cached --quiet || (git commit -m "Update pip lock for sslyze (pinned versions with hashes)" && git push)
-      - name: Installation mit Prüfsummen ausprobieren (wie im Programm)
-        run: |
-          python -m venv /tmp/env
-          /tmp/env/bin/pip install --require-hashes --no-deps --only-binary=:all: --no-binary=sslyze --disable-pip-version-check -r /tmp/req.txt
-          /tmp/env/bin/python -m sslyze --help | head -n 5
-      - name: sslyze mit der gewählten Version ausprobieren
-        run: |
-          set +e
-          IP=$(getent ahostsv4 example.com | awk '{print $1}' | head -n 1)
-          cd /tmp
-          /tmp/env/bin/python -m sslyze --tlsv1_3 --certinfo --json_out out.json "example.com:443{$IP}" > o.txt 2> e.txt
-          echo "::notice title=Exit-Code::sslyze exit $?"
-          echo "::notice title=o.txt::$(head -c 500 o.txt 2>/dev/null | tr '\n' ' ')"
-          echo "::notice title=e.txt::$(head -c 500 e.txt 2>/dev/null | tr '\n' ' ')"
-          exit 0
