@@ -44,6 +44,7 @@ class Limits:
     scans_per_hour: int = 5
     scans_per_domain_day_level1: int = 3
     scans_per_domain_day_level2: int = 10
+    audit_tamper_lock_seconds: int = 86400  # Sperre, wenn das Protokoll gelöscht oder verändert wurde
     active_paths_max: int = 40
 
     def pages_for(self, level: int, profile: str = "standard") -> int:
