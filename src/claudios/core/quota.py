@@ -20,6 +20,7 @@ except ImportError:  # Linux/macOS (z. B. CI)
 
 def check_quota(log: AuditLog, domain: str, level: int, now: float | None = None) -> None:
     now = time.time() if now is None else now
+    log.guard(now)  # zuerst: ist das Protokoll noch das echte?
     last = log.last_time("scan_start")
     if last is not None and now - last < LIMITS.cooldown_seconds:
         raise ClaudiosError(E.LIMIT_COOLDOWN, seconds=LIMITS.cooldown_seconds)
