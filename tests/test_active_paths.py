@@ -2,7 +2,7 @@ import json
 from urllib.parse import urlsplit
 
 from claudios.checks.activechecks import KINDS
-from claudios.core import probe_paths
+from claudios.core import probe_paths, probe_zap
 from claudios.core.engine import run_checks
 from claudios.core.errors import ClaudiosError, ErrorCode as E
 from claudios.core.findings import Severity as S
@@ -85,7 +85,8 @@ async def test_unreachable_server_is_never_reported_as_passed():
     assert executed["EXP-PTH-001"] == "skipped:no_path_data"
 
 
-async def test_the_probe_and_the_check_only_run_at_level_2():
+async def test_the_probe_and_the_check_only_run_at_level_2(monkeypatch):
+    monkeypatch.setattr(probe_zap, "_tools", lambda: None)  # ZAP darf in diesem Test nie starten
     snap1 = make_snap(level=1)
     gk1 = FakeGK()
     await gather_probes(gk1, snap1, FakeResolver())
@@ -96,7 +97,10 @@ async def test_the_probe_and_the_check_only_run_at_level_2():
     snap2, seen = make_snap(level=2), []
     gk2 = FakeGK()
     await gather_probes(gk2, snap2, FakeResolver(), progress=lambda stage, cur, total: seen.append((stage, cur, total)))
-    assert "paths" in snap2.extra and seen[-1] == ("probe:paths", 9, 9)
+    stages = [stage for stage, _cur, _total in seen]
+    assert "probe:paths" in stages and "probe:zap" in stages
+    assert seen[-1][1] == seen[-1][2] == len(seen)  # der letzte Schritt ist der n-te von n
+    assert "paths" in snap2.extra and snap2.extra["zap"] == {"skip": "tool_not_found"}
     assert any(path == ".git/HEAD" for path, _f in gk2.calls)
 
 
