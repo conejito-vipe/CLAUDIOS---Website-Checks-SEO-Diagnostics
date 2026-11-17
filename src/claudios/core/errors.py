@@ -44,6 +44,7 @@ class ErrorCode(str, Enum):
     GOOGLE_IMPORT = "CLA-GGL-003"
     EXPORT_FAILED = "CLA-EXP-001"
     FS_ERROR = "CLA-FS-001"
+    AUDIT_TAMPERED = "CLA-FS-002"
     INTERNAL = "CLA-INT-001"
 
 
