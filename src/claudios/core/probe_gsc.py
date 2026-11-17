@@ -7,10 +7,10 @@ import time
 
 from ..gsc import api, session
 from .errors import ClaudiosError
+from .limits import LIMITS
 
 NAME = "gsc"
 MIN_LEVEL = 1
-INSPECT_MAX = 10
 PAGES_MAX = 5000
 
 
@@ -44,7 +44,7 @@ def _api(snap) -> dict | None:
             out["error"] = out["error"] or exc.code.value
         done: list[dict] = []
         failed = False
-        for url in sample_urls(snap)[:INSPECT_MAX]:
+        for url in sample_urls(snap)[:LIMITS.gsc_inspections]:
             try:
                 done.append(api.inspect(http, token, site, url))
             except ClaudiosError as exc:
