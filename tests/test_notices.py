@@ -4,15 +4,15 @@ from claudios.components.lock import load_lock
 
 ROOT = Path(__file__).resolve().parent.parent
 KEYWORDS = {"java": "Temurin", "node": "Node.js", "vnu": "Nu Html Checker", "css-validator": "CSS Validator",
-            "zap": "ZAP", "npm-tools": "ESLint", "sslyze": "sslyze"}
+            "zap": "ZAP", "npm-tools": "ESLint", "sslyze": "sslyze", "playwright": "Playwright"}
 
 
 def test_every_component_is_listed_in_the_third_party_notices():
     text = (ROOT / "THIRD_PARTY_NOTICES.md").read_text("utf-8")
     for comp in load_lock():
-        assert comp.name in KEYWORDS, f"new component {comp.name}: add it to this test and to THIRD_PARTY_NOTICES.md"
-        assert KEYWORDS[comp.name] in text
-    for extra in ("Stylelint", "retire.js", "PySide6", "AGPL-3.0"):
+        keyword = KEYWORDS.get(comp.name, comp.title.split()[0])  # neue Komponenten: erstes Wort des Titels
+        assert keyword in text, f"component {comp.name}: add it to THIRD_PARTY_NOTICES.md (keyword: {keyword})"
+    for extra in ("Stylelint", "retire.js", "PySide6", "AGPL-3.0", "axe-core", "Chromium"):
         assert extra in text
 
 
