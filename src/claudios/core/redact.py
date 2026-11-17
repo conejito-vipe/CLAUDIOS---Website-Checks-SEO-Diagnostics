@@ -1,4 +1,5 @@
-"""Schwärzung beim Einlesen: Geheimnisse werden nie gespeichert. Zweite Schicht: Sanitizer vor dem Export."""
+"""Schwärzung beim Einlesen: Geheimnisse werden nie gespeichert. Zweite Schicht: Sanitizer vor dem Export.
+Alle Muster müssen auch bei feindlichem Text in linearer Zeit laufen (Test: tests/test_hostile_input.py)."""
 from __future__ import annotations
 
 import logging
@@ -7,7 +8,9 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 SECRET_PATTERNS: dict[str, re.Pattern[str]] = {
     "private_key": re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)"),
-    "jwt": re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}"),
+    # Erster Abschnitt begrenzt und ohne Zurücksetzen (possessiv): sonst braucht eine lange Folge ohne Punkt für
+    # jeden Startpunkt quadratische Zeit.
+    "jwt": re.compile(r"\beyJ[A-Za-z0-9_-]{10,300}+\.[A-Za-z0-9_-]{10,}+\.[A-Za-z0-9_-]{5,}+"),
     "aws_key": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
     "google_api_key": re.compile(r"\bAIza[0-9A-Za-z_\-]{35}\b"),
     "github_token": re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b"),
@@ -19,7 +22,8 @@ _KV = re.compile(
     r"(?i)\b(password|passwd|pwd|secret|token|api[_-]?key|authorization|client[_-]?secret)\b"
     r"([\"']?\s*[:=]\s*[\"']?)([^\s\"'&,;<>]{3,})"
 )
-_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# Ein Treffer darf nur am Anfang eines Zeichenlaufs beginnen (Lookbehind): sonst wäre die Suche quadratisch.
+_EMAIL = re.compile(r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _SENSITIVE_PARAM = re.compile(r"(pass|pwd|secret|token|key|auth|session|sess|sid|jwt|code|sig|credential|otp)", re.I)
 
 
