@@ -12,10 +12,16 @@ from .crawler import norm
 from .errors import ClaudiosError, ErrorCode as E
 from .limits import LIMITS
 
-_LOC = re.compile(r"<loc>\s*([^<\s][^<]*?)\s*</loc>", re.I)
-_SITEMAP_LINE = re.compile(r"^\s*sitemap:\s*(\S+)", re.I | re.M)
+# Ohne \s* um die Gruppe: sonst ist die Suche bei vielen Leerzeichen quadratisch. Gekürzt wird in _locs().
+_LOC = re.compile(r"<loc>([^<]*)</loc>", re.I)
+# [ \t] statt \s: \s würde bei vielen Zeilenumbrüchen von jedem Zeilenanfang aus alles durchlaufen.
+_SITEMAP_LINE = re.compile(r"^[ \t]*sitemap:[ \t]*(\S+)", re.I | re.M)
 _HEAD_UNSUPPORTED = (400, 403, 405, 501)
 _ROOT_WINDOW = 5000
+
+
+def _locs(text: str) -> list[str]:
+    return [url for url in (html.unescape(x).strip() for x in _LOC.findall(text)) if url]
 
 
 def _origin(snap) -> tuple[str, str]:
@@ -81,7 +87,7 @@ async def collect_sitemap(gk, snap) -> dict:
         return data
     data["found"] = True
     if data["index"]:
-        children = [html.unescape(x) for x in _LOC.findall(body)]
+        children = _locs(body)
         body = None
         if children:
             resp = await _fetch(gk, children[0], LIMITS.sitemap_bytes_max)
@@ -90,7 +96,7 @@ async def collect_sitemap(gk, snap) -> dict:
         if body is None:
             data["child_failed"] = True
             return data
-    locs = [html.unescape(x) for x in _LOC.findall(body)]
+    locs = _locs(body)
     data["total"] = len(locs)
     data["truncated"] = len(locs) > LIMITS.sitemap_urls_stored
     data["urls"] = locs[: LIMITS.sitemap_urls_stored]
