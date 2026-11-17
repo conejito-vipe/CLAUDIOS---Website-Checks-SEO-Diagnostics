@@ -25,6 +25,9 @@ OG_FULL = ('<!doctype html><html lang="en"><head><title>Page</title><meta proper
            '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"X"}'
            "</script></head></html>")
 
+BASE_STEPS = ["probe:dns", "probe:takeover", "probe:ads", "probe:sitemap", "probe:soft404", "probe:assets",
+              "probe:tls", "probe:links"]
+
 
 def page(html="<html></html>", url="https://example.com/", depth=1, **kw):
     return Page(url=url, depth=depth, status=200, html=html, content_type="text/html; charset=utf-8", **kw)
@@ -163,9 +166,9 @@ async def test_probes_report_progress_for_each_step():
     seen = []
     await gather_probes(FakeGK({}), snap, FakeResolver(),
                         progress=lambda stage, cur, total: seen.append((stage, cur, total)))
-    assert [s[0] for s in seen] == ["probe:dns", "probe:takeover", "probe:ads", "probe:sitemap",
-                                    "probe:soft404", "probe:assets", "probe:tls", "probe:links"]
-    assert seen[-1][1:] == (8, 8)
+    stages = [s[0] for s in seen]
+    assert stages[: len(BASE_STEPS)] == BASE_STEPS  # weitere Probes (zum Beispiel Search Console) dürfen folgen
+    assert seen[-1][1] == seen[-1][2] == len(seen)  # der letzte Schritt ist der n-te von n
     assert "sitemap" in snap.extra and "soft404" in snap.extra and "assets" in snap.extra
 
 
