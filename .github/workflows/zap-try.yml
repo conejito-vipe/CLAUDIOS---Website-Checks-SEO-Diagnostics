@@ -1,0 +1,74 @@
+name: ZAP ausprobieren
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  zap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: ZAP laden, starten und durch den Browser ausprobieren
+        run: |
+          set +e
+          D=$GITHUB_WORKSPACE/src/claudios/components
+          read -r URL SUM < <(python -c "import json;c=[x for x in json.load(open('$D/components.lock.json'))['components'] if x['name']=='zap'][0];print(c['url'],c['sha256'])")
+          mkdir -p /tmp/zapdl && cd /tmp/zapdl
+          curl -sSL -o zap.zip "$URL"
+          echo "$SUM  zap.zip" | sha256sum -c - > sum.txt 2>&1
+          echo "::notice title=Pruefsumme::$(cat sum.txt | tr '\n' ' ')"
+          unzip -q zap.zip -d /tmp/zap
+          JAR=$(find /tmp/zap -name 'zap-[0-9]*.jar' | head -n 1)
+          echo "::notice title=ZAP-Jar::$JAR"
+          KEY=$(python -c "import secrets;print(secrets.token_hex(16))")
+          PORT=8090
+          HOME_DIR=/tmp/zaphome
+          mkdir -p $HOME_DIR
+          mapfile -t CMD < <(python -c "from claudios.core.probe_zap import command; print('\n'.join(command('java','$JAR','$HOME_DIR',$PORT,'$KEY')))")
+          "${CMD[@]}" > /tmp/zap.log 2>&1 &
+          ZPID=$!
+          API=http://127.0.0.1:$PORT
+          for i in $(seq 1 90); do
+            V=$(curl -s -H "X-ZAP-API-KEY: $KEY" "$API/JSON/core/view/version/")
+            case "$V" in *version*) break;; esac
+            sleep 1
+          done
+          echo "::notice title=Version::$V"
+          N=$(curl -s -H "X-ZAP-API-KEY: $KEY" "$API/JSON/pscan/view/scanners/" | python -c "import json,sys;print(len(json.load(sys.stdin)['scanners']))" 2>&1)
+          echo "::notice title=Passive-Regeln::$N"
+          curl -s -H "X-ZAP-API-KEY: $KEY" "$API/OTHER/core/other/rootcert/" -o /tmp/zap-root.pem
+          echo "::notice title=Root-Zertifikat::$(head -n 1 /tmp/zap-root.pem)"
+          echo "::notice title=ZAP-Log::$(tail -n 5 /tmp/zap.log | tr '\n' ' ' | head -c 500)"
+          mkdir -p /tmp/run && cd /tmp/run
+          cp $D/npm/pw-package.json package.json
+          cp $D/npm/pw-package-lock.json package-lock.json
+          cp $D/npm/zap_probe.js .
+          npm ci --ignore-scripts --no-audit --no-fund > ci.txt 2>&1
+          export PLAYWRIGHT_BROWSERS_PATH=/tmp/run/browsers
+          node node_modules/playwright/cli.js install --with-deps chromium > inst.txt 2>&1
+          cat > in.json <<EOF
+          {"urls":["https://example.com/"],"registrable":"example.com","proxy_port":$PORT,"cert_path":"/tmp/zap-root.pem","ua_suffix":"Claudios-zap-test"}
+          EOF
+          node zap_probe.js in.json out.json > run.txt 2> run.err
+          echo "::notice title=Browser-Ergebnis::$(head -c 600 out.json 2>/dev/null | tr '\n' ' ')"
+          echo "::notice title=Browser-Fehler::$(head -c 500 run.err 2>/dev/null | tr '\n' ' ')"
+          for i in $(seq 1 60); do
+            R=$(curl -s -H "X-ZAP-API-KEY: $KEY" "$API/JSON/pscan/view/recordsToScan/")
+            case "$R" in *'"0"'*) break;; esac
+            sleep 2
+          done
+          A=$(curl -s -H "X-ZAP-API-KEY: $KEY" "$API/JSON/core/view/alerts/?start=0&count=500" | python -c "import json,sys;d=json.load(sys.stdin);print(len(d['alerts']),sorted({a['alert'] for a in d['alerts']})[:8])" 2>&1)
+          echo "::notice title=Funde::$A"
+          kill $ZPID
+          exit 0
