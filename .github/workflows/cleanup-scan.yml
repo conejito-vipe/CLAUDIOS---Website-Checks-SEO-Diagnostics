@@ -1,0 +1,53 @@
+name: Aufräum-Messung
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install vulture ruff
+      - name: Messen (ändert nichts)
+        run: |
+          set +e
+          show() {
+            TOTAL=$(grep -c . "$2")
+            echo "::notice title=$1 ($TOTAL)::$(head -n 40 "$2" | tr '\n' ' ' | head -c 1500)"
+          }
+          cat > /tmp/whitelist.py <<'PY'
+          showEvent; highlightBlock; closeEvent; mousePressEvent; paintEvent; do_GET; log_message
+          filter; run; collect; install; status; create; retranslate; refresh; shutdown
+          PY
+          vulture src /tmp/whitelist.py --min-confidence 80 --exclude "*/checks/*" > /tmp/dead80.txt 2>&1
+          show "vulture 80 % (sicher tot)" /tmp/dead80.txt
+          vulture src /tmp/whitelist.py --min-confidence 60 --exclude "*/checks/*" > /tmp/dead60.txt 2>&1
+          show "vulture 60 % (Kandidaten)" /tmp/dead60.txt
+          ruff check src tests tools --select F401,F841,ARG001,ARG002,B007 --output-format concise > /tmp/ruff.txt 2>&1
+          show "ruff (ungenutzt)" /tmp/ruff.txt
+          python tools/find_duplicates.py > /tmp/dups.txt 2>&1
+          show "Doppelungen" /tmp/dups.txt
+          python - <<'PY' > /tmp/limits.txt
+          import re, pathlib
+          src = "\n".join(p.read_text() for p in pathlib.Path("src").rglob("*.py") if p.name != "limits.py")
+          fields = re.findall(r"^    (\w+): (?:int|float) =", pathlib.Path("src/claudios/core/limits.py").read_text(), re.M)
+          for f in fields:
+              if f not in src:
+                  print("Grenzwert nie gelesen:", f)
+          PY
+          show "Ungenutzte Grenzwerte" /tmp/limits.txt
+          python - <<'PY' > /tmp/texts.txt
+          import re, pathlib
+          src = "\n".join(p.read_text() for p in pathlib.Path("src").rglob("*.py") if "i18n" not in p.parts)
+          txt = "\n".join(p.read_text() for p in pathlib.Path("src/claudios/i18n").glob("strings*.py"))
+          keys = set(re.findall(r'"([a-z]+\.[a-z_0-9.]+)"\s*:', txt))
+          for k in sorted(keys):
+              if k not in src and not k.endswith(".") and not re.match(r"(sev|cmp\.st|cmp\.phase|probe|status|profile|unin\.item)\.", k):
+                  print("Text nie benutzt:", k)
+          PY
+          show "Ungenutzte Texte" /tmp/texts.txt
+          exit 0
