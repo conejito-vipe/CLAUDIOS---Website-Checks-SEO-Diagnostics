@@ -4,7 +4,7 @@ Claudios itself is MIT-licensed. Components below are used under their own licen
 written from memory: **verify it at the source before every release.** Entries marked "(verify)" are ones where I
 am particularly unsure. Not legal advice.
 
-Claudios is not affiliated with Google, the W3C, the OWASP ZAP project or any vendor named here.
+Claudios is not affiliated with Google, the W3C, the OWASP ZAP project, Microsoft or any vendor named here.
 
 ## Python libraries (linked into Claudios)
 
@@ -24,7 +24,7 @@ Claudios is not affiliated with Google, the W3C, the OWASP ZAP project or any ve
 | PyInstaller | GPL-2.0 with an exception that allows bundling (verify) | https://pyinstaller.org |
 | Inno Setup | own free licence (verify) | https://jrsoftware.org/isinfo.php |
 
-## Tools downloaded at setup (separate programs, checksum-pinned, never bundled in the repository)
+## Tools downloaded at setup (separate programs, never bundled in the repository)
 
 | Component | Licence | Source |
 |---|---|---|
@@ -38,12 +38,19 @@ Claudios is not affiliated with Google, the W3C, the OWASP ZAP project or any ve
 | Stylelint | MIT | https://stylelint.io |
 | retire.js | Apache-2.0 | https://retirejs.github.io/retire.js/ |
 | sslyze | AGPL-3.0 | https://github.com/nabla-c0d3/sslyze |
+| Playwright | Apache-2.0 | https://playwright.dev |
+| axe-core | MPL-2.0 | https://github.com/dequelabs/axe-core |
+| Chromium (downloaded by Playwright) | BSD-3-Clause and many bundled third-party licences (verify) | https://www.chromium.org |
+
+All of these except sslyze, Chromium and the ZAP archive are pinned by checksum or by a lock file with integrity
+hashes. **The Chromium download is fetched by Playwright from its own server over HTTPS and is not pinned by a
+checksum of Claudios.**
 
 **sslyze (AGPL-3.0):** Claudios never imports it. It is installed into its own isolated Python environment and
 only started as an external process; its output is read as JSON. Whether this separation is sufficient for your
 use is a legal question. If you distribute Claudios commercially, have it checked.
 
-Planned for later packages: Playwright (Apache-2.0), axe-core (MPL-2.0), Lighthouse (Apache-2.0).
+Not used yet: Lighthouse (Apache-2.0).
 
 ## Data sources
 
