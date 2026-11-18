@@ -1,8 +1,8 @@
 """Gesamtbudget und Mindestpause für Werkzeug-Läufe, die das Ziel belasten (Browser, ZAP, sslyze). Sie laufen alle über
 toolrunner.run_tool. Nur während eines Scans aktiv (engine.run_scan öffnet scan_budget), sonst passiert nichts.
-Erkannt werden sie am Aufruf: browser_probe.js, shot_probe.js, zap_probe.js oder "-m sslyze". Andere Werkzeuge (Linter,
-Installation) zählen nicht. Ein abgelehnter Lauf wirft TOOL_FAILED; die Prüfung gilt dann als nicht ausgeführt, nie als
-bestanden. Grenze: Die Laufzeit des ZAP-Daemons selbst zählt nicht mit, nur das Browser-Skript durch ZAP."""
+Erkannt werden sie am Aufruf: browser_probe.js, shot_probe.js, engine_probe.js, zap_probe.js oder "-m sslyze". Andere
+Werkzeuge (Linter, Installation) zählen nicht. Ein abgelehnter Lauf wirft TOOL_FAILED; die Prüfung gilt dann als nicht
+ausgeführt, nie als bestanden. Grenze: Die Laufzeit des ZAP-Daemons selbst zählt nicht mit, nur das Browser-Skript."""
 from __future__ import annotations
 
 import threading
@@ -14,7 +14,8 @@ from dataclasses import dataclass
 from .errors import ClaudiosError, ErrorCode as E
 from .limits import LIMITS
 
-_SCRIPTS = {"browser_probe.js": "browser", "shot_probe.js": "browser", "zap_probe.js": "zap"}
+_SCRIPTS = {"browser_probe.js": "browser", "shot_probe.js": "browser", "engine_probe.js": "browser",
+            "zap_probe.js": "zap"}
 _STATE: dict[str, ScanBudget | None] = {"budget": None}
 
 
