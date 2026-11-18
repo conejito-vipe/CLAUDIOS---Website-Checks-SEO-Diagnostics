@@ -1,5 +1,6 @@
 """Seite 'Externe Dienste': Schalter für Abfragen bei Dritten (nicht bei der geprüften Website), Schlüssel für Safe
-Browsing und lokale Optionen (Screenshots). Alles ist standardmäßig aus. Wird vom Hauptfenster automatisch gefunden."""
+Browsing und PageSpeed und lokale Optionen (Screenshots). Alles ist standardmäßig aus. Wird vom Hauptfenster
+automatisch gefunden."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -22,6 +23,7 @@ from ..report import shots
 from .dialogs import error_info, show_error
 
 NAV_KEY = "nav.services"
+KEYS = (("safebrowsing", "sb"), ("pagespeed", "psi"))
 
 
 def _plain(label: QLabel) -> QLabel:
@@ -47,6 +49,14 @@ def _pick_zip(parent, default: str) -> str:
     return path
 
 
+def _key_status(service: str) -> tuple[bool, bool]:
+    """(Schlüssel vorhanden, dauerhafter Speicher). Ein Speicherfehler heißt nur: kein Schlüssel angezeigt."""
+    try:
+        return apikeys.has_key(service), apikeys.persistent()
+    except Exception:  # noqa: BLE001
+        return False, False
+
+
 class ServicesPage(QWidget):
     def __init__(self) -> None:
         super().__init__()
@@ -69,6 +79,11 @@ class ServicesPage(QWidget):
         self.psi = QCheckBox()
         self.psi_info = _plain(QLabel())
         self.psi_info.setObjectName("muted")
+        self.psi_key = QLineEdit()
+        self.psi_key.setEchoMode(QLineEdit.EchoMode.Password)
+        self.psi_save = QPushButton()
+        self.psi_delete = QPushButton()
+        self.psi_state = _plain(QLabel())
         self.local_title = _plain(QLabel())
         self.shots = QCheckBox()
         self.shots_info = _plain(QLabel())
@@ -79,6 +94,7 @@ class ServicesPage(QWidget):
         lay.setSpacing(6)
         for widget in (self.title, self.intro, self.rdap, self.rdap_info, self.state, self.sb, self.sb_info,
                        self.sb_key, self.sb_save, self.sb_delete, self.sb_state, self.psi, self.psi_info,
+                       self.psi_key, self.psi_save, self.psi_delete, self.psi_state,
                        self.local_title, self.shots, self.shots_info, self.shots_btn):
             lay.addWidget(widget)
         lay.addStretch(1)
@@ -88,6 +104,8 @@ class ServicesPage(QWidget):
         self.shots.toggled.connect(self._toggle_shots)
         self.sb_save.clicked.connect(self.save_key)
         self.sb_delete.clicked.connect(self.delete_key)
+        self.psi_save.clicked.connect(self.save_psi_key)
+        self.psi_delete.clicked.connect(self.delete_psi_key)
         self.shots_btn.clicked.connect(self.export_shots)
 
     def retranslate(self) -> None:
@@ -102,6 +120,9 @@ class ServicesPage(QWidget):
         self.sb_delete.setText(t("svc.sb.delete"))
         self.psi.setText(t("svc.psi.switch"))
         self.psi_info.setText(t("svc.psi.info"))
+        self.psi_key.setPlaceholderText(t("svc.psi.key_ph"))
+        self.psi_save.setText(t("svc.psi.save"))
+        self.psi_delete.setText(t("svc.psi.delete"))
         self.local_title.setText(t("svc.local.title"))
         self.shots.setText(t("svc.shots.switch"))
         self.shots_info.setText(t("svc.shots.info"))
@@ -115,13 +136,11 @@ class ServicesPage(QWidget):
             box.setChecked(on)
             box.blockSignals(False)
         self.state.setText(t("svc.state.on") if services.enabled("rdap") else t("svc.state.off"))
-        try:
-            has, persistent = apikeys.has_key("safebrowsing"), apikeys.persistent()
-        except Exception:  # noqa: BLE001 – ein Speicherfehler heißt nur: kein Schlüssel angezeigt
-            has, persistent = False, False
-        text = t("svc.sb.saved") if has else t("svc.sb.none")
-        self.sb_state.setText(f"{text} {t('svc.sb.memory')}" if has and not persistent else text)
-        self.sb_delete.setEnabled(has)
+        for service, prefix in KEYS:
+            has, persistent = _key_status(service)
+            text = t(f"svc.{prefix}.saved") if has else t(f"svc.{prefix}.none")
+            getattr(self, f"{prefix}_state").setText(f"{text} {t('svc.sb.memory')}" if has and not persistent else text)
+            getattr(self, f"{prefix}_delete").setEnabled(has)
         self.shots_btn.setEnabled(self.result is not None)
 
     def _switch(self, name: str, checked: bool, ask_key: str, local: bool = False) -> None:
@@ -146,24 +165,36 @@ class ServicesPage(QWidget):
     def _toggle_shots(self, checked: bool) -> None:
         self._switch("screenshots", checked, "svc.shots.ask", local=True)
 
-    def save_key(self) -> None:
+    def _store_key(self, service: str, edit: QLineEdit) -> None:
         try:
-            apikeys.set_key("safebrowsing", self.sb_key.text())
+            apikeys.set_key(service, edit.text())
         except ValueError:
             _warn(self, t("svc.sb.invalid"))
             return
         except Exception as exc:  # noqa: BLE001
             show_error(self, error_info(exc))
             return
-        self.sb_key.clear()
+        edit.clear()
         self.refresh()
 
-    def delete_key(self) -> None:
+    def _remove_key(self, service: str) -> None:
         try:
-            apikeys.delete("safebrowsing")
+            apikeys.delete(service)
         except Exception as exc:  # noqa: BLE001
             show_error(self, error_info(exc))
         self.refresh()
+
+    def save_key(self) -> None:
+        self._store_key("safebrowsing", self.sb_key)
+
+    def delete_key(self) -> None:
+        self._remove_key("safebrowsing")
+
+    def save_psi_key(self) -> None:
+        self._store_key("pagespeed", self.psi_key)
+
+    def delete_psi_key(self) -> None:
+        self._remove_key("pagespeed")
 
     def show_result(self, result) -> None:
         self.result = result
