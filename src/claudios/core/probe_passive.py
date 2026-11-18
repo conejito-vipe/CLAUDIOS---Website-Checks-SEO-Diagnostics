@@ -1,9 +1,9 @@
 """Zusatzdateien nach dem Crawl: security.txt, Favicon, MTA-STS-Richtlinie und Fehlerseiten von Subdomains, die auf
 Fremddienste zeigen. Alles über den Gatekeeper (HTTPS, gedrosselt, nur GET), insgesamt etwa zehn Anfragen.
 Die Daten landen in snap.extra["passive"]; ausgewertet wird in checks/headers_more.py, checks/seo_extra.py und
-checks/infra_more.py. Die Fehlertexte der Dienste stammen aus öffentlichen Listen (can-i-take-over-xyz). Die Praxisprüfung
-auf GitHub hat GitHub Pages, Fastly und Bitbucket bestätigt und Ghost korrigiert; Heroku, Shopify, Surge und S3 sind
-noch nicht einzeln bestätigt."""
+checks/infra_more.py. Die Fehlertexte der Dienste stammen aus der öffentlichen Liste can-i-take-over-xyz; die
+Praxisprüfung auf GitHub hat alle acht Dienste bestätigt (Ghost wurde korrigiert). Dienste ändern ihre Texte, deshalb
+ist der Befund eine Warnung und kein Fehler."""
 from __future__ import annotations
 
 from urllib.parse import urljoin, urlsplit
