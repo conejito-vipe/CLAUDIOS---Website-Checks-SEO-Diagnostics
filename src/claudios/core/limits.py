@@ -30,6 +30,8 @@ class Limits:
     foreign_workers: int = 6                # gleichzeitige DNS-Abfragen dabei
     takeover_hosts_max: int = 20
     takeover_queries_max: int = 80
+    passive_takeover_hosts: int = 5         # Subdomains mit Fremddienst, deren Fehlerseite geprüft wird
+    passive_body_max: int = 20_000          # Bytes je Anfrage der Zusatzdateien (security.txt, MTA-STS, Favicon)
     ads_bytes_max: int = 200_000
     sitemap_bytes_max: int = 2_000_000
     sitemap_urls_stored: int = 2000
