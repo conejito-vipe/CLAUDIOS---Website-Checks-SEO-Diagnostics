@@ -1,57 +1,52 @@
-# Threat model / Bedrohungsmodell
+# Threat model
 
-Status: Stand nach Paket 6d. Beschreibt, was Claudios schützt, vor wem und wo die Grenzen liegen. Die Maßnahmen sind
-durch Tests abgesichert (`tests/test_policy.py`, `tests/test_security_policy.py`, `tests/test_hostile_input.py`),
-aber bisher nur gegen simulierte Daten. / Describes what Claudios protects, against whom and where the limits are.
+Deutsche Fassung: [THREAT_MODEL.de.md](THREAT_MODEL.de.md)
 
-## Was geschützt wird / Assets
+Status: after packages 6f to 6n. This document describes what Claudios protects, against whom and where the limits are. The measures are backed by tests (`tests/test_policy.py`, `tests/test_security_policy.py`, `tests/test_hostile_input.py`, `tests/test_abuse_protection.py` and others), but so far only against simulated data. The protective layers are listed in [docs/ABUSE_PROTECTION.md](docs/ABUSE_PROTECTION.md), services at third parties in [docs/EXTERNAL_SERVICES.md](docs/EXTERNAL_SERVICES.md).
 
-| Gut | Warum wichtig |
+## Assets
+
+| Asset | Why it matters |
 |---|---|
-| Fremde Server | Sie dürfen nicht angegriffen, überlastet oder ausgeforscht werden. |
-| Geheimnisse des Nutzers | Google-Token, Client-Secret, später API-Schlüssel. Passwörter und Cookie-Werte nie speichern. |
-| Der Rechner des Nutzers | Heruntergeladene Werkzeuge führen Code aus. |
-| Integrität der Berichte | Nicht ausgeführte Prüfungen dürfen nie als bestanden erscheinen. |
+| Third-party servers | They must not be attacked, overloaded or probed. |
+| Secrets of the user | Google token, client secret, API key for Safe Browsing. Passwords and cookie values are never stored. |
+| The user's computer | Downloaded tools execute code. |
+| Integrity of reports | Checks that did not run must never appear as passed. |
 
-## Angreifer / Actors
+## Actors
 
-| Angreifer | Ziel | Maßnahmen |
+| Actor | Goal | Measures |
 |---|---|---|
-| **Missbraucher** (Nutzer, der fremde oder viele Seiten prüfen will) | Massen- oder Fremdscans, aktive Tests ohne Berechtigung | Eine Domain pro Scan, Tiefe 6, 25 oder 100 Seiten, Drosselung, Abkühlzeit und Stundenlimit, nur HTTPS, keine privaten Adressen, keine Kommandozeile, kein Plugin-System. Aktive Prüfungen nur mit Stufe 2 (Search Console, Inhaber- oder Vollzugriff, bei jedem Scan neu geprüft). |
-| **Feindliche Website** | Programm blockieren, Berichte vergiften, Rechner angreifen | Alle Muster in linearer Zeit, Größen- und Zeitgrenzen, Maskierung aller Inhalte in der Oberfläche und im HTML-Bericht (CSP), Werkzeuge bekommen nur Dateien, nie Adressen, Browser mit gesperrten Service Workern und Anfragen nur über HTTPS an öffentliche Namen. |
-| **Lieferkette** (manipulierter Download oder Paket) | Schadcode über Werkzeuge | Feste Versionen mit SHA256 oder Sperrdatei, sicheres Entpacken (kein Zip-Slip, keine Symlinks, Größenlimit), `npm ci --ignore-scripts`, `pip --require-hashes --no-deps`, nur Aktionen von GitHub selbst in den Workflows. Der Workflow „Sicherheitsprüfung“ prüft die festen Versionen auf bekannte Lücken. |
-| **Anderes Programm auf dem Rechner** | Token abgreifen | Token nur im Arbeitsspeicher oder im Windows-Anmeldeinformationsspeicher, nie in Dateien, Protokollen oder ZIP-Dateien. Schwärzung beim Einlesen und vor dem Export. |
+| **Abuser** (user who wants to check foreign or many sites) | Mass or foreign scans, active tests without permission | One domain per scan, depth 6, 25 or 100 pages, throttling, cool-down, hourly and daily limits, tamper-evident scan log, HTTPS only, no private addresses, no command line, no plugin system. Active checks only at level 2 (Search Console, owner or full access, re-checked live before every scan, proof valid for one host, 15 minutes and one use). |
+| **Hostile website** | Block the program, poison reports, attack the computer | All patterns run in linear time, size and time limits, escaping of all content in the interface and in the HTML report (CSP), tools get files and never addresses, browsers with blocked service workers and requests only over HTTPS to public names. |
+| **Supply chain** (manipulated download or package) | Malicious code through tools | Fixed versions with SHA256 or lock file, safe extraction (no zip slip, no symlinks, size limit), `npm ci --ignore-scripts`, `pip --require-hashes --no-deps`, only actions from GitHub itself in the workflows. The workflow "Sicherheitsprüfung" checks the fixed versions for known vulnerabilities. |
+| **Other program on the computer** | Steal tokens | Tokens only in memory or in the Windows Credential Manager, never in files, logs or ZIPs. Redaction on input and before export. |
 
-## Bewusst nicht geschützt / Not protected
+## Deliberately not protected
 
-- **Wer den Quellcode ändert.** Claudios ist Open Source. Die Grenzen sind Reibung gegen Bequemlichkeit, kein
-  Schutz gegen Entschlossene.
-- **Ein Angreifer mit Administratorrechten** auf dem Rechner des Nutzers.
-- **Ein gekapertes Konto** bei Google, npm, PyPI oder GitHub.
-- **Der Chromium-Download** von Playwright: Er kommt von dessen Server über HTTPS und ist nicht durch eine eigene
-  Prüfsumme von Claudios gesichert.
-- **Nicht signierte Programmdatei:** Windows SmartScreen kann warnen.
+- **Anyone who changes the source code.** Claudios is open source. The limits are friction against convenience, not protection against the determined.
+- **An attacker with administrator rights** on the user's computer.
+- **A hijacked account** at Google, npm, PyPI or GitHub.
+- **The browser downloads** (Chromium, Firefox, WebKit) from Playwright: they come from its server over HTTPS and are not secured by a checksum of Claudios.
+- **Unsigned program file:** Windows SmartScreen may warn.
 
-## Bekannte Restrisiken / Residual risks
+## Residual risks
 
-- Browser, ZAP und sslyze verbinden direkt und kennen die Drosselung des Gatekeepers nicht (Zeitlimit je Lauf, kein
-  Gesamtbudget). Geplant in 6f.
-- Diese Programme lösen Namen selbst auf. DNS-Rebinding zwischen Prüfung und Lauf ist denkbar (6f).
-- Die Verifizierung für Stufe 2 wird als Zeichenkette an den Scan übergeben. Ein Beleg mit Host und Ablaufzeit
-  ist geplant (6f).
-- Das Audit-Protokoll erkennt Änderungen, aber nicht das Löschen der ganzen Datei (6f).
-- Workflows referenzieren Aktionen per Versions-Tag, nicht per Commit-Prüfsumme. Dependabot hält sie aktuell.
-- sslyze (AGPL-3.0) wird aus dem Quellarchiv gebaut, die Build-Werkzeuge dafür sind nicht per Prüfsumme gesichert.
-- **sslyze läuft mit einer neueren `cryptography`, als es selbst erlaubt.** Der Workflow „pip-Sperrliste“ erzwingt sie,
-  weil die vom Paket erlaubte Version bekannte Lücken hat, und übernimmt sie nur nach einem erfolgreichen
-  sslyze-Lauf gegen eine echte Seite. Das beweist nicht, dass jedes Zertifikat korrekt verarbeitet wird. Ein
-  Fehler würde als „nicht ausgeführt“ sichtbar, nie als „bestanden“.
-- Die Git-Historie wird nicht automatisch nach Geheimnissen durchsucht, nur der aktuelle Stand.
-- Befunde enthalten Text fremder Websites. Für Excel- und CSV-Export (geplant in 6c) wird gegen Formel-Injektion
-  neutralisiert.
+- **Third-party hosts are detected, not prevented.** Chromium, Firefox, WebKit and ZAP resolve the names of third-party hosts themselves. If a name points to a non-public address the access has already happened. Claudios resolves every observed host again via DoH afterwards, discards its data and reports it (`BRW-FRN-001`).
+- **The target host is not pinned to the verified IP in the ZAP run and in the Firefox/WebKit run** (Chromium is pinned). There the resolution is only checked before and after the run (`core/rebind.py`).
+- **Browser, ZAP and sslyze connect directly** and do not know the throttling of the gatekeeper. A total time budget (1,800 s), a minimum pause (15 s) and a maximum number of runs apply per scan. The runtime of the ZAP daemon itself is not counted, only the browser script through ZAP.
+- **The control value of the scan log is friction, not protection.** Whoever deletes log and control value looks like a fresh installation. Writing the control value to the Windows Credential Manager is not yet verified on real machines.
+- **The level-2 proof lives in memory.** Whoever changes the source code can forge it.
+- **Safe Browsing and PageSpeed resolve names through the system**, not through DoH. The targets are two fixed Google hosts, without redirects and with a size limit.
+- **Screenshots show page content.** They stay local and are only saved as a ZIP on request, but they are not checked for secrets.
+- **PageSpeed lets Google fetch the page.** That is a normal page view by a third party, only on explicit request.
+- **Workflows reference actions by version tag**, not by commit checksum. Dependabot keeps them current.
+- **sslyze (AGPL-3.0) is built from the source archive**, and its build tools are not secured by a checksum.
+- **sslyze runs with a newer `cryptography` than it allows itself.** The workflow "pip-Sperrliste" forces it because the version allowed by the package has known vulnerabilities, and accepts it only after a successful sslyze run against a real site. That does not prove that every certificate is processed correctly. An error would show as "not executed", never as "passed".
+- **The git history is not searched for secrets automatically**, only the current state.
+- **Findings contain text from foreign websites.** CSV and Excel exports neutralise formula injection; the PDF and HTML reports escape everything.
+- **Several formats written from memory are unverified:** the ZAP interface `core/view/hosts`, the fingerprint texts, the formats of RDAP, Safe Browsing and PageSpeed, the bot names, and the scripts `shot_probe.js` and `engine_probe.js` with a real browser.
 
-## Regelmäßige Prüfung / Routine checks
+## Routine checks
 
-Der Workflow „Sicherheitsprüfung“ (`.github/workflows/security.yml`) läuft von Hand und wöchentlich: bandit für den
-Python-Code, pip-audit und npm audit für die Abhängigkeiten, außerdem erzeugt er eine Stückliste (SBOM).
-Meldungen stehen als Annotationen im Lauf.
+The workflow "Sicherheitsprüfung" (`.github/workflows/security.yml`) runs by hand and weekly: bandit for the Python code, pip-audit and npm audit for the dependencies, and it creates a bill of materials (SBOM). Messages appear as annotations in the run.
