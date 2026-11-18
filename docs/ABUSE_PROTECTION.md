@@ -25,7 +25,7 @@ This document describes how Claudios prevents being used against foreign website
 - **In the ZAP run and the Firefox/WebKit run the target host is not pinned to the verified IP.** Only the check before and after the run applies.
 - **The budget does not count the ZAP daemon itself**, only the browser script through ZAP.
 - **A rejected tool run shows as `skipped:tool_failed`.** The reason (`budget`) appears only in the log.
-- **Unverified on Windows:** writing the control value to the Credential Manager, and the ZAP interface `core/view/hosts` (from memory).
+- **Unverified on Windows:** writing the control value to the Credential Manager. The ZAP interface core/view/hosts was verified on Linux.
 
 ## How it is tested
 
