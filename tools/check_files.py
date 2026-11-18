@@ -1,4 +1,4 @@
-"""Prüft das ganze Projekt (Stand: Pakete 1 bis 6e): fehlende, leere, abgeschnittene oder doppelt eingefügte Dateien,
+"""Prüft das ganze Projekt (Stand: Pakete 1 bis 6n): fehlende, leere, abgeschnittene oder doppelt eingefügte Dateien,
 verirrte Dateien außerhalb des Pakets, Importe auf nicht vorhandene Module, alte Fassungen, fehlende Prüfsummen und
 verbotene Texte. Spätere Pakete legen ihre Pflichtdateien in tools/manifests/*.txt ab (ein Pfad pro Zeile, Zeilen mit
 # werden ignoriert), damit diese Datei nicht mehr geändert werden muss. Läuft in GitHub Actions ohne Konsole und in
@@ -21,7 +21,7 @@ def files(prefix: str, suffix: str, names: str) -> list[str]:
 
 
 REQUIRED: list[tuple[str, list[str]]] = [
-    ("Hauptordner", ["pyproject.toml", "LICENSE", ".gitignore", "README.de.md", "README.en.md", "SECURITY.md",
+    ("Hauptordner", ["pyproject.toml", "LICENSE", ".gitignore", "README.md", "README.de.md", "SECURITY.md",
                      "THREAT_MODEL.md", "FAQ.md", "CONTRIBUTING.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md",
                      "THIRD_PARTY_NOTICES.md", "assets/ASSETS.md", "assets/logo-full.png", "docs/GOOGLE_SETUP.md",
                      "installer/launcher.py", "installer/claudios.iss"]),
@@ -46,17 +46,17 @@ REQUIRED: list[tuple[str, list[str]]] = [
                                           "browser_probe.js zap_probe.js")),
     ("gsc", files(SRC + "gsc/", ".py", "__init__ api credstore csvimport oauth session")),
     ("i18n", files(SRC + "i18n/", ".py", "__init__ strings strings_active strings_components strings_gsc "
-                                        "strings_setup strings_tools strings_zap")
+                                          "strings_setup strings_tools strings_zap")
      + files(SRC + "i18n/", ".json", "errors errors_components errors_extra")),
     ("report", files(SRC + "report/", ".py", "__init__ report")),
     ("ui", files(SRC + "ui/", ".py", "__init__ components_page dialogs highlight main_window page_gsc page_setup "
                                     "pages splash theme widgets worker")),
     ("tests", files("tests/", ".py", "conftest test_active_paths test_browser test_checks_and_report "
-                                     "test_components test_core test_crawler test_dns_links test_gsc test_gui "
-                                     "test_hardening test_hostile_input test_i18n test_notices test_npmchecks "
-                                     "test_policy test_privacy_seo test_repo_layout test_retire_path "
-                                     "test_sbom test_security_policy test_setup_highlight test_ssl test_tools "
-                                     "test_zap")),
+                                      "test_components test_core test_crawler test_dns_links test_gsc test_gui "
+                                      "test_hardening test_hostile_input test_i18n test_notices test_npmchecks "
+                                      "test_policy test_privacy_seo test_repo_layout test_retire_path "
+                                      "test_sbom test_security_policy test_setup_highlight test_ssl test_tools "
+                                      "test_zap")),
 ]
 
 # Von Workflows erzeugte Dateien: (Pfad, Text, der darin stehen muss, Workflow)
@@ -85,8 +85,10 @@ CONTENT = [
     (SRC + "ui/pages.py", "scan.probe"), (SRC + "ui/worker.py", "scan_overrides"),
     ("pyproject.toml", "components/npm"), (".github/workflows/ci.yml", "QT_QPA_PLATFORM"),
     (".gitignore", "client_secret"), ("README.de.md", "assets/logo-full.png"),
-    ("README.en.md", "assets/logo-full.png"), ("THIRD_PARTY_NOTICES.md", "Playwright"),
-    ("THREAT_MODEL.md", "Restrisiken"), ("tests/test_privacy_seo.py", "BASE_STEPS"),
+    ("README.md", "assets/logo-full.png"), ("README.md", "README.de.md"), ("README.de.md", "README.md"),
+    ("THIRD_PARTY_NOTICES.md", "Playwright"),
+    ("THREAT_MODEL.md", "Residual risks"), ("THREAT_MODEL.de.md", "Restrisiken"),
+    ("tests/test_privacy_seo.py", "BASE_STEPS"),
     ("tests/test_active_paths.py", "probe_zap"), ("tests/test_components.py", 'names[-1] == "npm-tools"'),
     ("tests/test_notices.py", "Chromium"),
 ]
@@ -94,7 +96,7 @@ CONTENT = [
 # (Datei, Text, der NICHT darin stehen darf)
 FORBIDDEN = [
     (SRC + "i18n/strings.py", "Nicht mit Anthropic"), (SRC + "i18n/strings.py", "Not affiliated with Anthropic"),
-    ("README.de.md", "nicht mit Anthropic verbunden"), ("README.en.md", "not affiliated with Anthropic"),
+    ("README.de.md", "nicht mit Anthropic verbunden"), ("README.md", "not affiliated with Anthropic"),
     (SRC + "core/limits.py", "zap_timeout_seconds"),
 ]
 
