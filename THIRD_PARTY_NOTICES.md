@@ -1,8 +1,8 @@
-# Third-party notices / Lizenzen Dritter
+# Third-party notices
 
-Claudios itself is MIT-licensed. Components below are used under their own licences. The licence column is
-written from memory: **verify it at the source before every release.** Entries marked "(verify)" are ones where I
-am particularly unsure. Not legal advice.
+Deutsche Fassung: [THIRD_PARTY_NOTICES.de.md](THIRD_PARTY_NOTICES.de.md)
+
+Claudios itself is MIT-licensed. The components below are used under their own licences. The licence column is written from memory: **verify it at the source before every release.** Entries marked "(verify)" are ones where I am particularly unsure. Not legal advice.
 
 Claudios is not affiliated with Google, the W3C, the OWASP ZAP project, Microsoft or any vendor named here.
 
@@ -16,6 +16,8 @@ Claudios is not affiliated with Google, the W3C, the OWASP ZAP project, Microsof
 | publicsuffix2 | MIT; the list itself MPL-2.0 | https://github.com/nexB/python-publicsuffix2 |
 | Public Suffix List | MPL-2.0 | https://publicsuffix.org |
 | PySide6 (Qt for Python) | LGPL-3.0 (the Windows build is a folder build so the library can be replaced) | https://www.qt.io/qt-for-python |
+| openpyxl (Excel export) | MIT (verify) | https://openpyxl.readthedocs.io/ |
+| et_xmlfile (used by openpyxl) | MIT (verify) | https://pypi.org/project/et-xmlfile/ |
 
 ## Build tools (not part of the installed program)
 
@@ -41,32 +43,31 @@ Claudios is not affiliated with Google, the W3C, the OWASP ZAP project, Microsof
 | Playwright | Apache-2.0 | https://playwright.dev |
 | axe-core | MPL-2.0 | https://github.com/dequelabs/axe-core |
 | Chromium (downloaded by Playwright) | BSD-3-Clause and many bundled third-party licences (verify) | https://www.chromium.org |
+| Firefox (downloaded by Playwright, optional component) | MPL-2.0 (verify) | https://www.mozilla.org/firefox/ |
+| WebKit (downloaded by Playwright, optional component) | LGPL-2.1 and BSD (verify) | https://webkit.org |
+| Python embeddable runtime (built Windows program only) | PSF-2.0 (verify) | https://www.python.org |
+| pip (built Windows program only) | MIT (verify) | https://pip.pypa.io |
 
-All of these except sslyze, Chromium and the ZAP archive are pinned by checksum or by a lock file with integrity
-hashes. **The Chromium download is fetched by Playwright from its own server over HTTPS and is not pinned by a
-checksum of Claudios.**
+All of these except the browsers are pinned by a checksum or by a lock file with integrity hashes (the Python runtime and pip in `components/runtime-lock.json`). **The browser downloads (Chromium, Firefox, WebKit) are fetched by Playwright from its own server over HTTPS and are not pinned by a checksum of Claudios.**
 
-**sslyze (AGPL-3.0):** Claudios never imports it. It is installed into its own isolated Python environment and
-only started as an external process; its output is read as JSON. Whether this separation is sufficient for your
-use is a legal question. If you distribute Claudios commercially, have it checked.
+**sslyze (AGPL-3.0):** Claudios never imports it. It is installed into its own isolated Python environment and only started as an external process; its output is read as JSON. Whether this separation is sufficient for your use is a legal question. If you distribute Claudios commercially, have it checked.
 
-Not used yet: Lighthouse (Apache-2.0).
+Lighthouse (Apache-2.0) is not installed. Lighthouse results are only obtained, if you switch it on, through Google's PageSpeed Insights service.
+
+## Optional online services (all off by default)
+
+These services receive data only after you switch them on on the page "External services". Details: `docs/EXTERNAL_SERVICES.md`.
+
+| Service | Operator | What is sent |
+|---|---|---|
+| RDAP (domain expiry) | IANA and the registry of the top-level domain | the registrable domain |
+| Safe Browsing | Google | up to 5 addresses of the checked website, with your own API key |
+| PageSpeed Insights | Google | the address of the home page |
 
 ## Data sources
 
-Public Suffix List (MPL-2.0). The vulnerability list used by retire.js is downloaded by retire.js itself from
-raw.githubusercontent.com over HTTPS. Reference documents (W3C, WHATWG, OWASP, IETF RFCs, Google, IAB) are linked,
-not copied.
+Public Suffix List (MPL-2.0). The vulnerability list used by retire.js is downloaded by retire.js itself from raw.githubusercontent.com over HTTPS. Reference documents (W3C, WHATWG, OWASP, IETF RFCs, Google, IAB) are linked, not copied.
 
 ## Logo and trademarks
 
-The logo is © fuhfux, created with AI assistance, for use only together with Claudios. It shows depictions of the
-HTML5, CSS3 and JavaScript badges; the source of those badges is still to be confirmed (see `assets/ASSETS.md`).
-HTML5 logo: W3C, CC BY 3.0, https://www.w3.org/html/logo/. All product names belong to their owners.
-
-## Nachtrag / Addendum (Lizenzen aus dem Gedächtnis, bitte prüfen / licenses from memory, please verify)
-- Firefox (über Playwright, optionale Komponente „Firefox und WebKit“): MPL-2.0 (verify). Playwright lädt ihn von seinem eigenen Server, Claudios pinnt die Datei nicht.
-- WebKit (über Playwright): LGPL-2.1 und BSD (verify).
-- Python-Laufzeit (Python embeddable, nur im gebauten Windows-Programm): PSF-2.0 (verify). Adresse und SHA256 stehen in `components/runtime-lock.json`.
-- pip (nur im gebauten Windows-Programm): MIT (verify).
-- openpyxl und et_xmlfile (Excel-Export): MIT (verify).
+The logo is © fuhfux, created with AI assistance, for use only together with Claudios. It shows depictions of the HTML5, CSS3 and JavaScript badges; the source of those badges is still to be confirmed (see `assets/ASSETS.md`). HTML5 logo: W3C, CC BY 3.0, https://www.w3.org/html/logo/. All product names belong to their owners.
