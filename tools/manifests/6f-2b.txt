@@ -1,0 +1,3 @@
+# Pflichtdateien aus Paket 6f-2b (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/core/rebind.py
+tests/test_rebinding.py
