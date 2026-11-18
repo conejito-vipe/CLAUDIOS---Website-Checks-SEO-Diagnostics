@@ -1,0 +1,5 @@
+# Pflichtdateien der Praxisprüfung 3 (check_files.py liest alle Dateien in diesem Ordner)
+tools/verify_npm.py
+.github/workflows/praxis-npm.yml
+tests/test_verify_npm.py
+tests/test_bots.py
