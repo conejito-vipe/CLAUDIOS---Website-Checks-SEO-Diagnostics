@@ -1,0 +1,10 @@
+# Pflichtdateien aus Paket 6g (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/core/services.py
+src/claudios/core/probe_ai.py
+src/claudios/core/probe_rdap.py
+src/claudios/checks/ai_visibility.py
+src/claudios/checks/domain_expiry.py
+src/claudios/ui/page_services.py
+src/claudios/i18n/strings_services.py
+docs/EXTERNAL_SERVICES.md
+tests/test_ai_services.py
