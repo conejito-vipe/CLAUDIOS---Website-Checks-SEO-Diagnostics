@@ -18,7 +18,7 @@ def test_every_component_is_listed_in_the_third_party_notices():
 
 def test_readmes_show_the_logo_and_state_the_status():
     de = (ROOT / "README.de.md").read_text("utf-8")
-    en = (ROOT / "README.en.md").read_text("utf-8")
+    en = (ROOT / "README.md").read_text("utf-8")
     assert "assets/logo-full.png" in de and "assets/logo-full.png" in en
     assert (ROOT / "assets" / "logo-full.png").is_file()
     assert "simulierte" in de and "simulated" in en
