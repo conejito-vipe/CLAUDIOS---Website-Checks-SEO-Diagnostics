@@ -1,0 +1,4 @@
+# Pflichtdateien aus Paket 6b-2 (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/ui/levelinfo.py
+src/claudios/i18n/strings_scan.py
+tests/test_scan_level.py
