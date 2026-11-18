@@ -84,12 +84,12 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
     if level == 2 and not verified_property:
         raise ClaudiosError(E.PERM_LEVEL2)
     target = normalize_input(raw_url, allow_localhost)
-    if level == 2:  # frischer Beleg der Live-Prüfung für genau diese Domain, gilt einmal
-        require_proof(target.host, verified_property)
-    check_quota(audit, target.registrable, level)
+    check_quota(audit, target.registrable, level)  # zuerst die Quote: ein abgelehnter Scan verbraucht den Beleg nicht
     snap = Snapshot(target=target, level=level, profile=profile)
     requests = bytes_total = 0
     with ScanLock(lock_path):
+        if level == 2:  # frischer Beleg der Live-Prüfung für genau diese Domain, gilt einmal
+            require_proof(target.host, verified_property)
         doh = resolver or DohResolver()
         gk = Gatekeeper(target, resolver=doh, allow_localhost=allow_localhost, cancel=cancel)
         audit.append("scan_start", domain=target.registrable, level=level, profile=profile)
@@ -105,10 +105,10 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
         finally:
             requests, bytes_total = gk.requests, gk.bytes_total
             await gk.aclose()
-        snap.finished = time.time()
-        findings, executed = run_checks(snap, level, profile, components)
-        if snap.status == "complete" and (any(p.error for p in snap.pages) or any(v != "ran" for v in executed.values())):
-            snap.status = "limited"
-        audit.append("scan_end", domain=target.registrable, status=snap.status)
+            snap.finished = time.time()
+    findings, executed = run_checks(snap, level, profile, components)
+    if snap.status == "complete" and (any(p.error for p in snap.pages) or any(v != "ran" for v in executed.values())):
+        snap.status = "limited"
+    audit.append("scan_end", domain=target.registrable, status=snap.status)
     return ScanResult(snap, findings, executed, compute_scores(findings, executed),
                       requests=requests, bytes_total=bytes_total)
