@@ -12,5 +12,4 @@ src/claudios/checks/consent_quality.py
 src/claudios/checks/_schema.py
 src/claudios/checks/schema_more.py
 src/claudios/checks/intl_seo.py
-docs/THREAT_MODEL_ADDENDUM.md
 tests/test_extras_6h.py
