@@ -1,0 +1,4 @@
+# Pflichtdateien aus Paket 6b-1 (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/ui/page_findings.py
+src/claudios/i18n/strings_findings.py
+tests/test_findings_page.py
