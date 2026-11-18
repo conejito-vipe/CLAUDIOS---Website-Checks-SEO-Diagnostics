@@ -1,7 +1,9 @@
 """Zusatzdateien nach dem Crawl: security.txt, Favicon, MTA-STS-Richtlinie und Fehlerseiten von Subdomains, die auf
 Fremddienste zeigen. Alles über den Gatekeeper (HTTPS, gedrosselt, nur GET), insgesamt etwa zehn Anfragen.
 Die Daten landen in snap.extra["passive"]; ausgewertet wird in checks/headers_more.py, checks/seo_extra.py und
-checks/infra_more.py. Die Fehlertexte der Dienste stammen aus dem Gedächtnis nach öffentlichen Listen (ungeprüft)."""
+checks/infra_more.py. Die Fehlertexte der Dienste stammen aus öffentlichen Listen (can-i-take-over-xyz). Die Praxisprüfung
+auf GitHub hat GitHub Pages, Fastly und Bitbucket bestätigt und Ghost korrigiert; Heroku, Shopify, Surge und S3 sind
+noch nicht einzeln bestätigt."""
 from __future__ import annotations
 
 from urllib.parse import urljoin, urlsplit
@@ -23,7 +25,7 @@ FINGERPRINTS = {
     "Shopify": ("sorry, this shop is currently unavailable",),
     "Surge": ("project not found",),
     "Bitbucket": ("repository not found",),
-    "Ghost": ("the thing you were looking for is no longer here",),
+    "Ghost": ("site unavailable.", "failed to resolve dns path for this host"),
     "Fastly": ("fastly error: unknown domain",),
 }
 
