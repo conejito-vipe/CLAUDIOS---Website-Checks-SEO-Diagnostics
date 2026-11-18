@@ -1,7 +1,8 @@
 """Praxisprüfung auf dem GitHub-Rechner (nicht im Programm): misst, was bisher nur aus dem Gedächtnis im Code steht.
 Aufruf: python tools/verify_live.py <modus> mit rdap, psi, safebrowsing, fingerprints, bots, licenses oder all.
 Ergebnisse stehen als Annotationen im Lauf. Der Aufruf meldet immer Exit-Code 0, damit alle Messungen laufen.
-Safe Browsing nutzt den Schlüssel aus der Umgebungsvariable SB_KEY, falls gesetzt; er wird nie ausgegeben."""
+Safe Browsing und PageSpeed nutzen die Schlüssel aus den Umgebungsvariablen SB_KEY und PSI_KEY, falls gesetzt; sie
+werden nie ausgegeben."""
 from __future__ import annotations
 
 import asyncio
@@ -70,7 +71,8 @@ def rdap() -> None:
     accept = "text/html,application/xhtml+xml,*/*;q=0.5"  # genau der Header des Gatekeepers
     status, ctype, data, snippet = fetch(probe_rdap.BOOTSTRAP, accept)
     note("notice" if status == 200 and data else "error", "RDAP IANA-Liste",
-         f"HTTP {status}, {ctype}, JSON={'ja' if data else 'nein'}, Schlüssel={sorted(data)[:5] if isinstance(data, dict) else snippet}")
+         f"HTTP {status}, {ctype}, JSON={'ja' if data else 'nein'}, "
+         f"Schlüssel={sorted(data)[:5] if isinstance(data, dict) else snippet}")
     server = probe_rdap.server_for(data, "com") if data else None
     note("notice" if server else "error", "RDAP Server für com", server or "nicht gefunden (Format der Liste anders?)")
     if not server:
@@ -84,28 +86,34 @@ def rdap() -> None:
 
 
 def psi() -> None:
+    import json
+
     from claudios.core import probe_psi, thirdparty
     from claudios.core.errors import ClaudiosError
 
+    key = os.environ.get("PSI_KEY", "").strip()
     params = [("url", "https://example.com/"), ("strategy", "mobile")] + [("category", c) for c in probe_psi.CATEGORIES]
+    if key:
+        params.append(("key", key))
     try:
         status, raw, truncated = asyncio.run(thirdparty.request(
             "GET", probe_psi.ENDPOINT, params=params, max_bytes=3_000_000, timeout=90.0))
     except ClaudiosError as exc:
         note("error", "PageSpeed", f"Verbindung fehlgeschlagen: {exc.code.value}")
         return
+    label = "mit Schlüssel" if key else "ohne Schlüssel"
     if status != 200:
-        note("warning", "PageSpeed", f"HTTP {status} (429 heißt: Kontingent ohne Schlüssel erschöpft), Anfang: {raw[:150]!r}")
+        text = raw[:150].decode("utf-8", errors="replace")
+        text = text.replace(key, "***") if key else text
+        note("warning", f"PageSpeed {label}", f"HTTP {status} (429 heißt: Kontingent erschöpft), Anfang: {text}")
         return
-    import json
-
     try:
         data = json.loads(raw.decode("utf-8", errors="replace"))
     except ValueError:
-        note("error", "PageSpeed", "Antwort ist kein JSON")
+        note("error", f"PageSpeed {label}", "Antwort ist kein JSON")
         return
     parsed = probe_psi.parse(data)
-    note("notice" if parsed else "error", "PageSpeed Antwort",
+    note("notice" if parsed else "error", f"PageSpeed Antwort {label}",
          f"abgeschnitten={truncated}, oberste Felder={sorted(data)[:8]}, geparst={parsed}")
 
 
@@ -134,7 +142,8 @@ def safebrowsing() -> None:
              f"HTTP {status}, Treffer={matches}, Felder={sorted(data)[:5]}")
     else:
         error = data.get("error") if isinstance(data, dict) else None
-        detail = {k: str(error.get(k))[:60] for k in ("code", "status", "message")} if isinstance(error, dict) else raw[:100]
+        detail = ({k: str(error.get(k))[:60] for k in ("code", "status", "message")}
+                  if isinstance(error, dict) else raw[:100])
         note("notice" if status in (400, 401, 403) else "warning", "Safe Browsing ohne Schlüssel",
              f"HTTP {status} (4xx mit Fehlerantwort heißt: Endpunkt erreichbar), Antwort={detail}")
 
@@ -147,7 +156,8 @@ def fingerprints() -> None:
         note("error", "Fingerprint-Liste", f"HTTP {status}, kein Array: {snippet}")
         return
     rows = compare_fingerprints(probe_passive.FINGERPRINTS, data)
-    note("notice", "Fingerprint-Liste", f"{len(data)} Einträge, Felder des ersten: {sorted(data[0])[:8] if isinstance(data[0], dict) else '?'}")
+    first = sorted(data[0])[:8] if isinstance(data[0], dict) else "?"
+    note("notice", "Fingerprint-Liste", f"{len(data)} Einträge, Felder des ersten: {first}")
     for service, state, detail in rows:
         note("notice" if state == "confirmed" else "warning", f"Fingerprint {service}", f"{state}. Liste: {detail}")
 
@@ -157,14 +167,13 @@ def bots() -> None:
 
     names: list[str] = []
     for url in BOT_URLS:
-        status, _ctype, data, text = fetch(url)
+        status, _ctype, data, _text = fetch(url)
         if status == 200 and isinstance(data, dict):
             names = list(data)
         elif status == 200:
-            import httpx as _h
-
-            body = _h.get(url, headers={"User-Agent": UA}, timeout=40.0, follow_redirects=True).text
-            names = [line.split(":", 1)[1].strip() for line in body.splitlines() if line.lower().startswith("user-agent:")]
+            body = httpx.get(url, headers={"User-Agent": UA}, timeout=40.0, follow_redirects=True).text
+            names = [line.split(":", 1)[1].strip() for line in body.splitlines()
+                     if line.lower().startswith("user-agent:")]
         if names:
             note("notice", "Bot-Liste Quelle", f"{url.rsplit('/', 1)[-1]}: {len(names)} Namen")
             break
@@ -182,12 +191,14 @@ def licenses() -> None:
         status, _c, data, _s = fetch(f"https://pypi.org/pypi/{name}/json")
         info = data.get("info", {}) if isinstance(data, dict) else {}
         classes = [c.split("::")[-1].strip() for c in info.get("classifiers", []) if c.startswith("License")]
-        lines.append(f"{name}: {info.get('license_expression') or str(info.get('license') or '?')[:40]} {classes[:2]}" if status == 200 else f"{name}: HTTP {status}")
+        lic = info.get("license_expression") or str(info.get("license") or "?")[:40]
+        lines.append(f"{name}: {lic} {classes[:2]}" if status == 200 else f"{name}: HTTP {status}")
     note("notice", "Lizenzen PyPI", " | ".join(lines))
     lines = []
     for name in NPM:
         status, _c, data, _s = fetch(f"https://registry.npmjs.org/{name}/latest")
-        lines.append(f"{name} {data.get('version')}: {data.get('license')}" if status == 200 and isinstance(data, dict) else f"{name}: HTTP {status}")
+        ok = status == 200 and isinstance(data, dict)
+        lines.append(f"{name} {data.get('version')}: {data.get('license')}" if ok else f"{name}: HTTP {status}")
     note("notice", "Lizenzen npm", " | ".join(lines))
     lines = []
     for repo in GITHUB:
@@ -195,7 +206,8 @@ def licenses() -> None:
         spdx = (data.get("license") or {}).get("spdx_id") if status == 200 and isinstance(data, dict) else None
         lines.append(f"{repo}: {spdx}" if status == 200 else f"{repo}: HTTP {status}")
     note("notice", "Lizenzen GitHub", " | ".join(lines))
-    note("notice", "Nicht prüfbar hier", "Chromium, Firefox, WebKit und Inno Setup haben keine einheitliche Lizenzabfrage: bleiben (verify)")
+    note("notice", "Nicht prüfbar hier",
+         "Chromium, Firefox, WebKit und Inno Setup haben keine einheitliche Lizenzabfrage: bleiben (verify)")
 
 
 MODES = {"rdap": rdap, "psi": psi, "safebrowsing": safebrowsing, "fingerprints": fingerprints, "bots": bots,
