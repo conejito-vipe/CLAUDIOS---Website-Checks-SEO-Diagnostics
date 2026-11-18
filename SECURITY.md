@@ -25,5 +25,5 @@ Claudios is open source. The abuse protections (limits, HTTPS only, verification
 - sslyze is built from its source archive (no wheel on PyPI); its build tools are not hash-checked.
 - Browser, ZAP and sslyze open their own connections and do not use the throttling of Claudios. A total time budget and a minimum pause apply, and hosts they resolved themselves are re-checked afterwards (detected, not prevented).
 - The browser downloads (Chromium, Firefox, WebKit) come from Playwright's server and are not pinned by a checksum of Claudios.
-- Several data formats of optional online services and some fingerprint texts were written from memory and are unverified (see [docs/EXTERNAL_SERVICES.md](docs/EXTERNAL_SERVICES.md)).
+- The answer formats of Safe Browsing and PageSpeed (with a valid key) and the AI bot names are still unverified (see [docs/EXTERNAL_SERVICES.md](docs/EXTERNAL_SERVICES.md)).
 - The installer and program are not code-signed; Windows SmartScreen may warn (see [FAQ](FAQ.md)).
