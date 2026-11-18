@@ -1,0 +1,28 @@
+name: Praxisprüfung 3 (npm-Werkzeuge, festgelegte und neueste Versionen)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pinned:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python tools/verify_npm.py pinned
+  latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python tools/verify_npm.py latest
