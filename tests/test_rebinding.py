@@ -36,6 +36,11 @@ def site(resolver, hosts=("example.com",)):
                            same_site=lambda h: h == "example.com" or h.endswith(".example.com"))
 
 
+def gatekeeper():
+    """Eine Attrappe mit den drei Merkmalen eines echten Gatekeepers (die Prüfung selbst ist ersetzt)."""
+    return SimpleNamespace(target=SimpleNamespace(host="example.com"), resolver=object(), same_site=lambda h: True)
+
+
 @pytest.mark.parametrize("ip,ok", [
     ("8.8.8.8", True), ("::ffff:10.0.0.1", False),
     ("64:ff9b::808:808", True), ("64:ff9b::7f00:1", False), ("64:ff9b::a00:1", False),
@@ -81,7 +86,7 @@ async def test_zap_is_not_started_when_the_site_already_points_to_a_private_addr
 
     monkeypatch.setattr(probe_zap, "recheck", flipped)
     monkeypatch.setattr(probe_zap, "_run", lambda snap: calls.append(1) or {"skip": None})
-    assert await probe_zap.collect(None, _snap(), None) == {"skip": "dns_changed"}
+    assert await probe_zap.collect(gatekeeper(), _snap(), None) == {"skip": "dns_changed"}
     assert calls == []
 
 
@@ -96,7 +101,7 @@ async def test_zap_results_are_dropped_when_the_site_flips_during_the_run(monkey
 
     monkeypatch.setattr(probe_zap, "recheck", second_time_private)
     monkeypatch.setattr(probe_zap, "_run", lambda snap: {"skip": None, "alerts": [{"name": "x"}]})
-    assert await probe_zap.collect(None, _snap(), None) == {"skip": "dns_changed"}
+    assert await probe_zap.collect(gatekeeper(), _snap(), None) == {"skip": "dns_changed"}
 
 
 async def test_a_clean_zap_run_passes_through_and_localhost_skips_the_check(monkeypatch):
@@ -110,9 +115,21 @@ async def test_a_clean_zap_run_passes_through_and_localhost_skips_the_check(monk
 
     monkeypatch.setattr(probe_zap, "_run", lambda snap: result)
     monkeypatch.setattr(probe_zap, "recheck", fine)
-    assert await probe_zap.collect(None, _snap(), None) is result
+    assert await probe_zap.collect(gatekeeper(), _snap(), None) is result
     monkeypatch.setattr(probe_zap, "recheck", never)
-    assert await probe_zap.collect(None, _snap(loopback=True), None) is result
+    assert await probe_zap.collect(gatekeeper(), _snap(loopback=True), None) is result
+
+
+async def test_without_a_real_gatekeeper_there_is_nothing_to_recheck(monkeypatch):
+    result = {"skip": None, "alerts": []}
+
+    async def never(gk):
+        raise AssertionError("ohne Gatekeeper gibt es nichts zu prüfen")
+
+    monkeypatch.setattr(probe_zap, "_run", lambda snap: result)
+    monkeypatch.setattr(probe_zap, "recheck", never)
+    assert await probe_zap.collect(None, _snap(), None) is result
+    assert await probe_zap.collect(SimpleNamespace(calls=[]), _snap(), None) is result
 
 
 async def test_a_refused_scan_does_not_use_up_the_proof(tmp_path):
