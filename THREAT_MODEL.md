@@ -9,7 +9,7 @@ Status: after packages 6f to 6n. This document describes what Claudios protects,
 | Asset | Why it matters |
 |---|---|
 | Third-party servers | They must not be attacked, overloaded or probed. |
-| Secrets of the user | Google token, client secret, API key for Safe Browsing. Passwords and cookie values are never stored. |
+| Secrets of the user | Google token, client secret, API keys for Safe Browsing and PageSpeed. Passwords and cookie values are never stored. |
 | The user's computer | Downloaded tools execute code. |
 | Integrity of reports | Checks that did not run must never appear as passed. |
 
@@ -45,7 +45,7 @@ Status: after packages 6f to 6n. This document describes what Claudios protects,
 - **sslyze runs with a newer `cryptography` than it allows itself.** The workflow "pip-Sperrliste" forces it because the version allowed by the package has known vulnerabilities, and accepts it only after a successful sslyze run against a real site. That does not prove that every certificate is processed correctly. An error would show as "not executed", never as "passed".
 - **The git history is not searched for secrets automatically**, only the current state.
 - **Findings contain text from foreign websites.** CSV and Excel exports neutralise formula injection; the PDF and HTML reports escape everything.
-- **Some formats are still unverified:** the answer format of Safe Browsing and PageSpeed with a valid key, the licence entries marked "(verify)" and everything on Windows. Verified on a GitHub runner (Linux): the ZAP interface core/view/hosts, the RDAP format, all eight fingerprint texts, the 14 original AI bot names (against ai.robots.txt), the scripts shot_probe.jsandengine_probe.js with real Chromium, Firefox and WebKit, and ESLint 9, Stylelint 16 and retire.js 6 with the Claudios configurations.
+- **Some formats are still unverified:** the answer format of Safe Browsing and PageSpeed with a valid key, the licence entries marked "(verify)" and everything on Windows. Verified on a GitHub runner (Linux): the ZAP interface `core/view/hosts`, the RDAP format, all eight fingerprint texts, the 14 original AI bot names (against ai.robots.txt), the scripts `shot_probe.js` and `engine_probe.js` with real Chromium, Firefox and WebKit, and ESLint 9, Stylelint 16 and retire.js 6 with the Claudios configurations.
 
 ## Routine checks
 
