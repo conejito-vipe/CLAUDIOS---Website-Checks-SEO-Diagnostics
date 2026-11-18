@@ -1,31 +1,18 @@
-# Firefox, WebKit und die Python-Laufzeit
+# Firefox, WebKit and the Python runtime
 
-## Browser-Gegenprobe (Firefox und WebKit)
-- **Wann:** nur im Profil Tief und nur mit der Komponente „Firefox und WebKit“ (Seite Komponenten).
-- **Was:** höchstens 3 Seiten, ein Lauf von `engine_probe.js`. Er zählt zum Werkzeugbudget (Browser-Läufe je Scan: 4).
-- **Regeln:** wie beim Chromium-Lauf: kein HTTP, keine lokalen Adressen, keine Service Worker, Zertifikatsfehler werden
-  nie ignoriert.
-- **Grenze:** Der Zielhost ist hier **nicht** an die geprüfte IP festgelegt (bei Chromium geschieht das mit
-  `--host-resolver-rules`). Claudios prüft die Auflösung vor und nach dem Lauf (`core/rebind.py`) und danach die
-  beobachteten Fremd-Hosts (`core/foreign.py`, Prüfung `BRW-FRN-001`). Ein Wechsel mitten im Lauf wird erkannt, nicht
-  verhindert.
-- **Downloads:** Playwright lädt Firefox und WebKit von seinem eigenen Server über HTTPS. Claudios pinnt diese Dateien
-  nicht (wie bei Chromium).
+Deutsche Fassung: [ENGINES_AND_RUNTIME.de.md](ENGINES_AND_RUNTIME.de.md)
 
-## Python-Laufzeit für sslyze (nur im gebauten Windows-Programm)
-- Das Programm hat kein eigenes Python. Deshalb gibt es zwei Komponenten, die nur im gebauten Programm erscheinen:
-  `python-runtime` (Python embeddable) und `pip-wheel` (pip). Beide sind in `components/runtime-lock.json` mit SHA256
-  gepinnt. Die Datei erzeugt der Workflow „Laufzeit-Sperrdatei erzeugen“.
-- sslyze wird in eine Kopie der Laufzeit installiert (`pip --require-hashes --no-deps`, nur aus `pip-sslyze.json`).
-- **Reihenfolge:** erst den Workflow „Laufzeit-Sperrdatei erzeugen“ starten, dann den Windows-Build.
-- **Ungeprüft:** ob der Bau von sslyze aus dem Quellarchiv in der eingebetteten Laufzeit gelingt. Bis dahin gilt
-  TLS-PRO-001 ohne sslyze als nicht ausgeführt, nie als bestanden.
+## Browser comparison (Firefox and WebKit)
 
-## Nachtrag zu THIRD_PARTY_NOTICES.md (bitte dort anhängen, Lizenzen aus dem Gedächtnis, ungeprüft)
-| Komponente | Lizenz |
-|---|---|
-| openpyxl, et_xmlfile | MIT |
-| Firefox (über Playwright) | MPL-2.0 |
-| WebKit (über Playwright) | LGPL-2.1 und BSD |
-| Python embeddable | PSF-2.0 |
-| pip | MIT |
+- **When:** only in the deep profile and only with the component "Firefox and WebKit" (page Components).
+- **What:** at most 3 pages, one run of `engine_probe.js`. It counts towards the tool budget (browser runs per scan: 4).
+- **Rules:** as in the Chromium run: no HTTP, no local addresses, no service workers, certificate errors are never ignored.
+- **Limit:** the target host is **not** pinned to the verified IP here (Chromium does that with `--host-resolver-rules`). Claudios checks the resolution before and after the run (`core/rebind.py`) and afterwards the observed third-party hosts (`core/foreign.py`, check `BRW-FRN-001`). A change in the middle of a run is detected, not prevented.
+- **Downloads:** Playwright loads Firefox and WebKit from its own server over HTTPS. Claudios does not pin these files (as with Chromium).
+
+## Python runtime for sslyze (built Windows program only)
+
+- The program has no Python of its own. Therefore two components exist that appear only in the built program: `python-runtime` (Python embeddable) and `pip-wheel` (pip). Both are pinned with SHA256 in `components/runtime-lock.json`. The workflow "Laufzeit-Sperrdatei erzeugen" creates that file.
+- sslyze is installed into a copy of the runtime (`pip --require-hashes --no-deps`, only from `pip-sslyze.json`).
+- **Order:** first run the workflow "Laufzeit-Sperrdatei erzeugen", then the Windows build.
+- **Unverified:** whether building sslyze from its source archive works in the embedded runtime. Until then the check TLS-PRO-001 counts as not executed, never as passed.
