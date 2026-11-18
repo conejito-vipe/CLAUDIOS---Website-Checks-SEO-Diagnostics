@@ -1,0 +1,11 @@
+# Pflichtdateien aus Paket 6c (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/report/export_common.py
+src/claudios/report/export_csv.py
+src/claudios/report/export_xlsx.py
+src/claudios/report/export_pdf.py
+src/claudios/report/prompts.py
+src/claudios/report/focus_zip.py
+src/claudios/report/history.py
+src/claudios/ui/page_export.py
+src/claudios/i18n/strings_export.py
+tests/test_exports.py
