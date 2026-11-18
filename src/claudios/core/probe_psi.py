@@ -1,12 +1,14 @@
 """PageSpeed Insights (Google, liefert Lighthouse-Werte und CrUX-Felddaten). NUR mit eingeschaltetem Schalter
 'pagespeed' (Standard: aus). Eine einzige Abfrage (mobil) mit der Adresse der Startseite. Google ruft die Seite dabei
-selbst ab und sieht die IP des Nutzers. Ohne Schlüssel gilt ein kleines Kontingent: bei HTTP 429 gilt die Prüfung als
-nicht ausgeführt. Format der Antwort aus dem Gedächtnis, ungeprüft. Ausgewertet in checks/web_services.py."""
+selbst ab und sieht die IP des Nutzers. Ein eigener API-Schlüssel (Seite 'Externe Dienste') wird, falls gespeichert, als
+Parameter mitgesendet. Ohne Schlüssel war das gemeinsame Tageskontingent in einer Messung schon erschöpft (HTTP 429):
+die Prüfung gilt dann als nicht ausgeführt. Das Antwortformat mit Schlüssel ist noch nicht gemessen.
+Ausgewertet in checks/web_services.py."""
 from __future__ import annotations
 
 import json
 
-from . import services, thirdparty
+from . import apikeys, services, thirdparty
 from .errors import ClaudiosError, ErrorCode as E
 from .limits import LIMITS
 
@@ -70,6 +72,12 @@ async def collect(gk, snap, resolver) -> dict:
     if snap.target.loopback:
         return _skip("localhost")
     params = [("url", snap.target.url), ("strategy", "mobile")] + [("category", c) for c in CATEGORIES]
+    try:
+        key = apikeys.get("pagespeed")
+    except Exception:  # noqa: BLE001 – ein Speicherfehler heißt nur: kein Schlüssel
+        key = None
+    if key:
+        params.append(("key", key))
     try:
         status, raw, truncated = await thirdparty.request(
             "GET", ENDPOINT, params=params, max_bytes=LIMITS.psi_body_max, timeout=LIMITS.psi_timeout_seconds,
