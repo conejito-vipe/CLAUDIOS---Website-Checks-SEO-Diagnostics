@@ -4,7 +4,8 @@ Funde der passiven Regeln abgefragt. Es wird nie ein aktiver Scan oder Spider ge
 einem Zwischenordner, der danach gelöscht wird. Im Ergebnis stehen nur Regelname, Risiko, Adresse, CWE und Regel-ID,
 nie der Beleg (er kann Cookie-Werte enthalten).
 Vor und nach dem Lauf wird die DNS-Auflösung der Website erneut geprüft (core/rebind.py): zeigt sie auf eine nicht
-öffentliche Adresse, gilt die Prüfung als nicht ausgeführt.
+öffentliche Adresse, gilt die Prüfung als nicht ausgeführt. Die von ZAP gesehenen Hosts werden nach dem Lauf
+ebenfalls erneut aufgelöst (core/foreign.py): auffällige werden gemeldet, ihre Funde verworfen.
 Die lokale Schnittstelle von ZAP ist unverschlüsselt (nur Loopback, der Dienst bietet nichts anderes an)."""
 from __future__ import annotations
 
@@ -27,6 +28,7 @@ from publicsuffix2 import get_sld
 from .. import USER_AGENT, paths
 from ..components.manager import tool_path
 from ..components.npmtools import node_env
+from . import foreign
 from .errors import ClaudiosError
 from .limits import LIMITS
 from .rebind import recheck
@@ -175,6 +177,36 @@ def _alerts(client: httpx.Client, snap) -> list[dict]:
     return out
 
 
+def _seen_hosts(client) -> set[str]:
+    """Hosts, die ZAP gesehen hat (ZAP-Schnittstelle core/view/hosts, Gedächtniswissen, ungeprüft). Ein Fehler
+    heißt nur: unbekannt, der Lauf geht weiter."""
+    try:
+        raw = _json(client, "/JSON/core/view/hosts/").get("hosts")
+    except Exception:  # noqa: BLE001
+        return set()
+    out: set[str] = set()
+    for item in raw if isinstance(raw, list) else []:
+        if not isinstance(item, str):
+            continue
+        text = item.strip().lower()
+        host = urlsplit(text if "://" in text else "//" + text).hostname
+        if host:
+            out.add(host.rstrip("."))
+    return out
+
+
+def _screen(result: dict, hosts: set[str], target_host: str, look=None) -> dict:
+    """Prüft die gesehenen Hosts erneut. Auffällige werden gemeldet, ihre Funde verworfen."""
+    found = foreign.screen(hosts, look or foreign.lookup, skip=(target_host,))
+    if found.private:
+        bad = set(found.private)
+        result["alerts"] = [a for a in result["alerts"] if foreign.host_of(a["url"]) not in bad]
+        result["foreign_private"] = list(found.private)
+    if found.unchecked:
+        result["foreign_unchecked"] = found.unchecked
+    return result
+
+
 def _browse(node, home, payload: dict) -> dict:
     """Startet das Browser-Skript (Node, Playwright) durch ZAP. Das Skript kommt aus dem Programmpaket."""
     home = Path(home)
@@ -220,8 +252,9 @@ def _session(client: httpx.Client, proc, snap, urls: list[str], node, home: Path
     if browser.get("error") and not browser["pages"]:
         raise _Skip("browser_failed")
     complete = _wait_passive(client)
-    return {"skip": None, "zap_version": version, "scanners": len(scanners), "pages": len(browser["pages"]),
-            "complete": complete, "alerts": _alerts(client, snap)}
+    result = {"skip": None, "zap_version": version, "scanners": len(scanners), "pages": len(browser["pages"]),
+              "complete": complete, "alerts": _alerts(client, snap)}
+    return _screen(result, _seen_hosts(client), snap.target.host)
 
 
 def _remove(home: Path) -> None:
