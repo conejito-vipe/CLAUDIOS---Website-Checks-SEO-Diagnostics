@@ -2,7 +2,7 @@
 
 Deutsche Fassung: [THIRD_PARTY_NOTICES.de.md](THIRD_PARTY_NOTICES.de.md)
 
-Claudios itself is MIT-licensed. The components below are used under their own licences. The licence column is written from memory: **verify it at the source before every release.** Entries marked "(verify)" are ones where I am particularly unsure. Not legal advice.
+Claudios itself is MIT-licensed. The components below are used under their own licences. Entries without "(verify)" were compared with the licence metadata of PyPI, the npm registry and GitHub (workflow "Praxisprüfung 2"). Entries marked "(verify)" could not be confirmed that way: **verify them at the source before every release.** Not legal advice.
 
 Claudios is not affiliated with Google, the W3C, the OWASP ZAP project, Microsoft or any vendor named here.
 
@@ -15,15 +15,15 @@ Claudios is not affiliated with Google, the W3C, the OWASP ZAP project, Microsof
 | dnspython | ISC | https://github.com/rthalley/dnspython |
 | publicsuffix2 | MIT; the list itself MPL-2.0 | https://github.com/nexB/python-publicsuffix2 |
 | Public Suffix List | MPL-2.0 | https://publicsuffix.org |
-| PySide6 (Qt for Python) | LGPL-3.0 (the Windows build is a folder build so the library can be replaced) | https://www.qt.io/qt-for-python |
-| openpyxl (Excel export) | MIT (verify) | https://openpyxl.readthedocs.io/ |
-| et_xmlfile (used by openpyxl) | MIT (verify) | https://pypi.org/project/et-xmlfile/ |
+| PySide6 (Qt for Python) | dual-licensed (LGPL-3.0, GPL-2.0 or GPL-3.0), used under LGPL-3.0 (the Windows build is a folder build so the library can be replaced) | https://www.qt.io/qt-for-python |
+| openpyxl (Excel export) | MIT | https://openpyxl.readthedocs.io/ |
+| et_xmlfile (used by openpyxl) | MIT | https://pypi.org/project/et-xmlfile/ |
 
 ## Build tools (not part of the installed program)
 
 | Component | Licence | Source |
 |---|---|---|
-| PyInstaller | GPL-2.0 with an exception that allows bundling (verify) | https://pyinstaller.org |
+| PyInstaller | GPL-2.0-or-later with a special exception that allows bundling | https://pyinstaller.org |
 | Inno Setup | own free licence (verify) | https://jrsoftware.org/isinfo.php |
 
 ## Tools downloaded at setup (separate programs, never bundled in the repository)
@@ -36,7 +36,7 @@ Claudios is not affiliated with Google, the W3C, the OWASP ZAP project, Microsof
 | W3C CSS Validator | W3C Software licence (verify) | https://github.com/w3c/css-validator |
 | OWASP ZAP | Apache-2.0 | https://www.zaproxy.org |
 | ESLint | MIT | https://eslint.org |
-| eslint-plugin-security | Apache-2.0 (verify) | https://github.com/eslint-community/eslint-plugin-security |
+| eslint-plugin-security | Apache-2.0 | https://github.com/eslint-community/eslint-plugin-security |
 | Stylelint | MIT | https://stylelint.io |
 | retire.js | Apache-2.0 | https://retirejs.github.io/retire.js/ |
 | sslyze | AGPL-3.0 | https://github.com/nabla-c0d3/sslyze |
@@ -46,7 +46,7 @@ Claudios is not affiliated with Google, the W3C, the OWASP ZAP project, Microsof
 | Firefox (downloaded by Playwright, optional component) | MPL-2.0 (verify) | https://www.mozilla.org/firefox/ |
 | WebKit (downloaded by Playwright, optional component) | LGPL-2.1 and BSD (verify) | https://webkit.org |
 | Python embeddable runtime (built Windows program only) | PSF-2.0 (verify) | https://www.python.org |
-| pip (built Windows program only) | MIT (verify) | https://pip.pypa.io |
+| pip (built Windows program only) | MIT | https://pip.pypa.io |
 
 All of these except the browsers are pinned by a checksum or by a lock file with integrity hashes (the Python runtime and pip in `components/runtime-lock.json`). **The browser downloads (Chromium, Firefox, WebKit) are fetched by Playwright from its own server over HTTPS and are not pinned by a checksum of Claudios.**
 
@@ -62,11 +62,11 @@ These services receive data only after you switch them on on the page "External 
 |---|---|---|
 | RDAP (domain expiry) | IANA and the registry of the top-level domain | the registrable domain |
 | Safe Browsing | Google | up to 5 addresses of the checked website, with your own API key |
-| PageSpeed Insights | Google | the address of the home page |
+| PageSpeed Insights | Google | the address of the home page, with your own API key if you stored one |
 
 ## Data sources
 
-Public Suffix List (MPL-2.0). The vulnerability list used by retire.js is downloaded by retire.js itself from raw.githubusercontent.com over HTTPS. Reference documents (W3C, WHATWG, OWASP, IETF RFCs, Google, IAB) are linked, not copied.
+Public Suffix List (MPL-2.0). The vulnerability list used by retire.js is downloaded by retire.js itself from raw.githubusercontent.com over HTTPS. Reference documents (W3C, WHATWG, OWASP, IETF RFCs, Google, IAB) are linked, not copied. The fingerprint texts for subdomain takeover follow the public list can-i-take-over-xyz, the names of AI crawlers the list ai.robots.txt.
 
 ## Logo and trademarks
 
