@@ -1,0 +1,94 @@
+name: Praxisprüfung 2 (Formate einzeln, npm-Werkzeuge)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  formate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: RDAP
+        if: always()
+        run: python tools/verify_live.py rdap
+      - name: PageSpeed
+        if: always()
+        env:
+          PSI_KEY: ${{ secrets.PSI_KEY }}
+        run: python tools/verify_live.py psi
+      - name: Safe Browsing
+        if: always()
+        env:
+          SB_KEY: ${{ secrets.SB_KEY }}
+        run: python tools/verify_live.py safebrowsing
+      - name: Fingerprints
+        if: always()
+        run: python tools/verify_live.py fingerprints
+      - name: KI-Bot-Namen
+        if: always()
+        run: python tools/verify_live.py bots
+      - name: Lizenzen
+        if: always()
+        run: python tools/verify_live.py licenses
+
+  npm-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: ESLint, Stylelint und retire.js mit unseren Konfigurationen starten
+        run: |
+          set +e
+          D=$GITHUB_WORKSPACE/src/claudios/components/npm
+          mkdir -p /tmp/np && cd /tmp/np
+          cp $D/package.json $D/package-lock.json $D/eslint.config.mjs $D/stylelint.config.json .
+          npm ci --ignore-scripts --no-audit --no-fund > ci.txt 2>&1
+          echo "::notice title=npm ci::exit $? $(tail -n 2 ci.txt | tr '\n' ' ' | head -c 200)"
+          cat > summ.py <<'EOF'
+          import json, sys
+          kind, path = sys.argv[1], sys.argv[2]
+          try:
+              data = json.load(open(path))
+          except Exception as exc:
+              print("unlesbar:", type(exc).__name__)
+              raise SystemExit
+          if kind == "eslint":
+              print("Regeln:", sorted({str(m.get("ruleId")) for f in data for m in f["messages"]}))
+          elif kind == "stylelint":
+              print("Regeln:", sorted({w["rule"] for f in data for w in f["warnings"]}))
+          elif kind == "bin":
+              print(data.get("version"), data.get("bin"))
+          else:
+              hits = [r.get("component") for d in data.get("data", []) for r in d.get("results", [])]
+              print(len(data.get("data", [])), "Dateien mit Treffern;", hits[:5])
+          EOF
+          for p in eslint stylelint retire; do
+            echo "::notice title=Einstieg $p::$(python3 summ.py bin node_modules/$p/package.json 2>&1 | head -c 250)"
+          done
+          echo "::notice title=Einstiegsdateien::eslint/bin/eslint.js $(test -f node_modules/eslint/bin/eslint.js && echo da || echo FEHLT), retire/lib/cli.js $(test -f node_modules/retire/lib/cli.js && echo da || echo FEHLT)"
+          printf 'const input = process.argv[2];\neval(input);\nnew RegExp(input);\nconsole.log(1);\n' > sample.js
+          printf 'a { color: #ggg; }\n' > sample.css
+          npx --no-install eslint -c eslint.config.mjs --format json sample.js > eslint.out 2> eslint.err
+          E=$?
+          echo "::notice title=ESLint::exit $E $(python3 summ.py eslint eslint.out 2>&1 | head -c 250) stderr: $(head -c 150 eslint.err | tr '\n' ' ')"
+          npx --no-install stylelint --config stylelint.config.json --formatter json sample.css > style.out 2> style.err
+          E=$?
+          echo "::notice title=Stylelint (stdout)::exit $E stdout-Bytes: $(wc -c < style.out), stderr-Bytes: $(wc -c < style.err)"
+          npx --no-install stylelint --config stylelint.config.json --formatter json --output-file style.json sample.css > /dev/null 2>&1
+          echo "::notice title=Stylelint (Datei)::$(python3 summ.py stylelint style.json 2>&1 | head -c 250)"
+          mkdir -p scan && cp sample.js scan/
+          curl -sSL -o scan/jquery-1.6.1.min.js https://code.jquery.com/jquery-1.6.1.min.js
+          echo "::notice title=jquery-Probe::$(wc -c < scan/jquery-1.6.1.min.js) Bytes geladen"
+          npx --no-install retire --path scan --outputformat json > retire.out 2> retire.err
+          E=$?
+          echo "::notice title=retire.js::exit $E $(python3 summ.py retire retire.out 2>&1 | head -c 250) stderr: $(head -c 150 retire.err | tr '\n' ' ')"
+          exit 0
