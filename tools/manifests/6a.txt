@@ -1,0 +1,8 @@
+# Pflichtdateien aus Paket 6a (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/core/probe_passive.py
+src/claudios/checks/headers_more.py
+src/claudios/checks/html_more.py
+src/claudios/checks/seo_extra.py
+src/claudios/checks/infra_more.py
+src/claudios/i18n/strings_passive.py
+tests/test_passive_checks.py
