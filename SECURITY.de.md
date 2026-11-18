@@ -25,5 +25,5 @@ Claudios ist Open Source. Die Schutzmaßnahmen (Limits, nur HTTPS, Verifizierung
 - sslyze wird aus dem Quellarchiv gebaut (bei PyPI gibt es kein Wheel); die Build-Werkzeuge dafür sind nicht per Prüfsumme gesichert.
 - Browser, ZAP und sslyze öffnen eigene Verbindungen und nutzen die Drosselung von Claudios nicht. Es gelten ein Gesamtzeitbudget und eine Mindestpause, und Hosts, die sie selbst aufgelöst haben, werden danach erneut geprüft (erkannt, nicht verhindert).
 - Die Browser-Downloads (Chromium, Firefox, WebKit) kommen vom Server von Playwright und sind nicht durch eine Prüfsumme von Claudios gesichert.
-- Mehrere Datenformate optionaler Online-Dienste und einige Fingerprint-Texte stammen aus dem Gedächtnis und sind ungeprüft (siehe [docs/EXTERNAL_SERVICES.de.md](docs/EXTERNAL_SERVICES.de.md)).
+- Die Antwortformate von Safe Browsing und PageSpeed (mit gültigem Schlüssel) und die KI-Bot-Namen sind noch ungeprüft (siehe [docs/EXTERNAL_SERVICES.de.md](docs/EXTERNAL_SERVICES.de.md)).
 - Installer und Programm sind nicht signiert; Windows SmartScreen kann warnen (siehe [FAQ](FAQ.de.md)).
