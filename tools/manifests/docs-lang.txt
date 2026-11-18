@@ -1,3 +1,19 @@
-# Pflichtdateien: deutsche Fassungen der Dokumente (check_files.py liest alle Dateien in diesem Ordner)
-THIRD_PARTY_NOTICES.de.md
+# Pflichtdateien: Dokumente, Hauptdatei Englisch und deutsche Fassung (check_files.py liest alle Dateien in diesem Ordner)
+README.md
+README.de.md
+SECURITY.de.md
+CONTRIBUTING.de.md
+FAQ.de.md
+THREAT_MODEL.de.md
+CHANGELOG.de.md
 CODE_OF_CONDUCT.de.md
+THIRD_PARTY_NOTICES.de.md
+assets/ASSETS.de.md
+docs/GOOGLE_SETUP.de.md
+docs/ABUSE_PROTECTION.md
+docs/ABUSE_PROTECTION.de.md
+docs/EXTERNAL_SERVICES.md
+docs/EXTERNAL_SERVICES.de.md
+docs/ENGINES_AND_RUNTIME.md
+docs/ENGINES_AND_RUNTIME.de.md
+.github/ISSUE_TEMPLATE/bug_report_de.yml
