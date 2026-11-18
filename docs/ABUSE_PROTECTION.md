@@ -1,35 +1,32 @@
-# Missbrauchsschutz in Claudios
+# Abuse protection in Claudios
 
-Dieses Dokument beschreibt, wie Claudios verhindert, dass es gegen fremde Websites oder das eigene Netz missbraucht
-wird, und wo diese Schutzmaßnahmen enden. Es ersetzt `THREAT_MODEL.md` nicht, sondern ergänzt es.
+Deutsche Fassung: [ABUSE_PROTECTION.de.md](ABUSE_PROTECTION.de.md)
 
-## Schichten
+This document describes how Claudios prevents being used against foreign websites or the user's own network, and where these protections end. It complements [THREAT_MODEL.md](THREAT_MODEL.md).
 
-| Schicht | Wirkung | Datei |
+## Layers
+
+| Layer | Effect | File |
 |---|---|---|
-| Eingabe | Eine Domain, nur HTTPS, Port 443, strenge Hostnamen-Regeln, keine lokalen Endungen, keine IP-Adressen, Punycode | `core/guard.py` |
-| Selbstauskunft / Stufe 2 | Stufe 1 nur mit Haken. Stufe 2 nur mit Beleg der Live-Prüfung in der Search Console: gilt für einen Host und eine Property, 15 Minuten, einmal | `core/proof.py`, `gsc/session.py` |
-| Kontingent | Abkühlzeit 120 s, 5 Scans pro Stunde, 3 (Stufe 1) oder 10 (Stufe 2) pro Domain und Tag | `core/quota.py`, `core/limits.py` |
-| Protokoll | Hash-Kette plus Kontrollwert im Windows-Anmeldeinformationsspeicher. Gelöschtes oder verändertes Protokoll sperrt Scans 24 Stunden | `core/audit_log.py`, `core/audit_anchor.py` |
-| Gatekeeper | Jeder eigene Zugriff läuft hier durch: DNS nur über DoH, alle Adressen müssen öffentlich sein, Verbindung zur geprüften IP, Tempo- und Mengengrenzen | `core/net.py` |
-| Werkzeuge | Browser, ZAP und sslyze: Gesamtbudget 1.800 s, 15 s Pause zwischen Läufen, höchstens 3 Läufe je Art und Scan | `core/toolbudget.py`, `core/toolrunner.py` |
-| DNS-Rebinding | Vor und nach dem ZAP-Lauf wird die Auflösung erneut geprüft. Der Browser-Lauf legt den Zielhost auf die geprüfte IP fest | `core/rebind.py`, `checks/_browser.py` |
-| Fremdserver | Hosts, die Browser und ZAP selbst aufgelöst haben, werden nachträglich geprüft. Zeigt einer auf eine nicht öffentliche Adresse, werden seine Daten verworfen und er wird gemeldet (`BRW-FRN-001`) | `core/foreign.py` |
+| Input | One domain, HTTPS only, port 443, strict host name rules, no local suffixes, no IP addresses, Punycode | `core/guard.py` |
+| Self-declaration / level 2 | Level 1 only with the check mark. Level 2 only with a proof from the live check of the Search Console properties: valid for one host and one property, 15 minutes, one use | `core/proof.py`, `gsc/session.py` |
+| Quota | Cool-down 120 s, 5 scans per hour, 3 (level 1) or 10 (level 2) per domain and day | `core/quota.py`, `core/limits.py` |
+| Scan log | Hash chain plus a control value in the Windows Credential Manager. A deleted or changed log blocks scans for 24 hours | `core/audit_log.py`, `core/audit_anchor.py` |
+| Gatekeeper | Every own request passes here: DNS only over DoH, all addresses must be public, connection to the verified IP, rate and size limits | `core/net.py` |
+| Tools | Browser, ZAP and sslyze: total budget 1,800 s, 15 s pause between runs, at most 4 runs per kind and scan | `core/toolbudget.py`, `core/toolrunner.py` |
+| DNS rebinding | The resolution is re-checked before and after the ZAP run and the Firefox/WebKit run. The Chromium run pins the target host to the verified IP. Embedded IPv4 addresses in NAT64 and 6to4 addresses are judged by the IPv4 address | `core/rebind.py`, `core/guard.py`, `checks/_browser.py` |
+| Third-party hosts | Hosts that browser and ZAP resolved themselves are checked afterwards. If one points to a non-public address its data is discarded and it is reported (`BRW-FRN-001`) | `core/foreign.py` |
+| Optional services | Off by default, switched on only after a confirmation. See [EXTERNAL_SERVICES.md](EXTERNAL_SERVICES.md) | `core/services.py`, `core/thirdparty.py` |
 
-## Grenzen (Restrisiken)
+## Limits (residual risks)
 
-- **Der Beleg und der Kontrollwert sind Reibung, kein Schutz vor einem Entwickler.** Wer den Quellcode ändert oder
-  Protokoll und Kontrollwert löscht, umgeht sie. Eine Neuinstallation sieht genauso aus.
-- **Fremdserver werden erkannt, nicht verhindert.** Chromium und ZAP lösen ihre Namen selbst auf. Ein Wechsel mitten im
-  Lauf wird nicht verhindert, nur danach erkannt. Der Zugriff ist dann schon geschehen.
-- **Beim ZAP-Lauf ist der Zielhost nicht an die geprüfte IP gebunden.** Dort gilt nur die Prüfung vor und nach dem Lauf.
-- **Das Budget erfasst nicht den ZAP-Daemon selbst**, nur das Browser-Skript durch ZAP.
-- **Ein abgelehnter Werkzeuglauf zeigt sich als `skipped:tool_failed`.** Den Grund (`budget`) steht nur im Log.
-- **Ungeprüft unter Windows:** das echte Schreiben des Kontrollwerts in den Anmeldeinformationsspeicher und die Schnittstelle
-  `core/view/hosts` von ZAP (aus dem Gedächtnis).
+- **The proof and the control value are friction, not protection against a developer.** Whoever changes the source code or deletes log and control value gets around them. A fresh installation looks the same.
+- **Third-party hosts are detected, not prevented.** Chromium, Firefox, WebKit and ZAP resolve their names themselves. A change in the middle of a run is only detected afterwards; the access has then already happened.
+- **In the ZAP run and the Firefox/WebKit run the target host is not pinned to the verified IP.** Only the check before and after the run applies.
+- **The budget does not count the ZAP daemon itself**, only the browser script through ZAP.
+- **A rejected tool run shows as `skipped:tool_failed`.** The reason (`budget`) appears only in the log.
+- **Unverified on Windows:** writing the control value to the Credential Manager, and the ZAP interface `core/view/hosts` (from memory).
 
-## Wie es geprüft wird
+## How it is tested
 
-Die Tests `test_abuse_protection.py`, `test_audit_anchor.py`, `test_rebinding.py`, `test_foreign_hosts.py` und
-`test_tool_budget.py` decken die Schichten ab. Eine Freigabeliste im Test verhindert, dass unbemerkt neue aktive
-Prüfungen oder Probes der Stufe 2 entstehen.
+The tests `test_abuse_protection.py`, `test_audit_anchor.py`, `test_rebinding.py`, `test_foreign_hosts.py` and `test_tool_budget.py` cover the layers. An allow-list in a test prevents new active checks or level-2 probes from appearing unnoticed.
