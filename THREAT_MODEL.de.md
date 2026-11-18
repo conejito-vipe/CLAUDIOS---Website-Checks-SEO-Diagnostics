@@ -45,7 +45,7 @@ Stand: nach den Paketen 6f bis 6n. Das Dokument beschreibt, was Claudios schütz
 - **sslyze läuft mit einer neueren `cryptography`, als es selbst erlaubt.** Der Workflow „pip-Sperrliste“ erzwingt sie, weil die vom Paket erlaubte Version bekannte Lücken hat, und übernimmt sie nur nach einem erfolgreichen sslyze-Lauf gegen eine echte Seite. Das beweist nicht, dass jedes Zertifikat korrekt verarbeitet wird. Ein Fehler würde als „nicht ausgeführt“ sichtbar, nie als „bestanden“.
 - **Die Git-Historie wird nicht automatisch nach Geheimnissen durchsucht**, nur der aktuelle Stand.
 - **Befunde enthalten Text fremder Websites.** CSV- und Excel-Export neutralisieren Formel-Injektion; PDF- und HTML-Bericht maskieren alles.
-- **Mehrere aus dem Gedächtnis geschriebene Formate sind ungeprüft:** die ZAP-Schnittstelle `core/view/hosts`, die Fingerprint-Texte, die Formate von RDAP, Safe Browsing und PageSpeed, die Bot-Namen und die Skripte `shot_probe.js` und `engine_probe.js` mit einem echten Browser.
+- **Einige Formate sind noch ungeprüft:** das Antwortformat von Safe Browsing und PageSpeed mit gültigem Schlüssel, die KI-Bot-Namen und die Lizenzeinträge. Einmal auf einem GitHub-Rechner (Linux) bestätigt: die ZAP-Schnittstelle core/view/hosts, das RDAP-Format, die meisten Fingerprint-Texte und die Skripte shot_probe.jsundengine_probe.js mit echtem Chromium, Firefox und WebKit.
 
 ## Regelmäßige Prüfung
 
