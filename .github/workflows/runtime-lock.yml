@@ -1,0 +1,21 @@
+name: Laufzeit-Sperrdatei erzeugen (Python-Laufzeit und pip)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Prüfsummen ermitteln
+        run: python tools/make_runtime_lock.py
+      - name: Datei hochladen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/claudios/components/runtime-lock.json
+          git diff --cached --quiet || (git commit -m "Add runtime lock (Python embeddable and pip wheel with SHA256)" && git push)
