@@ -25,8 +25,8 @@ Dieses Dokument beschreibt, wie Claudios verhindert, dass es gegen fremde Websit
 - **Im ZAP-Lauf und im Firefox/WebKit-Lauf ist der Zielhost nicht an die geprüfte IP gebunden.** Dort gilt nur die Prüfung vor und nach dem Lauf.
 - **Das Budget erfasst nicht den ZAP-Daemon selbst**, nur das Browser-Skript durch ZAP.
 - **Ein abgelehnter Werkzeuglauf zeigt sich als `skipped:tool_failed`.** Der Grund (`budget`) steht nur im Log.
-- **Ungeprüft unter Windows:** das Schreiben des Kontrollwerts in den Anmeldeinformationsspeicher und die ZAP-Schnittstelle `core/view/hosts` (aus dem Gedächtnis).
-
+- **Ungeprüft unter Windows:** das Schreiben des Kontrollwerts in den Anmeldeinformationsspeicher. Die ZAP-Schnittstelle core/view/hosts ist unter Linux bestätigt.
+  
 ## Wie es geprüft wird
 
 Die Tests `test_abuse_protection.py`, `test_audit_anchor.py`, `test_rebinding.py`, `test_foreign_hosts.py` und `test_tool_budget.py` decken die Schichten ab. Eine Freigabeliste in einem Test verhindert, dass unbemerkt neue aktive Prüfungen oder Probes der Stufe 2 entstehen.
