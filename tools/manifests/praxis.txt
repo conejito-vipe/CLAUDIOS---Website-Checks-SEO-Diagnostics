@@ -1,0 +1,4 @@
+# Pflichtdateien der Praxisprüfung (check_files.py liest alle Dateien in diesem Ordner)
+tools/verify_live.py
+.github/workflows/praxis-pruefung.yml
+tests/test_verify_live.py
