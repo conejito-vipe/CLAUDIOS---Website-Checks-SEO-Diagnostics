@@ -1,0 +1,3 @@
+# Pflichtdateien der Praxisprüfung 2 (check_files.py liest alle Dateien in diesem Ordner)
+.github/workflows/praxis-formate.yml
+tests/test_psi_key.py
