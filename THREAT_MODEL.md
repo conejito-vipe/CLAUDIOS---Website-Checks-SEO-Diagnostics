@@ -45,7 +45,7 @@ Status: after packages 6f to 6n. This document describes what Claudios protects,
 - **sslyze runs with a newer `cryptography` than it allows itself.** The workflow "pip-Sperrliste" forces it because the version allowed by the package has known vulnerabilities, and accepts it only after a successful sslyze run against a real site. That does not prove that every certificate is processed correctly. An error would show as "not executed", never as "passed".
 - **The git history is not searched for secrets automatically**, only the current state.
 - **Findings contain text from foreign websites.** CSV and Excel exports neutralise formula injection; the PDF and HTML reports escape everything.
-- **Some formats are still unverified:** the answer format of Safe Browsing and PageSpeed with a valid key, the AI bot names and the licence entries. Verified once on a GitHub runner (Linux): the ZAP interface core/view/hosts, the RDAP format, most fingerprint texts, and the scripts shot_probe.jsandengine_probe.js with real Chromium, Firefox and WebKit.
+- **Some formats are still unverified:** the answer format of Safe Browsing and PageSpeed with a valid key, the licence entries marked "(verify)" and everything on Windows. Verified on a GitHub runner (Linux): the ZAP interface core/view/hosts, the RDAP format, all eight fingerprint texts, the 14 original AI bot names (against ai.robots.txt), the scripts shot_probe.jsandengine_probe.js with real Chromium, Firefox and WebKit, and ESLint 9, Stylelint 16 and retire.js 6 with the Claudios configurations.
 
 ## Routine checks
 
