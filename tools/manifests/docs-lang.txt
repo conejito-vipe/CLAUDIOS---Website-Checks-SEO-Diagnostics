@@ -1,0 +1,3 @@
+# Pflichtdateien: deutsche Fassungen der Dokumente (check_files.py liest alle Dateien in diesem Ordner)
+THIRD_PARTY_NOTICES.de.md
+CODE_OF_CONDUCT.de.md
