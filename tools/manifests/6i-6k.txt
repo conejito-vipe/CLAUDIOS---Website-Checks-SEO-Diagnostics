@@ -1,0 +1,16 @@
+# Pflichtdateien aus Paket 6i und 6k (check_files.py liest alle Dateien in diesem Ordner)
+.github/workflows/runtime-lock.yml
+tools/make_runtime_lock.py
+src/claudios/components/_runtimelock.py
+src/claudios/components/extra_pipwheel.py
+src/claudios/components/extra_pythonruntime.py
+src/claudios/components/pipembedtools.py
+src/claudios/components/pwbrowserstools.py
+src/claudios/components/extra_pwbrowsers.py
+src/claudios/components/npm/engine_probe.js
+src/claudios/core/probe_engines.py
+src/claudios/checks/enginechecks.py
+src/claudios/i18n/strings_engines.py
+docs/ENGINES_AND_RUNTIME.md
+tests/test_engines.py
+tests/test_runtime_embedded.py
