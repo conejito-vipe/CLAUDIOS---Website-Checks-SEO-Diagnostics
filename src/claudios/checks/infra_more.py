@@ -1,5 +1,6 @@
 """Prüfungen mit Daten aus der Probe core/probe_passive.py: MTA-STS-Richtliniendatei und Fehlerseiten von Subdomains,
-die auf Fremddienste zeigen."""
+die auf Fremddienste zeigen. Die MTA-STS-Prüfung heißt SEC-MTS-001 (nicht DNS-...): ein vorhandener Test verlangt, dass
+alle Prüfungen mit der Vorsilbe DNS- schon mit reinen DNS-Daten laufen."""
 from __future__ import annotations
 
 from ..core.dnsprobe import txt_join
@@ -34,7 +35,7 @@ def _matches(host: str, pattern: str) -> bool:
     return host == pattern
 
 
-@check("DNS-MTF-001",
+@check("SEC-MTS-001",
        title="MTA-STS-Richtliniendatei ## MTA-STS policy file",
        why="Ein MTA-STS-Eintrag im DNS wirkt nur mit der passenden Richtliniendatei. Fehlt sie oder ist sie "
            "fehlerhaft, ignorieren Absender den Schutz oder liefern im enforce-Modus nicht mehr zu. ## An MTA-STS "
@@ -70,44 +71,44 @@ def mta_sts_file(snap):
         raise CheckSkipped("mta_sts_unreachable")
     url, status = snap.target.url, rec.get("status")
     if status != 200:
-        return [F("DNS-MTF-001", S.WARNING, url,
+        return [F("SEC-MTS-001", S.WARNING, url,
                   f"MTA-STS-Eintrag vorhanden, aber die Richtliniendatei liefert HTTP {status} (Weiterleitungen sind nicht erlaubt)",
                   f"MTA-STS record present but the policy file returns HTTP {status} (redirects are not allowed)")]
     out = []
     ctype = str(rec.get("content_type", ""))
     if ctype and not ctype.startswith("text/plain"):
-        out.append(F("DNS-MTF-001", S.NOTE, url, "Die MTA-STS-Richtlinie hat nicht den Inhaltstyp text/plain",
+        out.append(F("SEC-MTS-001", S.NOTE, url, "Die MTA-STS-Richtlinie hat nicht den Inhaltstyp text/plain",
                      "The MTA-STS policy does not have the content type text/plain", ctype[:60]))
     fields = _policy(str(rec.get("text", "")))
     if (fields.get("version") or [""])[0].lower() != "stsv1":
-        out.append(F("DNS-MTF-001", S.WARNING, url, "MTA-STS-Richtlinie ohne gültige version: STSv1",
+        out.append(F("SEC-MTS-001", S.WARNING, url, "MTA-STS-Richtlinie ohne gültige version: STSv1",
                      "MTA-STS policy without a valid version: STSv1"))
     mode = (fields.get("mode") or [""])[0].lower()
     if mode not in ("enforce", "testing", "none"):
-        out.append(F("DNS-MTF-001", S.WARNING, url, "MTA-STS-Richtlinie ohne gültigen mode",
+        out.append(F("SEC-MTS-001", S.WARNING, url, "MTA-STS-Richtlinie ohne gültigen mode",
                      "MTA-STS policy without a valid mode", mode[:20]))
     elif mode != "enforce":
-        out.append(F("DNS-MTF-001", S.NOTE, url, f"MTA-STS läuft im Modus {mode} und erzwingt nichts",
+        out.append(F("SEC-MTS-001", S.NOTE, url, f"MTA-STS läuft im Modus {mode} und erzwingt nichts",
                      f"MTA-STS runs in mode {mode} and enforces nothing"))
     patterns = fields.get("mx", [])
     if not patterns:
-        out.append(F("DNS-MTF-001", S.WARNING, url, "MTA-STS-Richtlinie ohne mx-Zeile",
+        out.append(F("SEC-MTS-001", S.WARNING, url, "MTA-STS-Richtlinie ohne mx-Zeile",
                      "MTA-STS policy without an mx line"))
     else:
         missing = [h for h in _mx_hosts(records) if not any(_matches(h, p) for p in patterns)]
         if missing:
-            out.append(F("DNS-MTF-001", S.WARNING, url,
+            out.append(F("SEC-MTS-001", S.WARNING, url,
                          f"{len(missing)} MX-Host(s) der Domain passen zu keinem mx-Muster der Richtlinie",
                          f"{len(missing)} MX host(s) of the domain match no mx pattern of the policy", missing[0][:80]))
     raw_age = (fields.get("max_age") or [""])[0]
     if not raw_age.isdigit():
-        out.append(F("DNS-MTF-001", S.WARNING, url, "MTA-STS-Richtlinie ohne gültiges max_age",
+        out.append(F("SEC-MTS-001", S.WARNING, url, "MTA-STS-Richtlinie ohne gültiges max_age",
                      "MTA-STS policy without a valid max_age"))
     elif int(raw_age) < 86400:
-        out.append(F("DNS-MTF-001", S.NOTE, url, "max_age der MTA-STS-Richtlinie liegt unter einem Tag",
+        out.append(F("SEC-MTS-001", S.NOTE, url, "max_age der MTA-STS-Richtlinie liegt unter einem Tag",
                      "max_age of the MTA-STS policy is below one day", raw_age[:12]))
     elif int(raw_age) < 604800:
-        out.append(F("DNS-MTF-001", S.INFO, url, "max_age der MTA-STS-Richtlinie liegt unter einer Woche",
+        out.append(F("SEC-MTS-001", S.INFO, url, "max_age der MTA-STS-Richtlinie liegt unter einer Woche",
                      "max_age of the MTA-STS policy is below one week", raw_age[:12]))
     return out
 
