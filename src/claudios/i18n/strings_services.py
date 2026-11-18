@@ -30,13 +30,18 @@ TEXTS["de"].update({
     "svc.sb.saved": "Ein Schlüssel ist gespeichert.", "svc.sb.none": "Es ist kein Schlüssel gespeichert.",
     "svc.sb.invalid": "Der Schlüssel sieht ungültig aus (20 bis 128 Zeichen: Buchstaben, Ziffern, - und _).",
     "svc.sb.memory": "Auf diesem System nur bis zum Programmende.",
-    "svc.psi.switch": "Google PageSpeed Insights nutzen (Standard: aus)",
-    "svc.psi.info": "Gesendet wird die Adresse der Startseite. Google ruft die Seite selbst ab (Lighthouse, mobil) und "
-                    "liefert Messwerte und, falls vorhanden, Daten echter Besucher (CrUX). Google sieht deine "
-                    "IP-Adresse. Ein Scan dauert damit bis zu 90 Sekunden länger. Ohne Schlüssel gilt ein kleines "
-                    "Kontingent.",
+    "svc.psi.switch": "Google PageSpeed Insights nutzen (Standard: aus, eigener Schlüssel empfohlen)",
+    "svc.psi.info": "Gesendet wird die Adresse der Startseite, dazu dein Schlüssel, falls einer gespeichert ist. Google "
+                    "ruft die Seite selbst ab (Lighthouse, mobil) und liefert Messwerte und, falls vorhanden, Daten "
+                    "echter Besucher (CrUX). Google sieht deine IP-Adresse. Ein Scan dauert bis zu 90 Sekunden länger. "
+                    "Ohne eigenen Schlüssel war das gemeinsame Tageskontingent bei einer Messung schon erschöpft "
+                    "(HTTP 429): praktisch brauchst du einen Schlüssel (Google Cloud, PageSpeed Insights API). Er "
+                    "liegt im Windows-Anmeldeinformationsspeicher, nie in einer Datei oder im Bericht.",
     "svc.psi.ask": "Beim nächsten Scan wird die Adresse der Startseite an Google PageSpeed Insights gesendet, Google "
                    "ruft die Seite ab und sieht deine IP-Adresse. Einschalten?",
+    "svc.psi.key_ph": "API-Schlüssel für PageSpeed Insights (empfohlen)",
+    "svc.psi.save": "Schlüssel speichern", "svc.psi.delete": "Schlüssel löschen",
+    "svc.psi.saved": "Ein Schlüssel ist gespeichert.", "svc.psi.none": "Es ist kein Schlüssel gespeichert.",
     "svc.local.title": "Lokale Optionen (nichts wird gesendet)",
     "svc.shots.switch": "Screenshots der Startseite speichern (Standard: aus)",
     "svc.shots.info": "Ein Browser fotografiert die Startseite am Desktop (1280 px) und mobil (390 px). Die Bilder bleiben "
@@ -75,12 +80,18 @@ TEXTS["en"].update({
     "svc.sb.saved": "A key is stored.", "svc.sb.none": "No key is stored.",
     "svc.sb.invalid": "The key looks invalid (20 to 128 characters: letters, digits, - and _).",
     "svc.sb.memory": "On this system only until the program closes.",
-    "svc.psi.switch": "Use Google PageSpeed Insights (default: off)",
-    "svc.psi.info": "The address of the home page is sent. Google fetches the page itself (Lighthouse, mobile) and returns "
-                    "measurements and, if available, data of real visitors (CrUX). Google sees your IP address. A scan "
-                    "takes up to 90 seconds longer. Without a key a small quota applies.",
+    "svc.psi.switch": "Use Google PageSpeed Insights (default: off, own key recommended)",
+    "svc.psi.info": "The address of the home page is sent, plus your key if one is stored. Google fetches the page "
+                    "itself (Lighthouse, mobile) and returns measurements and, if available, data of real visitors "
+                    "(CrUX). Google sees your IP address. A scan takes up to 90 seconds longer. Without your own key the "
+                    "shared daily quota was already used up in one measurement (HTTP 429): in practice you need a key "
+                    "(Google Cloud, PageSpeed Insights API). It is kept in the Windows Credential Manager, never in a "
+                    "file or in the report.",
     "svc.psi.ask": "With the next scan the address of the home page will be sent to Google PageSpeed Insights, Google "
                    "fetches the page and sees your IP address. Turn it on?",
+    "svc.psi.key_ph": "API key for PageSpeed Insights (recommended)",
+    "svc.psi.save": "Save key", "svc.psi.delete": "Delete key",
+    "svc.psi.saved": "A key is stored.", "svc.psi.none": "No key is stored.",
     "svc.local.title": "Local options (nothing is sent)",
     "svc.shots.switch": "Save screenshots of the home page (default: off)",
     "svc.shots.info": "A browser photographs the home page on desktop (1280 px) and mobile (390 px). The images stay on "
