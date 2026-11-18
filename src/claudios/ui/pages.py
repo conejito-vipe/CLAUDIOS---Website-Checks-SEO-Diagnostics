@@ -29,11 +29,13 @@ from ..core.limits import LIMITS
 from ..core.numfmt import format_bytes
 from ..core.redact import redact_url
 from ..docs import render_doc
+from ..gsc import session
 from ..i18n.strings import get_lang, n, t
 from ..paths import data_dir
 from ..report.report import build_zip, default_zip_name, group_findings, zip_preview
 from ..settings import save as save_settings
 from .dialogs import error_info, show_error
+from .levelinfo import KEYS as LEVEL_KEYS, level_info
 from .worker import ScanThread
 
 PROFILES = ("quick", "standard", "deep")
@@ -63,7 +65,6 @@ class ScanPage(QWidget):
         self.level_lbl = _plain(QLabel())
         self.level_lbl.setObjectName("muted")
         self.google = QPushButton()
-        self.google.setEnabled(False)
         self.start_btn = QPushButton()
         self.start_btn.setObjectName("primary")
         self.cancel_btn = QPushButton()
@@ -83,7 +84,9 @@ class ScanPage(QWidget):
         lay.addWidget(self.log, 1)
         self.start_btn.clicked.connect(self.start)
         self.cancel_btn.clicked.connect(self.cancel)
+        self.google.clicked.connect(self.open_google)
         self.url.returnPressed.connect(self.start)
+        self.url.textChanged.connect(self._update_level)
         self.status_key = "scan.idle"
 
     def retranslate(self) -> None:
@@ -93,12 +96,29 @@ class ScanPage(QWidget):
         for index, key in enumerate(PROFILES):
             self.profile.setItemText(index, t(f"profile.{key}"))
         self.confirm.setText(t("scan.confirm"))
-        self.level_lbl.setText(t("scan.level", pages=n(LIMITS.pages_level1), depth=n(LIMITS.max_depth)))
+        self._update_level()
         self.google.setText(t("scan.google"))
         self.start_btn.setText(t("scan.start"))
         self.cancel_btn.setText(t("scan.cancel"))
         if self._thread is None:
             self.status.setText(t(self.status_key))
+
+    def _update_level(self, *_args) -> None:
+        """Zeigt, welche Stufe für die eingegebene Domain gilt (nur Anzeige, geprüft wird vor dem Scan live)."""
+        info = level_info(self.url.text(), bool(self._get_settings().get("allow_localhost")), session.SESSION)
+        pages = LIMITS.pages_level2 if info.level == 2 or info.state == "armed" else LIMITS.pages_level1
+        self.level_lbl.setText(t(LEVEL_KEYS[info.state], pages=n(pages), depth=n(LIMITS.max_depth), prop=info.prop))
+
+    def showEvent(self, event) -> None:  # noqa: N802 (Qt-Name)
+        super().showEvent(event)
+        self._update_level()  # der Zustand kann sich auf der Seite Search Console geändert haben
+
+    def open_google(self) -> None:
+        window = self.window()
+        keys = getattr(window, "nav_keys", ())
+        nav = getattr(window, "nav", None)
+        if nav is not None and "nav.gsc" in keys:
+            nav.setCurrentRow(keys.index("nav.gsc"))
 
     def busy(self) -> bool:
         return self._thread is not None
@@ -106,7 +126,7 @@ class ScanPage(QWidget):
     def _set_running(self, running: bool) -> None:
         self.start_btn.setEnabled(not running)
         self.cancel_btn.setEnabled(running)
-        for widget in (self.url, self.profile, self.confirm):
+        for widget in (self.url, self.profile, self.confirm, self.google):
             widget.setEnabled(not running)
 
     def start(self) -> None:
@@ -164,7 +184,7 @@ class ScanPage(QWidget):
         snap = result.snapshot
         self.bar.setValue(100)
         self.status_key = "scan.idle"
-        message = t("scan.done", status=t(f"status.{snap.status}"))
+        message = t("scan.done_level", status=t(f"status.{snap.status}"), level=n(snap.level))
         self.status.setText(message)
         self.log.appendPlainText(message)
         self.scan_finished.emit(result)
