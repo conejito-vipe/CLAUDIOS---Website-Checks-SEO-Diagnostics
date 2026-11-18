@@ -1,0 +1,147 @@
+name: Praxisprüfung (Formate, Browser, ZAP, Werkzeuge, Lizenzen)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  services:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - run: python tools/verify_live.py all
+
+  zap-hosts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: ZAP starten, Seite durch ZAP laden, Hosts abfragen
+        run: |
+          set +e
+          D=$GITHUB_WORKSPACE/src/claudios/components
+          read -r URL SUM < <(python -c "import json;c=[x for x in json.load(open('$D/components.lock.json'))['components'] if x['name']=='zap'][0];print(c['url'],c['sha256'])")
+          mkdir -p /tmp/zapdl && cd /tmp/zapdl
+          curl -sSL -o zap.zip "$URL"
+          echo "$SUM  zap.zip" | sha256sum -c - > sum.txt 2>&1
+          echo "::notice title=Pruefsumme::$(tr '\n' ' ' < sum.txt)"
+          unzip -q zap.zip -d /tmp/zap
+          JAR=$(find /tmp/zap -name 'zap-[0-9]*.jar' | head -n 1)
+          KEY=$(python -c "import secrets;print(secrets.token_hex(16))")
+          PORT=8090
+          HOME_DIR=/tmp/zaphome
+          mkdir -p $HOME_DIR
+          mapfile -t CMD < <(python -c "from claudios.core.probe_zap import command; print('\n'.join(command('java','$JAR','$HOME_DIR',$PORT,'$KEY')))")
+          "${CMD[@]}" > /tmp/zap.log 2>&1 &
+          ZPID=$!
+          API=http://127.0.0.1:$PORT
+          for i in $(seq 1 90); do
+            V=$(curl -s -H "X-ZAP-API-KEY: $KEY" "$API/JSON/core/view/version/")
+            case "$V" in *version*) break;; esac
+            sleep 1
+          done
+          echo "::notice title=Version::$V"
+          curl -s -H "X-ZAP-API-KEY: $KEY" "$API/OTHER/core/other/rootcert/" -o /tmp/zap-root.pem
+          mkdir -p /tmp/run && cd /tmp/run
+          cp $D/npm/pw-package.json package.json
+          cp $D/npm/pw-package-lock.json package-lock.json
+          cp $D/npm/zap_probe.js .
+          npm ci --ignore-scripts --no-audit --no-fund > ci.txt 2>&1
+          export PLAYWRIGHT_BROWSERS_PATH=/tmp/run/browsers
+          node node_modules/playwright/cli.js install --with-deps chromium > inst.txt 2>&1
+          cat > in.json <<EOF
+          {"urls":["https://example.com/"],"registrable":"example.com","proxy_port":$PORT,"cert_path":"/tmp/zap-root.pem","ua_suffix":"Claudios-verify"}
+          EOF
+          node zap_probe.js in.json out.json > run.txt 2> run.err
+          echo "::notice title=Browser-Ergebnis::$(head -c 500 out.json 2>/dev/null | tr '\n' ' ')"
+          for i in $(seq 1 60); do
+            R=$(curl -s -H "X-ZAP-API-KEY: $KEY" "$API/JSON/pscan/view/recordsToScan/")
+            case "$R" in *'"0"'*) break;; esac
+            sleep 2
+          done
+          H=$(curl -s -H "X-ZAP-API-KEY: $KEY" "$API/JSON/core/view/hosts/" | head -c 500)
+          echo "::notice title=core/view/hosts roh::$H"
+          S=$(curl -s -H "X-ZAP-API-KEY: $KEY" "$API/JSON/core/view/sites/" | head -c 500)
+          echo "::notice title=core/view/sites roh::$S"
+          P=$(cd $GITHUB_WORKSPACE && python -c "from claudios.core import probe_zap as z; c=z._client($PORT,'$KEY'); print(sorted(z._seen_hosts(c)))" 2>&1 | tail -n 2)
+          echo "::notice title=_seen_hosts::$P"
+          kill $ZPID
+          exit 0
+
+  browsers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Bildskript und Browser-Vergleich mit echten Browsern
+        run: |
+          set +e
+          D=$GITHUB_WORKSPACE/src/claudios/components/npm
+          mkdir -p /tmp/run/shots && cd /tmp/run
+          cp $D/pw-package.json package.json
+          cp $D/pw-package-lock.json package-lock.json
+          cp $D/shot_probe.js $D/engine_probe.js .
+          npm ci --ignore-scripts --no-audit --no-fund > ci.txt 2>&1
+          echo "::notice title=npm ci::exit $?"
+          export PLAYWRIGHT_BROWSERS_PATH=/tmp/run/browsers
+          node node_modules/playwright/cli.js install --with-deps chromium firefox webkit > inst.txt 2>&1
+          echo "::notice title=Browser-Installation::exit $? $(tail -n 2 inst.txt | tr '\n' ' ' | head -c 300)"
+          IP=$(getent ahostsv4 example.com | awk '{print $1}' | head -n 1)
+          cat > in_shot.json <<EOF
+          {"urls":["https://example.com/"],"host":"example.com","registrable":"example.com","ip":"$IP","ua_suffix":"Claudios-verify","outdir":"/tmp/run/shots"}
+          EOF
+          node shot_probe.js in_shot.json out_shot.json > shot.txt 2> shot.err
+          echo "::notice title=shot_probe Exit::$?"
+          echo "::notice title=shot_probe Ergebnis::$(head -c 600 out_shot.json 2>/dev/null | tr '\n' ' ')"
+          echo "::notice title=shot_probe Dateien::$(ls -l shots | tr '\n' ' ' | head -c 400)"
+          echo "::notice title=shot_probe Fehler::$(head -c 400 shot.err 2>/dev/null | tr '\n' ' ')"
+          cat > in_eng.json <<EOF
+          {"urls":["https://example.com/"],"registrable":"example.com","ua_suffix":"Claudios-verify"}
+          EOF
+          node engine_probe.js in_eng.json out_eng.json > eng.txt 2> eng.err
+          echo "::notice title=engine_probe Exit::$?"
+          echo "::notice title=engine_probe Ergebnis::$(head -c 900 out_eng.json 2>/dev/null | tr '\n' ' ')"
+          echo "::notice title=engine_probe Fehler::$(head -c 400 eng.err 2>/dev/null | tr '\n' ' ')"
+          exit 0
+
+  npm-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: ESLint, Stylelint und retire.js mit unseren Konfigurationen starten
+        run: |
+          set +e
+          D=$GITHUB_WORKSPACE/src/claudios/components/npm
+          mkdir -p /tmp/np && cd /tmp/np
+          cp $D/package.json $D/package-lock.json $D/eslint.config.mjs $D/stylelint.config.json .
+          npm ci --ignore-scripts --no-audit --no-fund > ci.txt 2>&1
+          echo "::notice title=npm ci::exit $? $(tail -n 2 ci.txt | tr '\n' ' ' | head -c 300)"
+          echo "::notice title=Versionen::eslint $(npx --no-install eslint --version 2>&1 | head -n 1), stylelint $(npx --no-install stylelint --version 2>&1 | head -n 1), retire $(npx --no-install retire --version 2>&1 | head -n 1)"
+          printf 'var x = eval("1");\nconsole.log(x);\n' > sample.js
+          printf 'a { color: #ggg; }\n' > sample.css
+          npx --no-install eslint -c eslint.config.mjs --format json sample.js > eslint.out 2> eslint.err
+          echo "::notice title=ESLint::exit $? Ausgabe: $(head -c 250 eslint.out | tr '\n' ' ') Fehler: $(head -c 250 eslint.err | tr '\n' ' ')"
+          npx --no-install stylelint --config stylelint.config.json --formatter json sample.css > style.out 2> style.err
+          echo "::notice title=Stylelint::exit $? Ausgabe: $(head -c 250 style.out | tr '\n' ' ') Fehler: $(head -c 250 style.err | tr '\n' ' ')"
+          mkdir -p scan && cp sample.js scan/
+          npx --no-install retire --path scan --outputformat json > retire.out 2> retire.err
+          echo "::notice title=retire.js::exit $? Ausgabe: $(head -c 250 retire.out | tr '\n' ' ') Fehler: $(head -c 250 retire.err | tr '\n' ' ')"
+          exit 0
