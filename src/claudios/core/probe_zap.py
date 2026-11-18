@@ -3,6 +3,8 @@ API-Schlüssel, ohne Update-Prüfung). Chromium (Playwright) lädt eine Stichpro
 Funde der passiven Regeln abgefragt. Es wird nie ein aktiver Scan oder Spider gestartet. Der Verkehr liegt nur in
 einem Zwischenordner, der danach gelöscht wird. Im Ergebnis stehen nur Regelname, Risiko, Adresse, CWE und Regel-ID,
 nie der Beleg (er kann Cookie-Werte enthalten).
+Vor und nach dem Lauf wird die DNS-Auflösung der Website erneut geprüft (core/rebind.py): zeigt sie auf eine nicht
+öffentliche Adresse, gilt die Prüfung als nicht ausgeführt.
 Die lokale Schnittstelle von ZAP ist unverschlüsselt (nur Loopback, der Dienst bietet nichts anderes an)."""
 from __future__ import annotations
 
@@ -27,6 +29,7 @@ from ..components.manager import tool_path
 from ..components.npmtools import node_env
 from .errors import ClaudiosError
 from .limits import LIMITS
+from .rebind import recheck
 from .redact import redact_url
 from .toolrunner import ensure_in_tools, run_tool
 
@@ -260,5 +263,21 @@ def _run(snap) -> dict:
         _remove(home)
 
 
+async def _unchanged(gk) -> bool:
+    """False, wenn die Website inzwischen auf eine nicht öffentliche Adresse zeigt (DNS-Rebinding)."""
+    try:
+        await recheck(gk)
+    except ClaudiosError:
+        return False
+    return True
+
+
 async def collect(gk, snap, resolver) -> dict:
-    return await asyncio.to_thread(_run, snap)
+    if snap.target.loopback:
+        return await asyncio.to_thread(_run, snap)
+    if not await _unchanged(gk):
+        return {"skip": "dns_changed"}
+    result = await asyncio.to_thread(_run, snap)
+    if not await _unchanged(gk):
+        return {"skip": "dns_changed"}  # die Ergebnisse stammen eventuell von einem fremden Server: verwerfen
+    return result
