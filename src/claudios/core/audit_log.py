@@ -1,11 +1,13 @@
 """Audit-Log mit Hash-Kette. Nur Zeit, Ereignis, Domain, Stufe, Profil. Keine personenbezogenen Daten.
-Optional mit Kontrollwert (core/audit_anchor.py) gegen das Löschen der Datei."""
+Optional mit Kontrollwert (core/audit_anchor.py) gegen das Löschen der Datei. Das Programm schaltet ihn in app.py
+für alle neuen Protokolle ein (use_default_anchor); Tests lassen ihn aus."""
 from __future__ import annotations
 
 import hashlib
 import json
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -13,6 +15,12 @@ if TYPE_CHECKING:
     from .audit_anchor import Anchor
 
 _ZERO = "0" * 64
+_DEFAULT: dict[str, Callable[[], Anchor | None] | None] = {"factory": None}
+
+
+def use_default_anchor(factory: Callable[[], Anchor | None] | None) -> None:
+    """Alle danach erzeugten AuditLog-Objekte ohne eigenen Kontrollwert bekommen den der Fabrik (None = keiner)."""
+    _DEFAULT["factory"] = factory
 
 
 def _digest(prev: str, rec: dict) -> str:
@@ -24,7 +32,8 @@ class AuditLog:
     def __init__(self, path: Path | str, anchor: Anchor | None = None) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.anchor = anchor
+        factory = _DEFAULT["factory"]
+        self.anchor = anchor if anchor is not None or factory is None else factory()
         self._lock = threading.Lock()
 
     def records(self) -> list[dict]:
