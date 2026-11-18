@@ -1,0 +1,2 @@
+# Pflichtdateien aus Paket 6f-2b2 (check_files.py liest alle Dateien in diesem Ordner)
+tests/test_audit_default.py
