@@ -5,7 +5,7 @@
   "description": "Werkzeuge für Claudios (ESLint, Stylelint, retire.js). Genaue Versionen stehen in package-lock.json.",
   "dependencies": {
     "eslint": "^10.15.0",
-    "eslint-plugin-security": "^3.0.0",
+    "eslint-plugin-security": "^4.2.1",
     "retire": "^6.1.1",
     "stylelint": "^16.0.0"
   }
