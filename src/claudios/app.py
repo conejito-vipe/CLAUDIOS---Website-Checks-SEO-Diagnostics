@@ -12,7 +12,8 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from .checks import load_all
-from .core.audit_log import AuditLog
+from .core.audit_anchor import default_anchor
+from .core.audit_log import AuditLog, use_default_anchor
 from .core.errors import catalog
 from .core.redact import RedactFilter
 from .core.registry import validate_registry
@@ -78,6 +79,7 @@ def main() -> int:
     if icon is not None:
         app.setWindowIcon(icon)
     _setup_logging()
+    use_default_anchor(default_anchor)  # Kontrollwert gegen das Löschen des Scan-Protokolls (nur im echten Programm)
     settings = load_settings()
     lang = settings.get("language") or ("de" if QLocale.system().name().startswith("de") else "en")
     set_lang(lang)
