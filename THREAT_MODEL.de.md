@@ -9,7 +9,7 @@ Stand: nach den Paketen 6f bis 6n. Das Dokument beschreibt, was Claudios schütz
 | Gut | Warum wichtig |
 |---|---|
 | Fremde Server | Sie dürfen nicht angegriffen, überlastet oder ausgeforscht werden. |
-| Geheimnisse des Nutzers | Google-Token, Client-Secret, API-Schlüssel für Safe Browsing. Passwörter und Cookie-Werte werden nie gespeichert. |
+| Geheimnisse des Nutzers | Google-Token, Client-Secret, API-Schlüssel für Safe Browsing und PageSpeed. Passwörter und Cookie-Werte werden nie gespeichert. |
 | Der Rechner des Nutzers | Heruntergeladene Werkzeuge führen Code aus. |
 | Integrität der Berichte | Nicht ausgeführte Prüfungen dürfen nie als bestanden erscheinen. |
 
@@ -45,7 +45,7 @@ Stand: nach den Paketen 6f bis 6n. Das Dokument beschreibt, was Claudios schütz
 - **sslyze läuft mit einer neueren `cryptography`, als es selbst erlaubt.** Der Workflow „pip-Sperrliste“ erzwingt sie, weil die vom Paket erlaubte Version bekannte Lücken hat, und übernimmt sie nur nach einem erfolgreichen sslyze-Lauf gegen eine echte Seite. Das beweist nicht, dass jedes Zertifikat korrekt verarbeitet wird. Ein Fehler würde als „nicht ausgeführt“ sichtbar, nie als „bestanden“.
 - **Die Git-Historie wird nicht automatisch nach Geheimnissen durchsucht**, nur der aktuelle Stand.
 - **Befunde enthalten Text fremder Websites.** CSV- und Excel-Export neutralisieren Formel-Injektion; PDF- und HTML-Bericht maskieren alles.
-- **Einige Formate sind noch ungeprüft:** das Antwortformat von Safe Browsing und PageSpeed mit gültigem Schlüssel, die KI-Bot-Namen und die Lizenzeinträge. Einmal auf einem GitHub-Rechner (Linux) bestätigt: die ZAP-Schnittstelle core/view/hosts, das RDAP-Format, die meisten Fingerprint-Texte und die Skripte shot_probe.jsundengine_probe.js mit echtem Chromium, Firefox und WebKit.
+- **Einige Formate sind noch ungeprüft:** das Antwortformat von Safe Browsing und PageSpeed mit gültigem Schlüssel, die Lizenzeinträge mit „(verify)“ und alles unter Windows. Auf einem GitHub-Rechner (Linux) bestätigt: die ZAP-Schnittstelle `core/view/hosts`, das RDAP-Format, alle acht Fingerprint-Texte, die 14 ursprünglichen KI-Bot-Namen (gegen ai.robots.txt), die Skripte `shot_probe.js` und `engine_probe.js` mit echtem Chromium, Firefox und WebKit sowie ESLint 9, Stylelint 16 und retire.js 6 mit den Konfigurationen von Claudios.
 
 ## Regelmäßige Prüfung
 
