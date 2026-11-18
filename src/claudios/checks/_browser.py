@@ -1,6 +1,7 @@
 """Gemeinsamer Browser-Lauf für die Browser-Prüfungen: ein einziger Chromium-Lauf pro Scan (Playwright, externer
 Prozess) über eine Stichprobe der gecrawlten Seiten. Das Ergebnis wird im Snapshot zwischengespeichert, auch ein
-Fehlschlag, damit nicht jede Prüfung den Browser neu startet. Dateien mit Unterstrich lädt der Prüfungs-Lader nicht."""
+Fehlschlag, damit nicht jede Prüfung den Browser neu startet. Dateien mit Unterstrich lädt der Prüfungs-Lader nicht.
+Nach dem Lauf werden die Fremd-Hosts erneut aufgelöst (core/foreign.py), auffällige verworfen."""
 from __future__ import annotations
 
 import json
@@ -10,6 +11,7 @@ from pathlib import Path
 from .. import USER_AGENT, paths
 from ..components.manager import tool_path
 from ..components.npmtools import node_env
+from ..core import foreign
 from ..core.errors import ClaudiosError
 from ..core.guard import DohResolver, ip_allowed
 from ..core.limits import LIMITS
@@ -23,8 +25,8 @@ def sample_urls(snap) -> list[str]:
     for pg in snap.docs():
         if pg.status == 200 and pg.url.startswith("https://") and pg.url not in urls:
             urls.append(pg.url)
-        if len(urls) >= cap:
-            break
+            if len(urls) >= cap:
+                break
     return urls
 
 
@@ -77,6 +79,7 @@ def _run(snap) -> dict:
         raise CheckSkipped("tool_output_unreadable")
     if data.get("error") and not data["pages"]:
         raise CheckSkipped("browser_failed")
+    foreign.screen_browser(data, _lookup)  # Fremd-Hosts, die inzwischen auf nicht öffentliche Adressen zeigen
     return data
 
 
