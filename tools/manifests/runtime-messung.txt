@@ -1,0 +1,4 @@
+# Pflichtdateien der Laufzeit-Messung (check_files.py liest alle Dateien in diesem Ordner)
+tools/measure_runtime.py
+tools/measure_browsers.js
+.github/workflows/runtime-messung.yml
