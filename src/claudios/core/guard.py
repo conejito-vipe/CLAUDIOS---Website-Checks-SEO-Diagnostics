@@ -18,6 +18,7 @@ DOH_URL = "https://dns.quad9.net/dns-query"
 DOH_BOOTSTRAP = "9.9.9.9"
 _LABEL = re.compile(r"^(?!-)[a-z0-9-]{1,63}(?<!-)$")
 _LOCAL_SUFFIXES = (".local", ".localhost", ".internal", ".lan", ".home.arpa")
+_NAT64 = ipaddress.ip_network("64:ff9b::/96")
 
 
 @dataclass(frozen=True)
@@ -39,8 +40,15 @@ def is_loopback_host(host: str) -> bool:
 
 def ip_allowed(ip: str, allow_loopback: bool = False) -> bool:
     addr = ipaddress.ip_address(ip)
-    if isinstance(addr, ipaddress.IPv6Address) and addr.ipv4_mapped:
-        addr = addr.ipv4_mapped
+    if isinstance(addr, ipaddress.IPv6Address):
+        if addr.ipv4_mapped:
+            addr = addr.ipv4_mapped
+        else:  # NAT64 und 6to4 tragen eine IPv4-Adresse in sich: diese entscheidet
+            inner = addr.sixtofour
+            if inner is None and addr in _NAT64:
+                inner = ipaddress.IPv4Address(int(addr) & 0xFFFFFFFF)
+            if inner is not None:
+                return ip_allowed(str(inner), allow_loopback)
     if addr.is_loopback:
         return allow_loopback
     return addr.is_global and not addr.is_multicast
