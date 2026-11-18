@@ -8,13 +8,16 @@ from ..core.registry import check
 from ._util import CheckSkipped, F, S
 from .seo_extra import _parse_robots
 
-# Namen und Betreiber aus dem Gedächtnis nach öffentlichen Listen, ungeprüft. Bots ändern ihre Namen.
+# Die Namen wurden mit der gepflegten Liste ai.robots.txt abgeglichen (209 Namen, alle 14 ursprünglichen Namen stehen
+# darin). Wir decken die wichtigsten ab. Die Betreiber stammen aus dem Gedächtnis; sie erscheinen in keinem Befund.
 AI_BOTS = (
     ("GPTBot", "OpenAI"), ("OAI-SearchBot", "OpenAI"), ("ChatGPT-User", "OpenAI"),
     ("ClaudeBot", "Anthropic"), ("anthropic-ai", "Anthropic"), ("Claude-Web", "Anthropic"),
     ("CCBot", "Common Crawl"), ("Google-Extended", "Google"), ("PerplexityBot", "Perplexity"),
     ("Bytespider", "ByteDance"), ("Applebot-Extended", "Apple"), ("Amazonbot", "Amazon"),
     ("Meta-ExternalAgent", "Meta"), ("cohere-ai", "Cohere"),
+    ("Applebot", "Apple"), ("Amzn-SearchBot", "Amazon"), ("Amzn-User", "Amazon"),
+    ("AI2Bot", "Allen Institute for AI"), ("Bravebot", "Brave"),
 )
 _LINK = re.compile(r"\[[^\]\n]{1,200}\]\(([^)\s]{1,500})\)")
 
@@ -40,13 +43,15 @@ def _state(groups, agent: str) -> str:
            "Komplettsperre für alle. ## AI services read websites for training and for answers. With robots.txt the "
            "operator decides which crawlers may do so. A deliberate decision is better than an accident, for example "
            "a full block for everyone.",
-       method="Wertet die beim Crawl geholte robots.txt aus (keine neue Anfrage) und sucht Regeln für 14 bekannte "
-              "KI-Crawler (zum Beispiel GPTBot, ClaudeBot, CCBot, Google-Extended, PerplexityBot). Die Namen stammen "
-              "aus öffentlichen Listen und sind ungeprüft. Google-Extended steuert nur die KI-Nutzung bei Google, "
+       method="Wertet die beim Crawl geholte robots.txt aus (keine neue Anfrage) und sucht Regeln für 19 bekannte "
+              "KI-Crawler (zum Beispiel GPTBot, ClaudeBot, CCBot, Google-Extended, PerplexityBot, Applebot). Die "
+              "Namen wurden mit der öffentlichen Liste ai.robots.txt abgeglichen, die über 200 Namen enthält; "
+              "unbekannte Crawler werden nicht erkannt. Google-Extended steuert nur die KI-Nutzung bei Google, "
               "nicht die normale Suche. Die robots.txt ist eine Bitte, keine Sperre: Nicht jeder Crawler hält sich "
-              "daran. ## Evaluates the robots.txt fetched during the crawl (no new request) and looks for rules for 14 "
-              "known AI crawlers (for example GPTBot, ClaudeBot, CCBot, Google-Extended, PerplexityBot). The names come "
-              "from public lists and are unverified. Google-Extended only controls AI use at Google, not normal "
+              "daran. ## Evaluates the robots.txt fetched during the crawl (no new request) and looks for rules for "
+              "19 known AI crawlers (for example GPTBot, ClaudeBot, CCBot, Google-Extended, PerplexityBot, "
+              "Applebot). The names were compared with the public list ai.robots.txt, which contains more than 200 "
+              "names; unknown crawlers are not detected. Google-Extended only controls AI use at Google, not normal "
               "search. robots.txt is a request, not a lock: not every crawler obeys it.",
        logic="Nur Info: gesperrt, teilweise gesperrt, ausdrücklich erlaubt, durch die Regel für * mitgesperrt oder "
              "keine Regeln für KI-Crawler. ## Info only: blocked, partly blocked, explicitly allowed, blocked by the "
@@ -54,7 +59,8 @@ def _state(groups, agent: str) -> str:
        fix="Entscheiden, welche KI-Crawler Inhalte nutzen dürfen, und je Crawler einen Block User-agent: GPTBot mit "
            "Allow: / oder Disallow: / eintragen. ## Decide which AI crawlers may use your content and add a block "
            "such as User-agent: GPTBot with Allow: / or Disallow: / for each crawler.",
-       refs=["https://www.rfc-editor.org/rfc/rfc9309", "https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers"],
+       refs=["https://www.rfc-editor.org/rfc/rfc9309",
+             "https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers"],
        profiles="sd")
 def ai_crawlers(snap):
     if snap.robots_txt is None:
