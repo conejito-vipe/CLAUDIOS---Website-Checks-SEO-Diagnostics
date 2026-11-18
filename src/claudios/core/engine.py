@@ -21,6 +21,7 @@ from .quota import ScanLock, check_quota
 from .registry import REGISTRY
 from .scoring import compute_scores
 from .snapshot import Snapshot
+from .toolbudget import scan_budget
 
 log = logging.getLogger("claudios.engine")
 
@@ -87,26 +88,27 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
     check_quota(audit, target.registrable, level)  # zuerst die Quote: ein abgelehnter Scan verbraucht den Beleg nicht
     snap = Snapshot(target=target, level=level, profile=profile)
     requests = bytes_total = 0
-    with ScanLock(lock_path):
-        if level == 2:  # frischer Beleg der Live-Prüfung für genau diese Domain, gilt einmal
-            require_proof(target.host, verified_property)
-        doh = resolver or DohResolver()
-        gk = Gatekeeper(target, resolver=doh, allow_localhost=allow_localhost, cancel=cancel)
-        audit.append("scan_start", domain=target.registrable, level=level, profile=profile)
-        try:
-            await crawl(gk, snap, progress=progress)
-            await gather_probes(gk, snap, doh, progress)
-            snap.status = "complete"
-        except ClaudiosError as e:
-            snap.status, snap.abort = "aborted", _abort_info(e.code, **e.ctx)
-        except Exception as exc:  # noqa: BLE001 – nie stumm scheitern
-            log.error("scan crashed: %r", exc)
-            snap.status, snap.abort = "aborted", _abort_info(E.INTERNAL, reason=type(exc).__name__)
-        finally:
-            requests, bytes_total = gk.requests, gk.bytes_total
-            await gk.aclose()
-            snap.finished = time.time()
-    findings, executed = run_checks(snap, level, profile, components)
+    with scan_budget():  # Gesamtbudget und Mindestpause für Browser, ZAP und sslyze (core/toolbudget.py)
+        with ScanLock(lock_path):
+            if level == 2:  # frischer Beleg der Live-Prüfung für genau diese Domain, gilt einmal
+                require_proof(target.host, verified_property)
+            doh = resolver or DohResolver()
+            gk = Gatekeeper(target, resolver=doh, allow_localhost=allow_localhost, cancel=cancel)
+            audit.append("scan_start", domain=target.registrable, level=level, profile=profile)
+            try:
+                await crawl(gk, snap, progress=progress)
+                await gather_probes(gk, snap, doh, progress)
+                snap.status = "complete"
+            except ClaudiosError as e:
+                snap.status, snap.abort = "aborted", _abort_info(e.code, **e.ctx)
+            except Exception as exc:  # noqa: BLE001 – nie stumm scheitern
+                log.error("scan crashed: %r", exc)
+                snap.status, snap.abort = "aborted", _abort_info(E.INTERNAL, reason=type(exc).__name__)
+            finally:
+                requests, bytes_total = gk.requests, gk.bytes_total
+                await gk.aclose()
+                snap.finished = time.time()
+        findings, executed = run_checks(snap, level, profile, components)
     if snap.status == "complete" and (any(p.error for p in snap.pages) or any(v != "ran" for v in executed.values())):
         snap.status = "limited"
     audit.append("scan_end", domain=target.registrable, status=snap.status)
