@@ -39,6 +39,10 @@ class Limits:
     assets_bytes_max: int = 500_000
     tool_timeout_seconds: float = 120.0
     tool_output_max: int = 2_000_000
+    tool_total_seconds: float = 1800.0      # Gesamtzeit aller Läufe von Browser, ZAP und sslyze je Scan
+    tool_min_pause_seconds: float = 15.0    # Mindestpause zwischen zwei solchen Läufen
+    tool_min_run_seconds: float = 30.0      # weniger Restzeit: kein weiterer Lauf
+    tool_runs_per_kind: int = 3             # Läufe je Werkzeugart und Scan
     browser_timeout_seconds: float = 60.0
     sslyze_timeout_seconds: float = 300.0
     browser_sample_standard: int = 10
