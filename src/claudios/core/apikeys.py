@@ -1,4 +1,4 @@
-"""API-Schlüssel für optionale Dienste (zurzeit nur Safe Browsing). Sie liegen im Windows-Anmeldeinformationsspeicher,
+"""API-Schlüssel für optionale Dienste (Safe Browsing, PageSpeed). Sie liegen im Windows-Anmeldeinformationsspeicher,
 nie in einer Datei, nie im Bericht, nie im Protokoll. Ohne dauerhaften Speicher (andere Systeme) nur im Arbeitsspeicher."""
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import re
 
 _STATE: dict = {"store": None}
 _VALID = re.compile(r"^[A-Za-z0-9_\-]{20,128}$")
-KNOWN = ("safebrowsing",)
+KNOWN = ("safebrowsing", "pagespeed")
 
 
 def _store():
