@@ -1,10 +1,7 @@
-# Code of Conduct / Verhaltenskodex
+# Code of Conduct
 
-Be respectful. No harassment, discrimination or personal attacks. Assume good faith, keep feedback about the
-work, not the person. Do not use this project to attack or probe systems you are not authorised to test.
+Deutsche Fassung: [CODE_OF_CONDUCT.de.md](CODE_OF_CONDUCT.de.md)
 
-Seid respektvoll. Keine Belästigung, Diskriminierung oder persönlichen Angriffe. Kritik betrifft die Sache, nicht
-die Person. Dieses Projekt darf nicht dazu genutzt werden, Systeme ohne Erlaubnis anzugreifen oder auszuforschen.
+Be respectful. No harassment, discrimination or personal attacks. Assume good faith, keep feedback about the work, not the person. Do not use this project to attack or probe systems you are not authorised to test.
 
-Report problems through a private GitHub security report or to the repository owner. Maintainers may remove
-comments or contributions that break these rules.
+Report problems through a private GitHub security report or to the repository owner. Maintainers may remove comments or contributions that break these rules.
