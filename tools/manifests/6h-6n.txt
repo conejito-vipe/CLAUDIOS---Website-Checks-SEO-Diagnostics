@@ -1,0 +1,16 @@
+# Pflichtdateien aus Paket 6h bis 6n (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/core/options.py
+src/claudios/core/apikeys.py
+src/claudios/core/thirdparty.py
+src/claudios/core/probe_safebrowsing.py
+src/claudios/core/probe_psi.py
+src/claudios/core/probe_shots.py
+src/claudios/components/npm/shot_probe.js
+src/claudios/report/shots.py
+src/claudios/checks/web_services.py
+src/claudios/checks/consent_quality.py
+src/claudios/checks/_schema.py
+src/claudios/checks/schema_more.py
+src/claudios/checks/intl_seo.py
+docs/THREAT_MODEL_ADDENDUM.md
+tests/test_extras_6h.py
