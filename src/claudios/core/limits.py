@@ -25,6 +25,9 @@ class Limits:
     external_links_budget_seconds: float = 300.0
     dns_queries_max: int = 40
     rebind_hosts_max: int = 10              # Hosts, die vor/nach einem Werkzeug-Lauf erneut geprüft werden
+    foreign_hosts_max: int = 30             # Fremd-Hosts, die nach Browser/ZAP erneut aufgelöst werden
+    foreign_budget_seconds: float = 45.0    # Zeitbudget dieser Prüfung
+    foreign_workers: int = 6                # gleichzeitige DNS-Abfragen dabei
     takeover_hosts_max: int = 20
     takeover_queries_max: int = 80
     ads_bytes_max: int = 200_000
