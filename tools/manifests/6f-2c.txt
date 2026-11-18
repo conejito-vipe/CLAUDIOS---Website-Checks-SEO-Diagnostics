@@ -1,0 +1,4 @@
+6f-2c.txt# Pflichtdateien aus Paket 6f-2c (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/core/toolbudget.py
+tests/test_tool_budget.py
+docs/ABUSE_PROTECTION.md
