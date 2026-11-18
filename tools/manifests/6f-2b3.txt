@@ -1,0 +1,4 @@
+# Pflichtdateien aus Paket 6f-2b3 (check_files.py liest alle Dateien in diesem Ordner)
+src/claudios/core/foreign.py
+src/claudios/checks/foreignhosts.py
+tests/test_foreign_hosts.py
