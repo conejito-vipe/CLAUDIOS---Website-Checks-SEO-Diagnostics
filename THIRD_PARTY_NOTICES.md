@@ -63,3 +63,10 @@ not copied.
 The logo is © fuhfux, created with AI assistance, for use only together with Claudios. It shows depictions of the
 HTML5, CSS3 and JavaScript badges; the source of those badges is still to be confirmed (see `assets/ASSETS.md`).
 HTML5 logo: W3C, CC BY 3.0, https://www.w3.org/html/logo/. All product names belong to their owners.
+
+## Nachtrag / Addendum (Lizenzen aus dem Gedächtnis, bitte prüfen / licenses from memory, please verify)
+- Firefox (über Playwright, optionale Komponente „Firefox und WebKit“): MPL-2.0 (verify). Playwright lädt ihn von seinem eigenen Server, Claudios pinnt die Datei nicht.
+- WebKit (über Playwright): LGPL-2.1 und BSD (verify).
+- Python-Laufzeit (Python embeddable, nur im gebauten Windows-Programm): PSF-2.0 (verify). Adresse und SHA256 stehen in `components/runtime-lock.json`.
+- pip (nur im gebauten Windows-Programm): MIT (verify).
+- openpyxl und et_xmlfile (Excel-Export): MIT (verify).
