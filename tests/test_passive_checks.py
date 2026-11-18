@@ -177,13 +177,13 @@ def policy(text, status=200):
 
 def test_mta_sts_file():
     good = "version: STSv1\nmode: enforce\nmx: mail.example.com\nmax_age: 604800\n"
-    assert run(mta_snap(policy(good)), "DNS-MTF-001") == ([], "ran")
-    assert sevs(run(mta_snap(policy("", status=404)), "DNS-MTF-001")[0]) == [S.WARNING]
-    assert sevs(run(mta_snap(policy(good.replace("enforce", "testing"))), "DNS-MTF-001")[0]) == [S.NOTE]
-    assert sevs(run(mta_snap(policy(good.replace("mail.example.com", "other.example.net"))), "DNS-MTF-001")[0]) == [S.WARNING]
-    assert sevs(run(mta_snap(policy(good.replace("604800", "3600"))), "DNS-MTF-001")[0]) == [S.NOTE]
+    assert run(mta_snap(policy(good)), "SEC-MTS-001") == ([], "ran")
+    assert sevs(run(mta_snap(policy("", status=404)), "SEC-MTS-001")[0]) == [S.WARNING]
+    assert sevs(run(mta_snap(policy(good.replace("enforce", "testing"))), "SEC-MTS-001")[0]) == [S.NOTE]
+    assert sevs(run(mta_snap(policy(good.replace("mail.example.com", "other.example.net"))), "SEC-MTS-001")[0]) == [S.WARNING]
+    assert sevs(run(mta_snap(policy(good.replace("604800", "3600"))), "SEC-MTS-001")[0]) == [S.NOTE]
     wildcard = good.replace("mail.example.com", "*.example.com")
-    assert run(mta_snap(policy(wildcard)), "DNS-MTF-001")[0] == []
+    assert run(mta_snap(policy(wildcard)), "SEC-MTS-001")[0] == []
 
 
 def test_takeover_fingerprints_and_missing_data():
@@ -193,7 +193,7 @@ def test_takeover_fingerprints_and_missing_data():
     assert run(passive_snap(takeover=None), "TKO-FNG-001")[1] == "skipped:no_takeover_data"
     plain = snap_of(page())
     _, executed = run_checks(plain, 1, "standard")
-    for cid in ("SEC-TXT-001", "SEO-FAV-001", "DNS-MTF-001", "TKO-FNG-001"):
+    for cid in ("SEC-TXT-001", "SEO-FAV-001", "SEC-MTS-001", "TKO-FNG-001"):
         assert executed[cid] == "skipped:no_passive_data"
 
 
