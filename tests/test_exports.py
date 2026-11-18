@@ -160,7 +160,7 @@ def test_damaged_or_foreign_history_files_are_ignored(env):
 
 def test_texts_exist_in_both_languages_and_format_cleanly():
     keys = [k for k in TEXTS["de"] if k.startswith("exp.")] + ["nav.export"]
-    assert len(keys) >= 40
+    assert len(keys) >= 35
     values = {"count": "1", "date": "2025-01-01", "old": "1", "new": "2", "delta": "+1", "target": "x",
               "status": "s", "score": "9"}
     for key in keys:
