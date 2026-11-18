@@ -1,0 +1,35 @@
+# Missbrauchsschutz in Claudios
+
+Dieses Dokument beschreibt, wie Claudios verhindert, dass es gegen fremde Websites oder das eigene Netz missbraucht
+wird, und wo diese Schutzmaßnahmen enden. Es ersetzt `THREAT_MODEL.md` nicht, sondern ergänzt es.
+
+## Schichten
+
+| Schicht | Wirkung | Datei |
+|---|---|---|
+| Eingabe | Eine Domain, nur HTTPS, Port 443, strenge Hostnamen-Regeln, keine lokalen Endungen, keine IP-Adressen, Punycode | `core/guard.py` |
+| Selbstauskunft / Stufe 2 | Stufe 1 nur mit Haken. Stufe 2 nur mit Beleg der Live-Prüfung in der Search Console: gilt für einen Host und eine Property, 15 Minuten, einmal | `core/proof.py`, `gsc/session.py` |
+| Kontingent | Abkühlzeit 120 s, 5 Scans pro Stunde, 3 (Stufe 1) oder 10 (Stufe 2) pro Domain und Tag | `core/quota.py`, `core/limits.py` |
+| Protokoll | Hash-Kette plus Kontrollwert im Windows-Anmeldeinformationsspeicher. Gelöschtes oder verändertes Protokoll sperrt Scans 24 Stunden | `core/audit_log.py`, `core/audit_anchor.py` |
+| Gatekeeper | Jeder eigene Zugriff läuft hier durch: DNS nur über DoH, alle Adressen müssen öffentlich sein, Verbindung zur geprüften IP, Tempo- und Mengengrenzen | `core/net.py` |
+| Werkzeuge | Browser, ZAP und sslyze: Gesamtbudget 1.800 s, 15 s Pause zwischen Läufen, höchstens 3 Läufe je Art und Scan | `core/toolbudget.py`, `core/toolrunner.py` |
+| DNS-Rebinding | Vor und nach dem ZAP-Lauf wird die Auflösung erneut geprüft. Der Browser-Lauf legt den Zielhost auf die geprüfte IP fest | `core/rebind.py`, `checks/_browser.py` |
+| Fremdserver | Hosts, die Browser und ZAP selbst aufgelöst haben, werden nachträglich geprüft. Zeigt einer auf eine nicht öffentliche Adresse, werden seine Daten verworfen und er wird gemeldet (`BRW-FRN-001`) | `core/foreign.py` |
+
+## Grenzen (Restrisiken)
+
+- **Der Beleg und der Kontrollwert sind Reibung, kein Schutz vor einem Entwickler.** Wer den Quellcode ändert oder
+  Protokoll und Kontrollwert löscht, umgeht sie. Eine Neuinstallation sieht genauso aus.
+- **Fremdserver werden erkannt, nicht verhindert.** Chromium und ZAP lösen ihre Namen selbst auf. Ein Wechsel mitten im
+  Lauf wird nicht verhindert, nur danach erkannt. Der Zugriff ist dann schon geschehen.
+- **Beim ZAP-Lauf ist der Zielhost nicht an die geprüfte IP gebunden.** Dort gilt nur die Prüfung vor und nach dem Lauf.
+- **Das Budget erfasst nicht den ZAP-Daemon selbst**, nur das Browser-Skript durch ZAP.
+- **Ein abgelehnter Werkzeuglauf zeigt sich als `skipped:tool_failed`.** Den Grund (`budget`) steht nur im Log.
+- **Ungeprüft unter Windows:** das echte Schreiben des Kontrollwerts in den Anmeldeinformationsspeicher und die Schnittstelle
+  `core/view/hosts` von ZAP (aus dem Gedächtnis).
+
+## Wie es geprüft wird
+
+Die Tests `test_abuse_protection.py`, `test_audit_anchor.py`, `test_rebinding.py`, `test_foreign_hosts.py` und
+`test_tool_budget.py` decken die Schichten ab. Eine Freigabeliste im Test verhindert, dass unbemerkt neue aktive
+Prüfungen oder Probes der Stufe 2 entstehen.
