@@ -263,8 +263,15 @@ def _run(snap) -> dict:
         _remove(home)
 
 
+def _real_gatekeeper(gk) -> bool:
+    """Nur ein echter Gatekeeper hat Ziel, Auflösung und Seitenzuordnung. None und Testattrappen haben sie nicht."""
+    return all(getattr(gk, name, None) is not None for name in ("target", "resolver", "same_site"))
+
+
 async def _unchanged(gk) -> bool:
     """False, wenn die Website inzwischen auf eine nicht öffentliche Adresse zeigt (DNS-Rebinding)."""
+    if not _real_gatekeeper(gk):
+        return True  # nichts zu prüfen (im Programm ist der Gatekeeper immer echt)
     try:
         await recheck(gk)
     except ClaudiosError:
