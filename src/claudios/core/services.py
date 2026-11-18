@@ -7,7 +7,7 @@ import json
 from .. import paths
 from .errors import ClaudiosError, ErrorCode as E
 
-KNOWN = ("rdap",)
+KNOWN = ("rdap", "safebrowsing", "pagespeed")
 
 
 def _file():
