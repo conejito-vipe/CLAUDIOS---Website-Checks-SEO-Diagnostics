@@ -34,6 +34,13 @@ class Limits:
     passive_body_max: int = 20_000          # Bytes je Anfrage der Zusatzdateien (security.txt, MTA-STS, Favicon)
     llms_body_max: int = 200_000            # Bytes der llms.txt
     rdap_body_max: int = 1_000_000          # Bytes je RDAP-Antwort (IANA-Liste und Domain-Abfrage)
+    safebrowsing_urls_max: int = 5          # Adressen der eigenen Website je Safe-Browsing-Abfrage
+    safebrowsing_body_max: int = 200_000    # Bytes der Safe-Browsing-Antwort
+    third_party_timeout_seconds: float = 30.0   # Zeitlimit für feste Google-Dienste (Safe Browsing)
+    psi_timeout_seconds: float = 90.0       # PageSpeed braucht oft 10 bis 40 Sekunden
+    psi_body_max: int = 3_000_000           # Bytes der PageSpeed-Antwort
+    shots_keep: int = 3                     # aufbewahrte Screenshot-Ordner (je Scan einer)
+    shot_bytes_max: int = 5_000_000         # Größe je Screenshot
     ads_bytes_max: int = 200_000
     sitemap_bytes_max: int = 2_000_000
     sitemap_urls_stored: int = 2000
