@@ -305,7 +305,10 @@ def test_trust_signals_geo_and_local_seo():
     good = (f'<html><body><a href="/about">About us</a><a href="/kontakt">Kontakt</a><a href="/impressum">Impressum</a>'
             f'<span class="author">A</span><time datetime="2025-01-01">x</time><p>{text}</p></body></html>')
     assert run(snap_of(page(good)), "SEO-EEA-001")[0] == []
-    found, _ = run(snap_of(page(article)), "SEO-GEO-001")
+    # 450 Wörter liegen unter der Grenze von 600: nur Frage ohne FAQPage und Startseite ohne Organization
+    assert len(run(snap_of(page(article)), "SEO-GEO-001")[0]) == 2
+    long_article = f"<html><body><h2>Was ist das?</h2><p>{'word ' * 700}</p></body></html>"
+    found, _ = run(snap_of(page(long_article)), "SEO-GEO-001")
     assert len(found) == 3 and {f.severity for f in found} == {S.INFO}
     local = ld({"@type": "Restaurant", "name": "Chez", "telephone": "+49 30 1234567",
                 "address": {"@type": "PostalAddress", "streetAddress": "Weg 1"}})
