@@ -11,7 +11,7 @@ from claudios.core.limits import LIMITS
 from claudios.core.numfmt import format_bytes, format_number
 from claudios.core.quota import check_quota
 from claudios.core.redact import redact_text, redact_url
-from claudios.core.registry import validate_registry
+from claudios.core.registry import REGISTRY, validate_registry
 from claudios.core.snapshot import parse_set_cookie
 
 
@@ -92,16 +92,22 @@ def test_quota_cooldown_and_domain_limit(tmp_path):
     with pytest.raises(ClaudiosError) as e:
         check_quota(log, "example.com", 1)
     assert e.value.code == ErrorCode.LIMIT_COOLDOWN
-    log.append("scan_start", domain="example.com", level=1)
-    log.append("scan_start", domain="example.com", level=1)
-    later = time.time() + 300  # Abkühlzeit vorbei, Tageslimit der Stufe 1 (3) erreicht
+    for _ in range(LIMITS.scans_per_domain_day_level1 - 1):
+        log.append("scan_start", domain="example.com", level=1)
+    # Eine Stunde und etwas später: Abkühlzeit und Stundenlimit sind vorbei, das Tageslimit der Stufe 1 gilt noch
+    later = time.time() + 3700
     with pytest.raises(ClaudiosError) as e:
         check_quota(log, "example.com", 1, now=later)
     assert e.value.code == ErrorCode.LIMIT_DOMAIN_DAY
-    check_quota(log, "example.com", 2, now=later)  # verifizierte Stufe 2 ist davon ausgenommen
+    check_quota(log, "example.com", 2, now=later)  # verifizierte Stufe 2 hat ein höheres Limit
     check_quota(log, "other.org", 1, now=later)
 
 
 def test_registry_is_valid_and_has_why_in_both_languages():
     load_all()
     assert validate_registry() == []
+    for cid, rc in REGISTRY.items():
+        meta = rc.meta
+        for field in (meta.title, meta.why, meta.method, meta.fix):
+            assert field["de"].strip() and field["en"].strip(), cid
+        assert all(ref.startswith("https://") for ref in meta.refs), cid
