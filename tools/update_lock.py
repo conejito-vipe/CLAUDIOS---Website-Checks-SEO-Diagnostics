@@ -1,6 +1,7 @@
 """Trägt Version, Adresse, Größe und SHA256 der Komponenten in die Lock-Datei ein.
 Quellen: GitHub-Releases, Adoptium-API, nodejs.org. Die Dateien werden heruntergeladen und selbst gehasht;
 liefert die Quelle eine eigene Prüfsumme, muss sie übereinstimmen.
+Einträge mit resolver.type "pinned" (zum Beispiel vnu, siehe tools/mirror_vnu.py) werden nicht angefasst.
 Aufruf: python tools/update_lock.py [name ...]"""
 from __future__ import annotations
 
@@ -61,6 +62,11 @@ def node(client: httpx.Client, _spec: dict) -> dict:
 RESOLVERS = {"github": github, "adoptium": adoptium, "node": node}
 
 
+def is_pinned(entry: dict) -> bool:
+    spec = entry.get("resolver")
+    return isinstance(spec, dict) and spec.get("type") == "pinned"
+
+
 def sha256_of(client: httpx.Client, url: str) -> tuple[str, int]:
     digest, size = hashlib.sha256(), 0
     with client.stream("GET", url) as resp:
@@ -81,6 +87,9 @@ def main() -> int:
         for entry in raw["components"]:
             name = entry["name"]
             if only and name not in only:
+                continue
+            if is_pinned(entry):
+                print(f"SKIP    {name}: fest gespiegelt (tools/mirror_vnu.py), unverändert")
                 continue
             try:
                 spec = entry["resolver"]
