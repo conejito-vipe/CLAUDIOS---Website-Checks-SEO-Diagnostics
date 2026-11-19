@@ -1,4 +1,4 @@
-name: Fehlermeldung (Deutsch)
+name: Fehlfehlermeldung (Deutsch)
 description: Etwas funktioniert nicht (English version: template "Bug report")
 body:
   - type: markdown
