@@ -1,5 +1,5 @@
 name: Bug report
-description: Something does not work (German version: template "Fehlermeldung (Deutsch)")
+description: "Something does not work (German version: template 'Fehlermeldung (Deutsch)')"
 body:
   - type: markdown
     attributes:
@@ -7,14 +7,14 @@ body:
   - type: input
     id: version
     attributes:
-      label: Claudios version
+      label: CLAUDIOS version
     validations:
       required: true
   - type: textarea
     id: what
     attributes:
       label: What happened?
-      description: Include the error code (for example CLA-TLS-001) if shown.
+      description: "Include the error code (for example CLA-TLS-001) if shown."
     validations:
       required: true
   - type: textarea
