@@ -16,12 +16,7 @@ except ImportError:  # in der Entwicklung nicht schlimm, im gebauten Programm me
 
 
 def doh_available() -> bool:
-    """True, wenn dnspython DNS über HTTPS nutzen kann."""
-    import dns.query
-
-    flag = getattr(dns.query, "have_doh", None)
-    if flag is not None:
-        return bool(flag)
+    """True, wenn die Bausteine für DNS über HTTPS (httpx, httpcore) geladen werden können."""
     try:
         import httpcore._backends.sync  # noqa: F401
         import httpx  # noqa: F401
