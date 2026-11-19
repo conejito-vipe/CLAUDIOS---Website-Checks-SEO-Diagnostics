@@ -1,0 +1,23 @@
+name: Fehlermeldung (Deutsch)
+description: Etwas funktioniert nicht (English version: template "Bug report")
+body:
+  - type: markdown
+    attributes:
+      value: "Bitte keine Passwörter, Tokens, Cookie-Werte oder private Adressen einfügen."
+  - type: input
+    id: version
+    attributes:
+      label: Version von CLAUDIOS
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Was ist passiert?
+      description: Fehlercode angeben (zum Beispiel CLA-TLS-001), falls angezeigt.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen
