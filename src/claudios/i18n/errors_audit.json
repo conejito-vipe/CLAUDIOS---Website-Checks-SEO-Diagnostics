@@ -1,0 +1,4 @@
+{
+"CLA-FS-002": {"de": ["Scan-Protokoll verändert oder gelöscht", "Das Scan-Protokoll passt nicht mehr zum gespeicherten Kontrollwert. Ohne Protokoll lassen sich die Tageslimits nicht belegen. Das alte Protokoll wurde beiseitegelegt, ein neues hat begonnen.", "Scans sind für {hours} Stunden gesperrt. Danach startest du ihn einfach erneut."],
+"en": ["Scan log changed or deleted", "The scan log no longer matches the stored control value. Without the log the daily limits cannot be verified. The old log was set aside and a new one has begun.", "Scans are blocked for {hours} hours. After that, simply start the scan again."]}
+}

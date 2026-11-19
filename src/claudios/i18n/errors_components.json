@@ -1,0 +1,12 @@
+{
+"CLA-CMP-003": {"de": ["Komponente nicht gepinnt", "Für {reason} fehlt in der Lock-Datei die SHA256-Prüfsumme. Ungeprüfte Downloads werden nie installiert.", "Führe tools/update_lock.py aus und lade die aktualisierte Lock-Datei hoch."],
+                "en": ["Component not pinned", "The lock file has no SHA256 checksum for {reason}. Unverified downloads are never installed.", "Run tools/update_lock.py and upload the updated lock file."]},
+"CLA-CMP-004": {"de": ["Download fehlgeschlagen", "Der Download ist fehlgeschlagen ({reason}). Es werden nur HTTPS-Verbindungen verwendet.", "Prüfe die Internetverbindung und versuche es erneut."],
+                "en": ["Download failed", "The download failed ({reason}). Only HTTPS connections are used.", "Check your internet connection and try again."]},
+"CLA-CMP-005": {"de": ["Prüfsumme stimmt nicht", "Die Prüfsumme der heruntergeladenen Datei von {reason} weicht von der Lock-Datei ab. Die Datei wurde verworfen.", "Versuche es erneut. Bleibt der Fehler, wurde die Datei verändert oder die Lock-Datei ist veraltet."],
+                "en": ["Checksum mismatch", "The checksum of the downloaded file for {reason} differs from the lock file. The file was discarded.", "Try again. If the error persists, the file was altered or the lock file is outdated."]},
+"CLA-CMP-006": {"de": ["Unsicheres Archiv", "Das Archiv enthält einen unsicheren oder beschädigten Eintrag ({reason}) und wurde nicht entpackt.", "Es wurde nichts installiert. Melde den Fall auf GitHub."],
+                "en": ["Unsafe archive", "The archive contains an unsafe or damaged entry ({reason}) and was not extracted.", "Nothing was installed. Please report the case on GitHub."]},
+"CLA-CMP-007": {"de": ["Installation abgebrochen", "Die Installation wurde von dir abgebrochen.", "Starte sie bei Bedarf erneut."],
+                "en": ["Installation cancelled", "The installation was cancelled by you.", "Start it again if needed."]}
+}

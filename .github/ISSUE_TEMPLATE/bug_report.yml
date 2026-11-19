@@ -1,0 +1,23 @@
+name: Bug report
+description: Something does not work (German version: template "Fehlermeldung (Deutsch)")
+body:
+  - type: markdown
+    attributes:
+      value: "Please do not paste passwords, tokens, cookie values or private URLs."
+  - type: input
+    id: version
+    attributes:
+      label: Claudios version
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Include the error code (for example CLA-TLS-001) if shown.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce

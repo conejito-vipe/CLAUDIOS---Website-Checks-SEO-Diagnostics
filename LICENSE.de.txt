@@ -1,0 +1,83 @@
+CLAUDIOS Quelloffene Lizenz mit Einschränkungen
+(keine kommerzielle Nutzung, keine Veränderung, keine Weitergabe)
+
+Version 1.0. Copyright (c) 2026 conejito-vipe. Alle Rechte vorbehalten, soweit sie nicht unten ausdrücklich eingeräumt werden.
+
+English version: LICENSE (verbindlich für Nutzer außerhalb deutschsprachiger Länder, siehe Abschnitt 13).
+
+1. Zweck und Status
+
+Der Quelltext von CLAUDIOS ist aus Gründen der Transparenz, der Sicherheitsprüfung und für die Nutzung durch Privatpersonen einsehbar. CLAUDIOS ist quelloffen im Sinn von "Quelltext einsehbar" (source-available). Es ist keine Open-Source-Software und keine freie Software im Sinn der Open Source Definition oder der Free Software Foundation. Der Urheber behält alle Rechte, die hier nicht ausdrücklich eingeräumt werden.
+
+2. Begriffe
+
+"Software" bezeichnet den Quelltext, das Programm, den Installer, die Dokumentation, die Texte, das Logo und alle weiteren Dateien dieses Repositorys, nicht aber die Komponenten Dritter.
+
+"Komponenten Dritter" bezeichnet Software anderer, die von der Software genutzt, eingebunden oder geladen wird (aufgelistet in THIRD_PARTY_NOTICES.de.md). Sie bleiben unter ihren eigenen Lizenzen.
+
+"Kommerzielle Nutzung" bezeichnet jede Nutzung durch oder für ein Unternehmen, einen Freiberufler, eine wirtschaftlich handelnde Behörde oder eine andere gewinnorientierte Stelle, jede Nutzung im Zusammenhang mit einem Gewerbe, Beruf oder Einkommen und jede Nutzung für oder im Auftrag von Kunden, einschließlich der Prüfung von Websites von Kunden oder Arbeitgebern. Die Größe des Unternehmens spielt keine Rolle.
+
+"Veränderung" bezeichnet jede Änderung der Software, einschließlich Patchen, Übersetzen, Anpassen, Entfernen oder Umgehen von Grenzen und Schutzmaßnahmen, Verbinden mit anderem Code sowie das Erstellen abgeleiteter Werke oder Forks mit Änderungen.
+
+"Weitergabe" bezeichnet jede Form, die Software oder Teile davon anderen zugänglich zu machen, einschließlich Kopieren für andere, Veröffentlichen, Hochladen, Teilen, Verkaufen, Vermieten, Verleihen, Bereitstellen zum Download und Weiterreichen von Installern, Builds, Quelltexten oder Archiven.
+
+3. Was erlaubt ist
+
+Privatpersonen sowie gemeinnützige Organisationen und Vereine, die zu nicht kommerziellen Zwecken handeln, dürfen kostenlos und unter den Bedingungen dieser Lizenz:
+
+(a) den Quelltext lesen und prüfen;
+(b) die unveränderte Software auf ihren eigenen Computern herunterladen, installieren und ausführen;
+(c) die unveränderte Software aus dem unveränderten Quelltext für den eigenen Gebrauch auf den eigenen Computern bauen;
+(d) die dafür technisch nötigen Kopien anfertigen, einschließlich einer Sicherungskopie für den eigenen Gebrauch;
+(e) die Berichte und Exporte, die die Software erzeugt, frei verwenden, auch an Dritte und an KI-Dienste senden.
+
+4. Was nicht erlaubt ist
+
+Ohne vorherige schriftliche Erlaubnis des Urhebers ist verboten:
+
+(a) jede kommerzielle Nutzung;
+(b) jede Veränderung;
+(c) jede Weitergabe;
+(d) Urheberrechtsvermerke, Lizenztexte oder den Logo-Hinweis zu entfernen oder zu ändern;
+(e) Namen oder Logo so zu verwenden, dass der Eindruck einer Billigung durch den Urheber entsteht;
+(f) Rückwärtsentwicklung, Dekompilieren oder Disassemblieren, soweit das Gesetz es nicht trotz dieser Klausel erlaubt.
+
+5. Ausschlüsse
+
+Politische Parteien, einschließlich ihrer Gliederungen, Organisationen und Wahlkampagnen, sind von jeder Nutzung der Software ausgeschlossen.
+
+Rechtsextreme, völkische, rassistische, antisemitische, menschenverachtende oder verfassungsfeindliche Parteien, Vereinigungen, Gruppen oder Vereine sowie Personen oder Organisationen, die in deren Auftrag oder Namen handeln, sind von jeder Nutzung der Software ausdrücklich ausgeschlossen.
+
+6. Erlaubnis für kommerzielle Nutzung, Veränderung und Weitergabe
+
+Kommerzielle Nutzung, Veränderung und Weitergabe brauchen vorab eine schriftliche Erlaubnis oder eine eigene Lizenz des Urhebers. Bitte frage über das GitHub-Profil des Urhebers an: https://github.com/conejito-vipe. Auf eine Erlaubnis besteht kein Anspruch. Der Urheber darf eine Gebühr verlangen und ablehnen. Anfragen zum Testen oder Evaluieren in einem Unternehmen gelten als kommerzielle Nutzung und brauchen ebenfalls eine Erlaubnis.
+
+7. Komponenten Dritter und GitHub
+
+Die Komponenten Dritter bleiben unter ihren eigenen Lizenzen. Nichts in dieser Lizenz schränkt die Rechte ein, die diese Lizenzen dir geben. Das gilt besonders für die Qt-Bibliotheken (LGPL): Du darfst sie im Ordner-Build des Programms ersetzen und dafür Debugging und Rückwärtsentwicklung betreiben, soweit die LGPL es erlaubt. Verlangt ein solches Recht etwas, das diese Lizenz verbietet, gilt diese Lizenz insoweit nicht.
+
+Die Rechte, die die Nutzungsbedingungen von GitHub anderen Nutzern zum Ansehen und Forken öffentlicher Repositorys geben, bleiben unberührt. Ein Fork bleibt an diese Lizenz gebunden. Er darf nicht verändert und nicht weitergegeben werden, soweit das über die Fork-Funktion von GitHub hinausgeht.
+
+8. Rückmeldungen
+
+Fehlermeldungen, Ideen und Sicherheitsmeldungen sind willkommen. Pull Requests mit Code werden nicht angenommen. Mit einer Rückmeldung räumst du dem Urheber ein unentgeltliches, weltweites, zeitlich unbegrenztes und unwiderrufliches Recht ein, sie zu nutzen, auch in der Software.
+
+9. Verantwortungsvolle Nutzung
+
+Du darfst die Software nur auf Websites und Systemen einsetzen, die dir gehören oder die du testen darfst. Für die Rechtmäßigkeit deiner Nutzung bist du allein verantwortlich (vergleiche zum Beispiel § 202c StGB und das Recht deines Landes). Die eingebauten Grenzen und Schutzmaßnahmen verhindern nur versehentlichen Missbrauch. Ihre Umgehung ist eine Veränderung und verboten.
+
+10. Dauer und Beendigung
+
+Diese Lizenz endet automatisch, wenn du gegen eine ihrer Bedingungen verstößt. Dann musst du die Nutzung beenden und alle Kopien löschen. Der Urheber darf spätere Versionen unter anderen Bedingungen anbieten, auch kostenpflichtig.
+
+11. Gewährleistung und Haftung
+
+Die Software wird "wie besehen" ("AS IS") ohne Gewährleistung und ohne Haftung jeder Art bereitgestellt, soweit gesetzlich zulässig. Die Haftung für Vorsatz und grobe Fahrlässigkeit, für die Verletzung von Leben, Körper und Gesundheit und jede andere Haftung, die sich gesetzlich nicht ausschließen lässt, bleibt unberührt.
+
+12. Salvatorische Klausel
+
+Ist eine Bestimmung unwirksam, bleiben die übrigen wirksam.
+
+13. Sprachen
+
+Diese Lizenz gibt es auf Englisch und Deutsch. Für Nutzer in deutschsprachigen Ländern gilt die deutsche Fassung, sonst die englische.

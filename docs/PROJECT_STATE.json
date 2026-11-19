@@ -1,0 +1,228 @@
+{
+  "dokument": {
+    "zweck": "Übergabe des Projekts Claudios an einen neuen Chat. Enthält Produktbeschreibung, Architektur, Arbeitsregeln, Stand, Risiken und Roadmap.",
+    "stand": "Nach Paket 6d (Sicherheitscheck abgeschlossen). Paket 6e (Aufräumen) beginnt mit einem Messlauf, dessen Ergebnis noch aussteht.",
+    "sprache_der_antworten": "Deutsch",
+    "hinweis": "Alles unter 'ungeprueft' stammt aus dem Gedächtnis des Assistenten oder lief nur gegen simulierte Daten. Nichts davon wurde auf einem echten Windows-Rechner gesehen."
+  },
+
+  "produkt": {
+    "name": "Claudios",
+    "untertitel": "Website Checks, SEO & Diagnostics",
+    "autor": "fuhfux",
+    "repo": "https://github.com/fuhfux/CLAUDIOS---Website-Checks-SEO-Diagnostics (privat)",
+    "was_es_ist": "Freeware-Windows-Programm in Python mit eigener Oberfläche (PySide6). Es prüft eine einzelne Website auf sauberes HTML, CSS und JavaScript (W3C-Referenzen), Sicherheit, Datenschutz, SEO und Barrierefreiheit. Jede Prüfung erklärt in Handbuch und Technik-Doku, warum sie wichtig ist. Am Ende gibt es einen Bericht und eine ZIP-Datei (mit Prompt) zum manuellen Hochladen bei Claude zur Bewertung und für Lösungsvorschläge.",
+    "ehemalige_namen": "Claudia (umbenannt in Claudios, der alte Name darf nirgends mehr stehen, ein Test prüft das)",
+    "lizenz": "MIT für den Code. Logo ausgenommen: (c) fuhfux, mit KI erstellt, nur zusammen mit Claudios nutzbar.",
+    "footer_text": "vipecoded with Claude (Anthropic) by fuhfux with love (Herz als gezeichnete Grafik) plus Anzahl reiner Python-Codezeilen, formatiert nach Sprache",
+    "wichtig_nicht_enthalten": "Der Satz 'nicht mit Anthropic verbunden' wurde auf Wunsch des Nutzers aus READMEs, THIRD_PARTY_NOTICES und About-Dialog entfernt. check_files.py meldet, falls er wieder auftaucht. Für Google, W3C und OWASP ZAP bleibt der Nicht-Verbunden-Hinweis in THIRD_PARTY_NOTICES.md.",
+    "sprachen": "Deutsch und Englisch, umschaltbar ohne Neustart, Standard nach Windows-Sprache",
+    "zahlenformat": "Alle Zahlen in der Oberfläche über format_number(): DE 1.000 und 2,5 / EN 1,000 und 2.5. JSON-Berichte enthalten reine Zahlen. Ausgenommen sind Zahlen im Quelltext, Statuscodes, Ports, Versionen, IDs.",
+    "logo": "assets/logo-full.png (Text CLAUDIOS, Eichhörnchen mit Bleistift). Splash und READMEs nutzen es. Die Quelle der HTML5-, CSS3- und JS-Schilder im Logo ist noch zu bestätigen (assets/ASSETS.md)."
+  },
+
+  "zielgruppe_und_umgebung": {
+    "plattform": "Windows 10/11 64 Bit, Python 3.12 oder 3.13 (3.14 nicht für die GUI getestet)",
+    "installation": "Ohne Admin-Rechte. Programm per Inno Setup nach %LOCALAPPDATA%\\Programs\\Claudios, Daten und Werkzeuge nach %LOCALAPPDATA%\\Claudios, Berichte nach Dokumente\\Claudios\\Reports",
+    "bedienung_des_nutzers": "Der Nutzer hat oft keinen Zugriff auf Konsole, Server oder Git. Er arbeitet im GitHub-Webbrowser (Dateien anlegen, Stift-Symbol, Strg+A, Entf, einfügen, Commit auf main) und startet Workflows unter Actions. Getestet wird später auf einem anderen Rechner."
+  },
+
+  "arbeitsregeln_fuer_den_assistenten": [
+    "Immer auf Deutsch antworten.",
+    "Dateien immer vollständig und als finale Fassung liefern, nie Ausschnitte oder Zwischenstände. Bei jeder Datei Ordner und Aktion (neu oder ersetzen) nennen.",
+    "Keine Git-Befehle und keine Konsole voraussetzen, solange der Nutzer nichts anderes sagt. Serverarbeit über GitHub-Actions-Workflows lösen, deren Ergebnisse als Annotations (Notices) erscheinen.",
+    "Ehrlich sagen, was ungetestet ist. Der Assistent kann nichts ausführen und keine Fenster sehen. Behauptungen über Bibliotheken und Werkzeuge aus dem Gedächtnis als solche kennzeichnen.",
+    "Pakete lang genug halten, aber nicht so lang, dass die Antwort abgeschnitten wird. Eine abgeschnittene Antwort hat früher fehlende Dateien verursacht.",
+    "Neue Funktionen als neue Dateien bauen, damit bestehende Dateien final bleiben (automatische Modulsuche). Muss eine bestehende Datei doch geändert werden, ausdrücklich sagen und die komplette Datei liefern.",
+    "Bestehende Tests dürfen sich beim Aufräumen nicht ändern. Wenn doch, ausdrücklich sagen.",
+    "Keine Erfindungen: keine Prüfsummen, keine Versionsnummern, keine API-Felder als Tatsache ausgeben, die nicht gesehen wurden.",
+    "Hinweis zu rechtlichen Themen immer als 'technische Indizien, keine Rechtsberatung'.",
+    "Der Nutzer schreibt 'weiter', um das nächste Paket anzufordern."
+  ],
+
+  "typische_fehlerbilder_in_diesem_projekt": {
+    "I001_bei_ruff": "Ruff will ein einzelnes claudios-Modul in einen eigenen Importblock verschieben: das Modul fehlt im Repo oder liegt falsch. Erst die Datei prüfen, nicht den Autofix starten. Reine Formatierung (lange Importzeile) behebt der Autofix-Workflow.",
+    "ModuleNotFoundError_oder_ImportError": "Eine Datei fehlt, ist leer oder abgeschnitten. Die Meldung nennt nur die erste fehlende. tools/check_files.py (Workflow 'Autofix und Dateiprüfung') listet alle auf einmal.",
+    "vertauschte_Dateien": "Einmal stand der Testcode in sslchecks.py. Zirkelimport-Fehler deuten darauf.",
+    "doppelt_eingefuegt": "manager.py stand einmal doppelt in der Datei (Syntaxfehler mitten in der Datei).",
+    "alter_Lauf": "Re-run all jobs prüft den alten Commit. Immer 'Run workflow' auf Branch main nutzen.",
+    "abgeschnittene_Dateiende": "Dateienden prüfen. Bekannte letzte Zeilen: hardening.py 'return out', oauth.py 'return exchange_code(...)', redact.py 'return True'.",
+    "workflow_gruen_trotz_fehler": "Mehrere Hilfs-Workflows enden absichtlich immer grün (exit 0). Die Aussage steckt in den Notices."
+  },
+
+  "grundprinzipien_und_missbrauchsschutz": {
+    "nur_https": "Jede Verbindung nur per HTTPS mit Zertifikatsprüfung (TLS mindestens 1.2). Kein Herunterstufen auf HTTP, Weiterleitungen auf HTTP werden nicht verfolgt. Zertifikatsfehler brechen den Scan ab, mit Grund und kritischem Befund. DNS nur über DoH (Standard Quad9). Ausnahmen: Rückgabeadresse der Google-Anmeldung auf 127.0.0.1, lokale ZAP-Schnittstelle auf 127.0.0.1, Localhost-Scans per Schalter.",
+    "grenzen_fest_im_code": "Konstanten in core/limits.py, nicht in Einstellungen: Tiefe 6 (Startseite = Ebene 1), 25 Seiten ohne Verifizierung (Stufe 1), 100 Seiten mit Verifizierung (Stufe 2), Profil Schnell 5 Seiten, 2 Anfragen pro Sekunde (max 5), 2 Verbindungen pro Host, Timeout 15 s, Antwort max 5 MB, HTML-Analyse max 2 MB, Scan gesamt 200 MB, max 10 Weiterleitungen, externe Links max 200 und 300 s Budget, DNS-Abfragen max 40, Takeover max 20 Hosts und 80 Abfragen, ads.txt 200 KB, Sitemap 2 MB und 2000 URLs und 20 geprüfte, Assets 6 CSS und 10 JS mit je 500 KB, Werkzeug-Timeout 120 s, Browser 60 s pro Seite, sslyze 300 s, ZAP 600 s, Browser-Stichprobe 10 (Tief 25), GSC-Inspektionen real 10, Abkühlzeit 120 s, 5 Scans pro Stunde, 3 Scans pro Domain und Tag auf Stufe 1, aktive Pfade max 40 (genutzt 27).",
+    "eine_domain_pro_scan": "Keine Listen, keine Wildcards, keine IP-Adressen, nur Port 443, Zugangsdaten in der URL werden abgelehnt. SSRF-Schutz: Auflösung per DoH, alle Adressen müssen öffentlich sein, IP-Festlegung im Gatekeeper, jede Weiterleitung neu geprüft.",
+    "kein_automatisieren": "Keine Kommandozeile, keine API, kein Server-Modus, keine Plugins, keine Telemetrie, kein Auto-Update, kein Massenmodus. Ein Test verbietet argparse, click, typer und Skript-Einstiegspunkte in pyproject.toml.",
+    "stufen": {
+      "stufe_1": "Selbstauskunft per Haken 'Ich bin berechtigt' (wird nach jedem Scan zurückgesetzt). Nur passive Prüfungen.",
+      "stufe_2": "Google-Anmeldung (OAuth, nur Lesezugriff webmasters.readonly), Property-Liste live vor jedem Scan, Domain muss in einer Property mit siteOwner oder siteFullUser liegen (sc-domain oder URL-Präfix, das die ganze Domain abdeckt, nur https und Pfad /). Schaltet frei: aktive Prüfungen, 100 Seiten, Search-Console-Daten. Der Schalter für Stufe 2 gilt nur bis zum Programmende."
+    },
+    "keine_passwoerter": "Passwörter, Cookie-Werte, Tokens und Authorization-Header werden beim Einlesen entfernt (core/redact.py, Snapshot speichert nur Cookie-Namen und Flags). Sanitizer plus 'find_leaks' vor jedem Export. Google-Token nur im Arbeitsspeicher, optional 'angemeldet bleiben' im Windows-Anmeldeinformationsspeicher (nie in Dateien, Logs, ZIP).",
+    "nicht_ausgefuehrt_ist_nie_bestanden": "Eine Prüfung, der Daten oder Werkzeug fehlen, die fehlschlägt oder auf Stufe 1 aktiv ist, steht als 'skipped:<Grund>' im Bericht und zählt nie als bestanden. Scan-Status: complete, limited (mit Einschränkungen), aborted (mit Grund).",
+    "fehlermeldungen_mit_grund": "Zentraler Katalog (i18n/errors*.json), jede Meldung mit Titel, Ursache, Handlungshinweis in DE und EN. Ein Test erzwingt für jeden ErrorCode einen Eintrag.",
+    "ehrliche_grenze": "Open Source: Wer den Quellcode ändert, umgeht alles. Die Schutzmaßnahmen sind Reibung gegen Bequemlichkeit, kein Schutz gegen Entschlossene. Steht in SECURITY.md und THREAT_MODEL.md.",
+    "externe_programme_am_gatekeeper_vorbei": "Browser (Playwright/Chromium), ZAP und sslyze verbinden direkt und kennen die Drosselung nicht. Sie haben nur ein Zeitlimit. Das Gesamtbudget ist für 6f geplant."
+  },
+
+  "architektur": {
+    "pakete_unter_src_claudios": {
+      "core": "guard (Eingabe, SSRF, DoH), net (Gatekeeper: Drosselung, IP-Festlegung, Limits), crawler, snapshot, engine (run_scan, run_checks), probes (Probe-Phase), registry (@check), findings, scoring, audit_log (Hash-Kette), quota (Limits, Dateisperre), redact, errors, limits, numfmt, toolrunner (Programme ohne Shell, Zeit- und Ausgabelimit, Pfad im Werkzeugordner), sowie die Probe-Dateien adsprobe, assetprobe, dnsprobe, linkprobe, seoprobe, takeoverprobe, tlsprobe, probe_paths, probe_zap, probe_gsc",
+      "checks": "Alle Prüfungen. Jede Datei außer denen mit Unterstrich wird automatisch geladen (pkgutil). Dateien: system, html_checks, security, seo, seo_more, dns, links, takeover, ads, hardening, privacy, codequality, tls, tools_html, npmchecks, sslchecks, browserchecks, activechecks, zapchecks, gscchecks, sowie _util und _browser",
+      "components": "Komponenten-Manager: lock.py, manager.py, npmtools.py, piptools.py, playwrighttools.py, extra_sslyze.py, extra_playwright.py, components.lock.json, pip-sslyze.json, Ordner npm mit package.json, package-lock.json, pw-package.json, pw-package-lock.json, eslint.config.mjs, stylelint.config.json, browser_probe.js, zap_probe.js",
+      "gsc": "oauth (PKCE, State, Rückgabeport auf 127.0.0.1), credstore (Windows-Anmeldeinformationsspeicher per ctypes, sonst nur Arbeitsspeicher), session (Property-Prüfung, Stufe 2), api (nur lesend, Suchanalyse nur Dimension Seite, nie Suchbegriffe), csvimport",
+      "ui": "splash, main_window (findet ui/page_*.py automatisch), pages (Scan, Ergebnisse, Handbuch, Technik-Doku, Einstellungen), components_page, page_gsc, page_setup, highlight (Syntax-Hervorhebung), dialogs, widgets, theme, worker (Scan-Thread)",
+      "i18n": "strings.py plus strings_*.py (werden automatisch geladen), errors.json, errors_components.json, errors_extra.json",
+      "report": "report.py: JSON (reine Zahlen), HTML (strenge CSP, alles maskiert), summary.md, prompt.md (DE/EN), manifest.json, ZIP mit Sanitizer und Vorschau",
+      "weitere": "app.py (Start, Splash mit echten Schritten), paths.py, settings.py, buildinfo.py (Zeilenzähler), docs.py (Handbuch und Technik-Doku aus der Registry), __main__.py"
+    },
+    "automatische_erweiterungspunkte": {
+      "neue_pruefung": "Neue Datei in checks/ mit @check(...). Pflichtfelder: id (Muster AAA-BBB-000), title, why, method, logic, fix, refs (nur https), jeweils 'Deutsch ## English'. profiles 'qsd' (q Schnell, s Standard, d Tief), kind 'passive' oder 'active', source, needs (Komponenten). Aktive Prüfungen laufen ohne Stufe 2 nie.",
+      "neue_probe": "Neue Datei core/probe_*.py mit NAME, MIN_LEVEL (Standard 1) und async collect(gk, snap, resolver). Das Ergebnis liegt in snap.extra[NAME].",
+      "neue_seite": "Neue Datei ui/page_*.py mit NAV_KEY und create(window), das ein Widget mit retranslate() liefert (optional shutdown()).",
+      "neue_texte": "Neue Datei i18n/strings_*.py, die TEXTS['de'] und TEXTS['en'] ergänzt. Beide Sprachen müssen dieselben Schlüssel haben (Test).",
+      "neue_meldung": "Neue Datei i18n/errors*.json mit [Titel, Ursache, Handlung] je Sprache.",
+      "neue_komponente": "Neue Datei components/extra_*.py mit Konstante COMPONENT (Component). Komponenten der Art npm, pip oder playwright brauchen ein Modul components/<art>tools.py mit status() und install()."
+    },
+    "scan_ablauf": "Eingabe normalisieren, Guard, Berechtigung, Kontingent, Sperre, Crawl (einmal, Snapshot), Probe-Phase (DNS, Takeover, ads.txt, Sitemap, Soft-404, Assets, TLS, externe Links, danach Erweiterungs-Probes wie Search Console und bei Stufe 2 Pfade und ZAP), Prüfungen (reine Auswertung des Snapshots und der Probe-Daten), Wertung, Bericht. Der Scan läuft im Thread der Oberfläche (kein eigener Prozess), Abbruch wirkt vor der nächsten Anfrage.",
+    "wertung": "Je Prüfung Strafpunkte nach schwerstem Befund plus log2 der Anzahl (max 5), gedeckelt auf 20. Je Kategorie 100 minus Summe, gesamt der Mittelwert. Nur ausgeführte Prüfungen zählen. Schweregrade: Info, Hinweis, Warnung, Fehler, Kritisch.",
+    "audit_log": "Hash-Kette in logs/audit.jsonl. Wird bei Komponenten-Entfernung nie gelöscht. Erkennt Änderungen, nicht das Löschen der ganzen Datei (offen, 6f).",
+    "komponenten_arten": {
+      "archive": "ZIP mit SHA256, sicheres Entpacken (kein Zip-Slip, keine Symlinks, Größen- und Dateilimit)",
+      "file": "einzelne Datei mit SHA256",
+      "npm": "npm ci --ignore-scripts aus mitgelieferter package-lock.json, nur registry.npmjs.org",
+      "pip": "eigene Python-Umgebung, pip install --require-hashes --no-deps --only-binary=:all: --no-binary=sslyze, nur pypi.org. Im Windows-Build nicht installierbar (keine Python-Laufzeit)",
+      "playwright": "npm-Pakete aus Sperrdatei plus Chromium-Download durch Playwright (nicht durch Claudios gepinnt)"
+    },
+    "komponenten_reihenfolge": ["java", "node", "vnu (file)", "css-validator (file)", "zap (archive)", "sslyze (pip, extra)", "playwright (extra)", "npm-tools (fest in lock.py, immer zuletzt)"],
+    "ungepinnt_regel": "Eine Komponente ohne Prüfsumme in der Lock-Datei wird nie installiert und zeigt 'nicht gepinnt'."
+  },
+
+  "pruefungen": {
+    "anzahl_ca": 65,
+    "kategorien": {
+      "html": ["HTM-STR-001 Dokumentstruktur", "HTM-IMG-001 Bilder ohne alt", "HTM-VAL-001 W3C Nu Html Checker (Java, vnu)", "HTM-INL-001 Inline-Handler und -Styles"],
+      "css": ["CSS-VAL-001 W3C CSS Validator", "CSS-IMP-001 @import und !important", "CSS-STY-001 Stylelint"],
+      "js": ["JSS-PAT-001 riskante Muster", "JSS-SRI-001 Subresource Integrity", "JSS-MAP-001 Source-Map-Verweise", "JSS-ESL-001 ESLint mit Security-Plugin", "JSS-RET-001 retire.js", "SEC-SEC-002 Geheimnisse in JS"],
+      "sicherheit": ["SEC-HDR-001 CSP", "SEC-HDR-002 HSTS", "SEC-HDR-003 nosniff", "SEC-HDR-004 Clickjacking", "SEC-HDR-005 Referrer-Policy", "SEC-HDR-006 Versionsangaben", "SEC-COK-001 Cookie-Flags", "SEC-HTM-001 target=_blank", "SEC-HTM-002 iFrames ohne sandbox", "SEC-SEC-001 Geheimnisse im HTML", "SEC-NET-001 Mixed Content", "SEC-COR-001 CORS", "SEC-CCH-001 Cache-Control sensibel", "SEC-CSR-001 CSP-Reporting", "SEC-EML-001 E-Mail-Adressen", "SEC-CMS-001 CMS-Erkennung (ohne Schwachstellenliste)"],
+      "tls": ["TLS-CRT-001 Zertifikat Restlaufzeit und Protokoll (ein Handshake)", "TLS-PRO-001 sslyze Protokolle, Cipher, Kette", "TLS-ATK-001 sslyze Heartbleed, ROBOT, CCS (aktiv, Stufe 2)"],
+      "dns": ["DNS-SPF-001", "DNS-DKM-001", "DNS-DMA-001", "DNS-CAA-001", "DNS-MTA-001 (ohne Richtliniendatei)", "DNS-SEC-001 (nur DS-Eintrag)", "DNS-BAS-001", "TKO-DNS-001 Subdomain-Takeover (nur hängende CNAMEs)"],
+      "seo": ["SEO-MET-001", "SEO-CAN-001", "SEO-ROB-001", "SEO-HRF-001", "SEO-SOC-001", "SEO-STR-001 (nur Syntax, @context, @type)", "SEO-SMP-001", "SEO-SFT-001"],
+      "links": ["LNK-INT-001", "LNK-RED-001", "LNK-EXT-001", "LNK-ANC-001", "LNK-MAI-001", "LNK-TXT-001"],
+      "datenschutz": ["PRV-LEG-001 Impressum und Datenschutz verlinkt", "PRV-EXT-001 externe Dienste", "PRV-COK-001 Cookies beim ersten Aufruf", "PRV-CMP-001 Einwilligungslösung (Stichwortsuche)", "PRV-BRW-001 nachgeladene Dienste und Cookies im Browser"],
+      "browser": ["BRW-CON-001 Konsolenfehler und Ressourcenfehler", "BRW-AXE-001 axe-core WCAG 2.2", "BRW-RSP-001 Responsive 360/768/1280", "BRW-PRF-001 LCP, CLS, Anfragen, Gewicht"],
+      "sonstiges": ["ADS-TXT-001 ads.txt und app-ads.txt", "SYS-ABT-001 Scan-Abbruch"],
+      "stufe_2": ["EXP-PTH-001 aktive Pfadprüfung (27 feste Pfade, nur GET, Inhalt muss zur Datei passen, Inhalte nie gespeichert)", "ZAP-PAS-001 ZAP passiv als Proxy, Chromium nur mit SPKI-Pin des ZAP-Zertifikats", "GSC-IDX-001 URL-Inspektion", "GSC-SMP-001 Sitemap-Status laut Google", "TLS-ATK-001"],
+      "search_console_stufe_1": ["GSC-PRF-001 Seiten gegen Impressionen (API auf Stufe 2 oder CSV-Import)"]
+    },
+    "hinweis_aktiv": "GSC-IDX-001 und GSC-SMP-001 sind als kind=active markiert, damit sie auf Stufe 1 nie laufen. An die geprüfte Website geht dabei nichts."
+  },
+
+  "werkzeuge_und_belegte_fakten": {
+    "belegt_durch_ci_oder_workflow_notices": [
+      "CI (Windows, Python 3.12) ist grün: ruff und pytest. Der Test test_windows_credential_manager_roundtrip lief auf Windows grün.",
+      "ZAP 2.17.0 startet auf Linux mit den vorgesehenen Optionen, hat 55 passive Regeln, das Root-Zertifikat ist abrufbar, Chromium akzeptiert es über --ignore-certificate-errors-spki-list, der Verkehr läuft durch ZAP, es gibt Funde. Log bestätigt: keine Update-Prüfung, keine Telemetrie (stiller Modus).",
+      "ESLint mit eslint-plugin-security, Stylelint und retire.js (jetzt 6.x, Einstieg lib/cli.js, Schalter --path --outputformat json --outputpath --exitwith 0) funktionieren auf Linux. retire.js ermittelt seinen Einstiegspunkt aus package.json (Feld bin).",
+      "sslyze: Schreibweise für die feste IP ist host:443{ip} (host{ip}:443 scheitert mit Verbindungsfehler). Installation aus Quellarchiv mit Prüfsummen funktioniert, sslyze hat kein Wheel bei PyPI. cryptography wird auf 50.0.2 erzwungen (override), nur nach bestandenem sslyze-Test; gepinnt sind sslyze 6.3.1, nassl 5.4.0, cryptography 50.0.2.",
+      "Sicherheitsprüfung (bandit, pip-audit Programm und sslyze, npm audit beider Sperrdateien) ist ohne Funde.",
+      "Playwright-Skript läuft auf Linux. Werkzeug-Prüfsummen für java, node, vnu, css-validator, zap sind eingetragen. Alle Sperrdateien (package-lock, pw-package-lock, pip-sslyze.json) existieren.",
+      "tools/check_files.py (final) meldet keine fehlenden, leeren oder abgeschnittenen Dateien. Die neuen 6d-Dateien kennt sie noch nicht."
+    ],
+    "versionen_laut_lock": {"java": "Temurin jdk-21.0.13+9", "node": "26.13.1 (als LTS von nodejs.org gewählt, nicht selbst geprüft)", "css-validator": "cssval-20250226", "zap": "2.17.0", "vnu": "als einzelne Datei vnu.jar (kind=file)"}
+  },
+
+  "ungeprueft": {
+    "windows_build": "Das Ergebnis des Workflows 'Windows-Build und Installer' wurde nie gesehen. Größtes Risiko: pkgutil.iter_modules findet im PyInstaller-Programm vielleicht keine Prüfungen und Seiten. Dann wären Handbuch und Scans leer. Wichtigster Test: Handbuch im gebauten Programm öffnen.",
+    "oberflaeche_optik": "Splash, Hauptfenster, Footer wurden nie auf einem Bildschirm gesehen. CI testet nur offscreen.",
+    "echter_scan": "Alle Tests laufen mit gefälschten Websites, DNS-Antworten und Werkzeugausgaben.",
+    "google_anmeldung_real": "Nur gegen eine gefälschte Schnittstelle getestet. Feldnamen der API (URL-Inspektion usw.) aus dem Gedächtnis.",
+    "werkzeug_installation_windows": "Java, Node, Playwright, ZAP, sslyze wurden nie unter Windows installiert oder gestartet. Ob Chromium und ZAP mit der reduzierten Umgebung (eigenes Home, wenige Variablen) unter Windows starten, ist unbekannt.",
+    "aufrufe_von_vnu_und_css_validator": "Schalter aus dem Gedächtnis (vnu: --format json --stdout, CSS-Validator: --output=json mit file-Adresse). Bei falscher Ausgabe wird die Prüfung 'nicht ausgeführt'.",
+    "chromium_download": "Wird von Playwright über HTTPS geladen, nicht durch eine Claudios-Prüfsumme gesichert.",
+    "dns_rebinding": "Browser, ZAP und sslyze lösen Namen selbst auf (6f).",
+    "lizenzen": "In THIRD_PARTY_NOTICES.md stehen mehrere '(verify)'-Einträge: W3C CSS Validator, eslint-plugin-security, PyInstaller, Inno Setup, Chromium. Der Nutzer muss sie vor einer Veröffentlichung prüfen. AGPL-Einordnung von sslyze als separates Programm ist keine Rechtsberatung.",
+    "github_aktionen": "Nur per Versions-Tag (@v4/@v5) festgelegt, nicht per Commit-Prüfsumme (nur Aktionen von GitHub selbst erlaubt, Test erzwingt das). Node-20- und Ubuntu-26-Hinweise sind harmlos."
+  },
+
+  "bekannte_luecken": [
+    "Scan-Seite zeigt weiter 'Stufe 1' und einen grauen Google-Knopf ('folgt'), auch wenn Stufe 2 aktiv ist (in pages.py und strings.py, geplant für 6b).",
+    "sslyze ist im Windows-Build nicht installierbar (keine Python-Laufzeit). Der Einrichtungs-Assistent weist darauf hin (geplant 6i).",
+    "Die Verifizierung für Stufe 2 wird als beliebige Zeichenkette an run_scan übergeben und nicht gegen die Zieldomain geprüft (6f: Beleg mit Host und Ablaufzeit).",
+    "Stufe 2 ist vom Tageslimit je Domain ausgenommen (6f).",
+    "CMS-Erkennung ohne Schwachstellenliste, Takeover ohne HTTP-Fingerprints, DNSSEC nur DS-Eintrag, MTA-STS ohne Richtliniendatei, Schema nur Syntax.",
+    "Berichte: nur JSON, HTML, summary.md, prompt.md, manifest.json in der ZIP. Kein PDF, kein Excel, keine Screenshots, kein Verlauf.",
+    "tools/check_files.py kennt Dateien nur bis Paket 5e, nicht die 6d-Dateien. In 6e soll sie sich aus der Struktur ableiten.",
+    "Testanzahl unbekannt: zuletzt 189 Tests gesehen, danach etwa 5 (retire-Pfad) plus etwa 25 (6d) hinzugekommen. Genaue Zahl nicht gesehen."
+  ],
+
+  "workflows": {
+    "ci": "ruff plus pytest plus count_loc auf Windows, Python 3.12, QT_QPA_PLATFORM=offscreen (Start bei Push und von Hand)",
+    "autofix": "Autofix und Dateiprüfung: tools/check_files.py, ruff --fix, lädt Korrekturen hoch. Ein Push dieses Workflows startet die CI nicht, danach die CI von Hand starten.",
+    "update-lock": "Werkzeug-Prüfsummen eintragen: tools/update_lock.py für java, node, vnu, css-validator, zap",
+    "npm-lock": "npm-Sperrdatei erzeugen und ESLint, Stylelint, retire.js einmal ausprobieren (Notices)",
+    "pip-lock": "pip-Sperrliste für sslyze, erzwingt neuere cryptography nur nach bestandenem sslyze-Test",
+    "pw-lock": "Playwright-Sperrdatei und Test des Browser-Skripts",
+    "zap-try": "ZAP auf Linux ausprobieren (Version, Regeln, Zertifikat, Browser, Funde)",
+    "build-windows": "PyInstaller (onedir, windowed) plus Inno Setup, Artefakt Claudios-Setup. Ergebnis noch nicht gesehen.",
+    "security": "Sicherheitsprüfung: bandit, pip-audit (Programm und sslyze mit --disable-pip), npm audit beider Sperrdateien, SBOM als Artefakt. Von Hand und wöchentlich (montags 04:17 UTC).",
+    "cleanup-scan": "Aufräum-Messung (neu, noch nicht gelaufen): vulture, ruff-Ungenutztes, tools/find_duplicates.py, ungenutzte Grenzwerte und Texte. Ändert nichts, zeigt nur Annotations.",
+    "regeln_fuer_workflows": "Jeder Workflow hat permissions. Schreibrechte nur bei von Hand startbaren Workflows. Keine Ereignisdaten in Shell-Befehlen, keine fremden Aktionen, kein 'curl | sh'. Ein Test prüft das."
+  },
+
+  "tests": {
+    "rahmen": "pytest mit pytest-asyncio (asyncio_mode auto). Ruff-Regeln E4, E7, E9, F, I, B, Zeilenlänge 120, combine-as-imports.",
+    "policy_tests": [
+      "kein verify=False, keine http://-Literale, keine Shell-Ausführung, keine Kommandozeile",
+      "Zahlen nur über numfmt",
+      "alter Name Claudia nirgends",
+      "riskante Importe (subprocess, socket, ssl, ctypes, http.server, dns.query, pickle ...) nur in erlaubten Dateien",
+      "kein eval/exec, DNS nur über DoH",
+      "Workflows: permissions, keine gefährlichen Trigger, nur GitHub-Aktionen, Schreibrechte nur manuell",
+      "keine Geheimnisse und keine Zugangsdaten-Dateien im Repo",
+      "Texte DE und EN identisch, jeder Textschlüssel im UI-Code existiert",
+      "Registry: jede Prüfung mit Warum, Methode, Bewertung, Behebung, https-Referenzen in beiden Sprachen",
+      "THIRD_PARTY_NOTICES nennt jede Komponente",
+      "Hostile-Input: alle eigenen Regex in linearer Zeit, feindliches HTML, manipulierte Werkzeugausgaben, Zip-Bomben"
+    ],
+    "testhilfen": "FakeGK, FakeResolver, make_snap sind in vielen Testdateien kopiert (Aufräumkandidat in 6e)."
+  },
+
+  "repo_dateien_ausserhalb_src": {
+    "doku": ["README.de.md", "README.en.md (mit Logo)", "SECURITY.md", "THREAT_MODEL.md", "FAQ.md", "CONTRIBUTING.md", "CHANGELOG.md", "CODE_OF_CONDUCT.md", "THIRD_PARTY_NOTICES.md", "assets/ASSETS.md", "docs/GOOGLE_SETUP.md"],
+    "github": [".github/dependabot.yml", ".github/pull_request_template.md", ".github/ISSUE_TEMPLATE/bug_report.yml", ".github/workflows/*.yml"],
+    "werkzeuge": ["tools/count_loc.py", "tools/update_lock.py", "tools/check_files.py", "tools/make_sbom.py", "tools/find_duplicates.py (neu, 6e)"],
+    "installer": ["installer/launcher.py", "installer/claudios.iss (Inno Setup, ohne Admin, Deutsch und Englisch)"],
+    "gitignore": "blockiert client_secret*.json, token*.json, Berichte, Logs, ZIP-Dateien",
+    "github_einstellungen": "Branch main ungeschützt (bewusst, damit Browser-Uploads und Workflow-Pushes funktionieren). Dependabot-Alerts und Security-Updates empfohlen. Private Schwachstellenmeldung ist bei privaten Repos womöglich nicht verfügbar."
+  },
+
+  "roadmap": {
+    "reihenfolge": ["6e", "6f", "6a", "6b", "6c", "6g", "6h", "6i", "6j", "6k", "6l", "6m", "6n"],
+    "6d": "ERLEDIGT. Sicherheitscheck von Claudios selbst: ReDoS-Muster behoben (redact.py E-Mail und JWT, hardening.py E-Mail, seoprobe.py loc und Sitemap), THREAT_MODEL.md, SBOM, Workflow Sicherheitsprüfung, Policy- und Hostile-Input-Tests.",
+    "6e": "IN ARBEIT. Redundanten Code entfernen. Erst messen (Workflow Aufräum-Messung), dann löschen. Kandidaten: HEAD-mit-GET-Rückfall doppelt (linkprobe, seoprobe), DNS-Auflösung plus IP-Prüfung dreifach (sslchecks, _browser, tlsprobe; zwei rufen die private Methode _query), npm-Installation fast identisch in npmtools und playwrighttools, _plain in vier UI-Dateien, _pause in zwei Probes, private Funktionen über Dateigrenzen (_csp, _noindex, _assets), Test-Hilfen in conftest.py, ungenutzte Grenzwerte und Texte, check_files.py aus Struktur ableiten. Regel: Verhalten gleich, bestehende Tests unverändert.",
+    "6f": "Missbrauchsschutz schärfen: Verifizierung als Beleg-Objekt (Host, Property, Ablauf ca. 15 Minuten) statt Zeichenkette; Protokoll gegen Löschen (Kontrollwert im Anmeldeinformationsspeicher, verlängerte Sperre bei kürzerer Datei); Kontingent auch für Stufe 2; DNS-Rebinding schließen (erneute Auflösung vor Browser, ZAP, sslyze); Fremdserver im ZAP-Lauf abbrechen; Gesamtbudget und Mindestpause für Programme am Gatekeeper vorbei; Freigabeliste für aktive Prüfungen mit Test; Eingaben schärfen (internationale Domainnamen, Sonderzeichen, Länge). Ändert engine.py.",
+    "6a": "Fehlende passive Prüfungen: Permissions-Policy, COOP, CORP, COEP; doppelte IDs, Überschriftenhierarchie, Landmarks, Formular-Labels, Bild-Maße, Meta-Refresh, sensible HTML-Kommentare; Passwortfelder ohne autocomplete, GET-Formulare mit Passwort, Formulare an HTTP; Kompression, Caching-Header, Bildformate und -größen; security.txt, tiefere robots.txt-Auswertung, Favicon und Manifest; URL-Struktur, dünne Inhalte, Klicktiefe, verwaiste Seiten; MTA-STS-Richtliniendatei, HTTP-Fingerprints bei Takeover.",
+    "6b": "Oberfläche: Detailansicht je Befund (Warum, Behebung, Quellen, Beispiel-Adressen), Filter und Sortierung, Scan-Seite zeigt aktive Stufe und der Google-Knopf führt zur Search Console, Bericht direkt speichern, Hinweis bei 'mit Einschränkungen'. Ersetzt pages.py und strings.py ein letztes Mal.",
+    "6c": "Berichte: PDF (aus HTML über vorhandenes Chromium, nur wenn Playwright installiert), Excel .xlsx (neue Bibliothek openpyxl, MIT laut Gedächtnis, ändert pyproject.toml), CSV, Prompt-Vorlagen je Schwerpunkt (Sicherheit, SEO, Barrierefreiheit) in der ZIP, optional Screenshots (Standard aus), Verlauf und Vergleich (Speichern nur mit Schalter, Standard aus, löschbar, taucht unter Entfernen auf). Excel und CSV müssen gegen Formel-Injektion neutralisiert werden (Zelltexte mit = + - @ am Anfang), mit Test und Eintrag im Bedrohungsmodell.",
+    "6g": "KI-Crawler in robots.txt (GPTBot, ClaudeBot, Google-Extended, CCBot u. a., nur Hinweise), llms.txt (Fehlen kein Befund), Domain-Ablauf per RDAP (Schalter, Standard aus, Datenschutz: Domainname geht an IANA und das Register der Endung).",
+    "6h": "Safe Browsing (eigener API-Schlüssel im Anmeldeinformationsspeicher, Schalter, Standard aus, Adresse geht an Google, Lizenz laut Gedächtnis nur nicht-kommerziell, ungeprüft).",
+    "6i": "Portable Python-Laufzeit als Komponente für sslyze im Windows-Build (embeddable ZIP von python.org plus festes pip). Ändert piptools.py. Nur unter Windows prüfbar.",
+    "6j": "Lighthouse als npm-Komponente mit eigener Sperrdatei, nutzt das vorhandene Chromium. Nur Wertungen übernehmen, Befunde nicht doppelt melden.",
+    "6k": "Firefox und WebKit zusätzlich zu Chromium. Mehrere hundert MB, keine Claudios-Prüfsumme. Ändert playwrighttools.py, browser_probe.js, _browser.py. WebKit unter Windows riskant.",
+    "6l": "Cookie-Banner-Qualität (gleichwertiger Ablehnen-Knopf) nur als Hinweis, heuristisch, Fehlalarme in beide Richtungen wahrscheinlich, klickt nichts an. Riskantestes Paket.",
+    "6m": "Schema-Tiefe (Pflichtfelder für Organization, Article, Product, LocalBusiness, BreadcrumbList, FAQ), E-E-A-T-Indizien (Autor, Datum, Impressum, Kontakt, Über-uns, nur Hinweise), GEO-Hinweise, lokales SEO (LocalBusiness-Schema, Adresse und Telefon konsistent), E-Commerce (Product-Schema), internationales SEO erweitert (lang gegen Inhalt, x-default, Canonical gegen hreflang). Ideen stammen aus der Beschreibung des Projekts AgriciDaniel/claude-seo (nur Beschreibung bekannt, kein Code übernommen).",
+    "6n": "PageSpeed/CrUX mit eigenem Schlüssel (Schalter, Standard aus).",
+    "bewusst_ausgeschlossen": ["Massenscans, Listen-Import, Zeitplan, automatische Wiederholung", "Kommandozeile, API, Plugins", "Login-Bereiche (Zugangsdaten sollen nie gespeichert werden)", "mehr als 100 Seiten oder mehr als 6 Ebenen", "Backlink-Dienste und bezahlte Datenquellen"],
+    "nach_bedarf_ohne_paket": ["Barrierefreiheitserklärung (BFSG) erkennen", "Bing Webmaster Tools", "Eigentumsnachweis per Datei oder DNS statt Google (aktive Tests ohne Search Console)"]
+  },
+
+  "offene_rueckmeldungen_vom_nutzer": [
+    "Ergebnis des Workflows 'Aufräum-Messung' (Annotations; die Zahl in Klammern im Titel ist die Gesamtzahl, gezeigt werden 40)",
+    "Ergebnis des Workflows 'Windows-Build und Installer', bei Rot die erste Fehlermeldung",
+    "Test auf dem anderen Rechner: Splash, Hauptfenster, Handbuch (muss eine lange Prüfungsliste zeigen), Komponenten installieren, ein echter Scan einer eigenen Domain, Google-Anmeldung",
+    "Prüfung der Lizenzeinträge mit '(verify)' und Quelle der Logo-Schilder"
+  ],
+
+  "naechster_schritt": "Auswertung des Aufräum-Messlaufs, dann Paket 6e (nur löschen oder zusammenlegen, was bestätigt ist; check_files.py aus der Struktur ableiten; die 6d-Dateien aufnehmen). Danach 6f."
+}

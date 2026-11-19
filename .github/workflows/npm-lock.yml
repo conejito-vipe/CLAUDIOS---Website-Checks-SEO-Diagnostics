@@ -1,0 +1,50 @@
+name: npm-Sperrdatei erzeugen
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Sperrdatei erzeugen
+        working-directory: src/claudios/components/npm
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Sperrdatei hochladen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/claudios/components/npm/package-lock.json
+          git diff --cached --quiet || (git commit -m "Add npm lock file (pinned versions with integrity hashes)" && git push)
+      - name: Werkzeuge installieren (npm ci)
+        working-directory: src/claudios/components/npm
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Werkzeuge ausprobieren
+        run: |
+          set +e
+          NPM="$GITHUB_WORKSPACE/src/claudios/components/npm"
+          mkdir -p /tmp/t && cd /tmp/t
+          printf 'eval(x);\nvar r = new RegExp(y);\nvar bad = /(a+)+$/;\n' > f0.js
+          printf 'a{color:#ggg}\na{color:red}\na{color:blue}\n' > f0.css
+          node "$NPM/node_modules/eslint/bin/eslint.js" -c "$NPM/eslint.config.mjs" --no-warn-ignored --format json f0.js > eslint.json 2> eslint.err
+          echo "eslint exit $?" > codes.txt
+          node "$NPM/node_modules/stylelint/bin/stylelint.mjs" --config "$NPM/stylelint.config.json" --formatter json --output-file style.json f0.css 2> style.err
+          echo "stylelint exit $?" >> codes.txt
+          RB=$(node -p "const p=require('$NPM/node_modules/retire/package.json'); typeof p.bin==='string' ? p.bin : (p.bin && p.bin.retire) || ''" 2>&1)
+          echo "::notice title=Retire-Pfad::$RB"
+          RB=${RB#./}
+          jq_version=$(node -p "require('$NPM/node_modules/retire/package.json').version" 2>&1)
+          echo "::notice title=Retire-Version::$jq_version"
+          printf 'var jQuery = function(){}; jQuery.fn = {jquery: "1.8.0"};\n/*! jQuery v1.8.0 | (c) jQuery Foundation | jquery.org/license */\n' > f1.js
+          mkdir -p scan && cp f0.js f1.js scan/
+          node "$NPM/node_modules/retire/$RB" --path scan --outputformat json --outputpath retire.json --exitwith 0 > retire.out 2> retire.err
+          echo "retire exit $?" >> codes.txt
+          echo "::notice title=Exit-Codes::$(tr '\n' ' ' < codes.txt)"
+          for f in eslint.json eslint.err style.json style.err retire.json retire.err retire.out; do
+            echo "::notice title=$f::$(head -c 500 $f 2>/dev/null | tr '\n' ' ')"
+          done
+          exit 0

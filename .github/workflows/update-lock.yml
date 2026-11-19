@@ -1,0 +1,40 @@
+name: Werkzeug-Prüfsummen eintragen
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install httpx
+      - id: lock
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python tools/update_lock.py 2>&1 | tee /tmp/lock.txt
+          exit ${PIPESTATUS[0]}
+      - name: Ergebnis als Meldungen anzeigen
+        if: always()
+        run: |
+          grep -E "^(OK|FEHLER)" /tmp/lock.txt | while read -r line; do
+            case "$line" in
+              FEHLER*) echo "::error title=Pruefsumme::$line" ;;
+              *) echo "::notice title=Pruefsumme::$line" ;;
+            esac
+          done
+          tail -n 5 /tmp/lock.txt
+      - name: Ergebnis hochladen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/claudios/components/components.lock.json
+          git diff --cached --quiet || (git commit -m "Update component lock (version, URL, SHA256)" && git push)
+      - name: Fehlschlag melden
+        if: steps.lock.outcome == 'failure'
+        run: exit 1

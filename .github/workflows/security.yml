@@ -1,0 +1,65 @@
+name: Sicherheitsprüfung
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * 1"
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Programm und Prüfwerkzeuge installieren
+        run: |
+          python -m venv /tmp/app
+          /tmp/app/bin/pip install -e ".[gui]"
+          /tmp/app/bin/pip freeze --exclude-editable > /tmp/freeze.txt
+          pip install bandit pip-audit
+      - name: Stückliste (SBOM) erzeugen
+        run: /tmp/app/bin/python tools/make_sbom.py sbom.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sbom
+          path: sbom.json
+      - name: Sicherheitsprüfungen
+        run: |
+          set +e
+          FAIL=0
+          D=src/claudios/components
+          report() {
+            if [ "$2" -eq 0 ]; then
+              echo "::notice title=$1::keine Funde"
+            else
+              FAIL=1
+              echo "::error title=$1::$(head -c 800 "$3" | tr '\n' ' ')"
+            fi
+          }
+          bandit -r src -ll -q > /tmp/bandit.txt 2>&1
+          report "bandit (Python-Code)" $? /tmp/bandit.txt
+          pip-audit -r /tmp/freeze.txt --no-deps > /tmp/pipaudit.txt 2>&1
+          report "pip-audit (Programm)" $? /tmp/pipaudit.txt
+          python - <<'PY'
+          import json, pathlib
+          text = json.load(open("src/claudios/components/pip-sslyze.json"))["requirements"]
+          pathlib.Path("/tmp/sslyze-req.txt").write_text(text)
+          PY
+          echo "::notice title=sslyze gepinnt::$(grep -E '^(sslyze|cryptography|nassl)==' /tmp/sslyze-req.txt | tr '\n' ' ')"
+          pip-audit -r /tmp/sslyze-req.txt --no-deps --disable-pip > /tmp/sslyze-audit.txt 2>&1
+          report "pip-audit (sslyze)" $? /tmp/sslyze-audit.txt
+          for pair in "package.json:package-lock.json" "pw-package.json:pw-package-lock.json"; do
+            PKG=${pair%%:*}
+            LOCK=${pair##*:}
+            mkdir -p "/tmp/n-$PKG"
+            cp "$D/npm/$PKG" "/tmp/n-$PKG/package.json"
+            cp "$D/npm/$LOCK" "/tmp/n-$PKG/package-lock.json"
+            (cd "/tmp/n-$PKG" && npm audit --audit-level=high) > "/tmp/npm-$PKG.txt" 2>&1
+            report "npm audit ($LOCK)" $? "/tmp/npm-$PKG.txt"
+          done
+          exit $FAIL

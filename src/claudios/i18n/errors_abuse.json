@@ -1,0 +1,4 @@
+{
+"CLA-LIM-006": {"de": ["Tageslimit für diese Domain (Stufe 2)", "Auch verifizierte Domains sind auf höchstens {limit} Scans pro 24 Stunden begrenzt.", "Prüfe die Domain morgen erneut."],
+                "en": ["Daily limit for this domain (level 2)", "Even verified domains are limited to {limit} scans per 24 hours.", "Check the domain again tomorrow."]}
+}
