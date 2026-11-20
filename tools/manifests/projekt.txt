@@ -1,4 +1,4 @@
-# Pflichtdateien des ganzen Projekts, Stand nach Paket 6p-3 und Lizenz (check_files.py liest alle Dateien in diesem Ordner).
+# Pflichtdateien des ganzen Projekts, Stand nach Paket 7 (check_files.py liest alle Dateien in diesem Ordner).
 # Neue Pakete ersetzen diese Datei komplett. Alte Einzel-Manifeste dürfen stehen bleiben oder gelöscht werden.
 # Abwehr gegen Missbrauch (6f)
 src/claudios/core/proof.py
@@ -102,6 +102,13 @@ tests/test_boot_ui.py
 tests/test_make_icon.py
 tests/test_author.py
 tests/test_spelling.py
+# Paket 7: Karten-Dialoge, Download-Fortschritt, Schreibweise
+src/claudios/ui/cardbox.py
+src/claudios/i18n/strings_card.py
+src/claudios/components/dlwatch.py
+tests/test_cardbox.py
+tests/test_dlwatch.py
+tests/test_brand_export.py
 # Lizenz, Adresse und Dokumente
 LICENSE
 LICENSE.de.txt
