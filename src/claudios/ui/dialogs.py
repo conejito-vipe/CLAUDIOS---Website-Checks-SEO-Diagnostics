@@ -1,15 +1,17 @@
-"""Zentrale Fehleranzeige (immer mit Grund) und About-Dialog."""
+"""Zentrale Fehleranzeige (immer mit Grund, im Stil des Splash) und Info-Dialog."""
 from __future__ import annotations
 
 from datetime import datetime
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog, QLabel, QMessageBox, QPlainTextEdit, QPushButton, QVBoxLayout
+from PySide6.QtWidgets import QLabel, QPlainTextEdit, QPushButton
 
 from .. import REPO_URL, __version__
 from ..buildinfo import python_lines
 from ..core.errors import ClaudiosError, ErrorCode, describe
 from ..i18n.strings import get_lang, n, t
+from ..paths import logs_dir
+from .cardbox import MARGIN, CardDialog, MessageCard
 
 
 def error_info(exc: BaseException) -> dict[str, str]:
@@ -19,30 +21,33 @@ def error_info(exc: BaseException) -> dict[str, str]:
     return describe(ErrorCode.INTERNAL, lang, reason=type(exc).__name__)
 
 
+def error_card(parent, info: dict[str, str]) -> MessageCard:
+    """Baut den Fehlerdialog (Code und Zeit zum Kopieren, dazu der Ort der Protokolldatei)."""
+    stamp = datetime.now().isoformat(timespec="seconds")
+    footnote = f"{info['code']} · {stamp}\n{t('card.logs', path=logs_dir() / 'claudios.log')}"
+    text = f"{info['cause']}\n\n{t('err.todo')} {info['action']}"
+    return MessageCard(parent, "warning", info["title"], text, footnote=footnote)
+
+
 def show_error(parent, info: dict[str, str]) -> None:
-    box = QMessageBox(parent)
-    box.setIcon(QMessageBox.Icon.Warning)
-    box.setTextFormat(Qt.TextFormat.PlainText)  # Inhalte von geprüften Seiten nie als Rich-Text deuten
-    box.setWindowTitle(info["code"])
-    box.setText(info["title"])
-    box.setInformativeText(f"{info['cause']}\n\n{t('err.todo')} {info['action']}")
-    box.setDetailedText(f"{info['code']}\n{datetime.now().isoformat(timespec='seconds')}")
-    box.exec()
+    error_card(parent, info).run()
 
 
-class AboutDialog(QDialog):
+class AboutDialog(CardDialog):
     def __init__(self, parent=None) -> None:
-        super().__init__(parent)
-        self.setWindowTitle(t("about.title"))
-        self.resize(560, 460)
-        lay = QVBoxLayout(self)
+        super().__init__(parent, t("about.title"))
+        self.resize(2 * MARGIN + 560, 2 * MARGIN + 520)
+        heading = QLabel(t("about.title"))
+        heading.setObjectName("h1")
+        self.content.addWidget(heading)
         info = QLabel(t("about.text", version=__version__, lines=n(python_lines()), repo=REPO_URL))
         info.setTextFormat(Qt.TextFormat.PlainText)
         info.setWordWrap(True)
-        lay.addWidget(info)
+        self.content.addWidget(info)
         notices = QPlainTextEdit(t("about.licenses"))
         notices.setReadOnly(True)
-        lay.addWidget(notices, 1)
+        self.content.addWidget(notices, 1)
         close = QPushButton(t("about.close"))
+        close.setObjectName("primary")
         close.clicked.connect(self.accept)
-        lay.addWidget(close)
+        self.content.addWidget(close)
