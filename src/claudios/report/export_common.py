@@ -15,7 +15,7 @@ STATUS = {"de": {"complete": "vollständig", "limited": "mit Einschränkungen", 
 
 LABELS = {
     "de": {
-        "report": "Claudios-Bericht", "sev": "Schwere", "check": "Prüfung", "cnt": "Anzahl", "msg": "Befund",
+        "report": "CLAUDIOS-Bericht", "sev": "Schwere", "check": "Prüfung", "cnt": "Anzahl", "msg": "Befund",
         "evidence": "Beleg", "ex": "Beispiele", "id": "ID", "title": "Titel", "status": "Status",
         "url": "Adresse", "depth": "Ebene", "ms": "Antwortzeit (ms)", "bytes": "Daten (Bytes)", "error": "Fehler",
         "key": "Angabe", "value": "Wert", "target": "Adresse der Website", "level": "Stufe", "profile": "Profil",
@@ -26,7 +26,7 @@ LABELS = {
         "s_summary": "Übersicht", "s_findings": "Befunde", "s_checks": "Prüfungen", "s_pages": "Seiten",
     },
     "en": {
-        "report": "Claudios report", "sev": "Severity", "check": "Check", "cnt": "Count", "msg": "Finding",
+        "report": "CLAUDIOS report", "sev": "Severity", "check": "Check", "cnt": "Count", "msg": "Finding",
         "evidence": "Evidence", "ex": "Examples", "id": "ID", "title": "Title", "status": "Status",
         "url": "Address", "depth": "Level", "ms": "Response time (ms)", "bytes": "Data (bytes)", "error": "Error",
         "key": "Item", "value": "Value", "target": "Website address", "level": "Level", "profile": "Profile",
