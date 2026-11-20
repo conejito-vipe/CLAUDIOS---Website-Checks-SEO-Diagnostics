@@ -1,18 +1,21 @@
 ; Inno-Setup-Skript für CLAUDIOS: Installation nur für den aktuellen Benutzer, ohne Admin-Rechte.
-; Die Prüfwerkzeuge liegen getrennt in %LOCALAPPDATA%\Claudios und werden beim ersten Start des Programms eingerichtet.
+; Die Prüfwerkzeuge liegen getrennt in %LOCALAPPDATA%\CLAUDIOS und werden beim ersten Start des Programms eingerichtet.
 ; Die Funktion "CLAUDIOS deinstallieren" im Programm entfernt sie und startet danach diesen Deinstaller.
-; Das Symbol kommt aus assets\claudios.ico (Build erzeugt sie, falls sie fehlt); ohne diese Datei gilt das Standardsymbol.
-; Die Lizenz wird je Sprache angezeigt (englisch: LICENSE, deutsch: LICENSE.de.txt).
+; Symbol und Bilder kommen aus installer\art (der Build erzeugt sie mit tools\make_installer_art.py); ohne sie gelten
+; die Standardbilder. Die Lizenz wird je Sprache angezeigt (englisch: LICENSE, deutsch: LICENSE.de.txt).
+; Hinweis: SmartScreen zeigt einen Herausgeber nur bei signierten Dateien. Ohne Zertifikat steht dort "Unbekannter Herausgeber".
 
 #define AppFullName "CLAUDIOS - Website-Checks-SEO-Diagnostics"
 #define AppShortName "CLAUDIOS"
-#define AppExeName "Claudios.exe"
+#define AppExeName "CLAUDIOS.exe"
 #define AppVersion "0.1.0"
-; Autorenname: früher der Platzhalter [AUTHOR_NAME], jetzt fest gesetzt. Hier ändern, falls er sich wieder ändert.
 #define AuthorName "conejito-vipe"
 
-#ifexist "..\assets\claudios.ico"
+#ifexist "art\app.ico"
   #define HasIcon
+#endif
+#ifexist "art\wizard.bmp"
+  #define HasWizard
 #endif
 
 [Setup]
@@ -20,6 +23,12 @@ AppId={{6E1D2B34-7C59-4C0A-9F3A-2D5B8E41A7C9}
 AppName={#AppFullName}
 AppVersion={#AppVersion}
 AppPublisher=GitHub - {#AuthorName}
+AppPublisherURL=https://github.com/{#AuthorName}
+AppCopyright=Copyright (c) 2026 {#AuthorName}
+VersionInfoVersion={#AppVersion}.0
+VersionInfoCompany={#AuthorName}
+VersionInfoDescription={#AppFullName}
+VersionInfoProductName={#AppShortName}
 DefaultDirName={localappdata}\Programs\{#AppShortName}
 DefaultGroupName={#AppShortName}
 PrivilegesRequired=lowest
@@ -28,14 +37,16 @@ Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 OutputDir=Output
-OutputBaseFilename=Claudios-Setup-{#AppVersion}
+OutputBaseFilename=CLAUDIOS-Setup-{#AppVersion}
 LicenseFile=..\LICENSE
 UninstallDisplayName={#AppFullName}
-#ifdef HasIcon
-SetupIconFile=..\assets\claudios.ico
-UninstallDisplayIcon={app}\claudios.ico
-#else
 UninstallDisplayIcon={app}\{#AppExeName}
+#ifdef HasIcon
+SetupIconFile=art\app.ico
+#endif
+#ifdef HasWizard
+WizardImageFile=art\wizard.bmp
+WizardSmallImageFile=art\wizard-small.bmp
 #endif
 
 [Languages]
@@ -46,25 +57,19 @@ Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\LICENSE"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
 
 [Files]
-Source: "..\dist\Claudios\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "..\dist\CLAUDIOS\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE.de.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\THIRD_PARTY_NOTICES.de.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\assets\claudios.ico"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
-#ifdef HasIcon
-Name: "{group}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\claudios.ico"
-Name: "{autodesktop}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\claudios.ico"; Tasks: desktopicon
-#else
 Name: "{group}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"
 Name: "{autodesktop}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
-#endif
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppShortName}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{localappdata}\Claudios\tools"
-Type: filesandordirs; Name: "{localappdata}\Claudios\cache"
+Type: filesandordirs; Name: "{localappdata}\CLAUDIOS\tools"
+Type: filesandordirs; Name: "{localappdata}\CLAUDIOS\cache"

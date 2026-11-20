@@ -1,8 +1,11 @@
 name: Windows-Build und Installer
+
 on:
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   build:
     runs-on: windows-latest
@@ -11,21 +14,24 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - run: pip install -e ".[gui]" pyinstaller
+      - run: pip install -e ".[gui]" pyinstaller pillow
       - run: python tools/count_loc.py
-      - name: Symbol erzeugen (nur falls assets/claudios.ico fehlt)
+      - name: Symbol und Installer-Bilder erzeugen
         run: |
-          if (-not (Test-Path assets\claudios.ico)) {
-            pip install pillow
-            python tools/make_icon.py
-            if ($LASTEXITCODE -ne 0) { Write-Host "::warning title=Symbol::Symbol konnte nicht erzeugt werden, es gilt das Standardsymbol" }
-          }
+          python tools/make_installer_art.py
+          if ($LASTEXITCODE -ne 0) { Write-Host "::warning title=Symbol::Symbol und Bilder konnten nicht erzeugt werden, es gelten die Standardbilder" }
           exit 0
       - name: Programm bauen (onedir, ohne Konsolenfenster)
         run: |
-          $icon = @()
-          if (Test-Path assets\claudios.ico) { $icon = @("--icon", "assets\claudios.ico") }
-          pyinstaller --noconfirm --onedir --windowed --name Claudios @icon --collect-submodules claudios --collect-data claudios --collect-submodules httpx --collect-submodules httpcore --collect-submodules h2 --collect-submodules hpack --collect-submodules hyperframe --add-data "assets;claudios/assets" installer/launcher.py
+          $opts = @("--noconfirm", "--onedir", "--windowed", "--name", "CLAUDIOS")
+          if (Test-Path installer\art\app.ico) { $opts += @("--icon", "installer\art\app.ico") }
+          $opts += @("--collect-submodules", "claudios", "--collect-data", "claudios")
+          foreach ($pkg in @("httpx", "httpcore", "h2", "hpack", "hyperframe", "dns", "anyio", "h11", "idna", "sniffio", "certifi")) {
+            $opts += @("--collect-submodules", $pkg)
+          }
+          $opts += @("--collect-data", "certifi", "--hidden-import", "dns.query")
+          $opts += @("--add-data", "assets;claudios/assets", "installer/launcher.py")
+          pyinstaller @opts
       - name: Installer bauen (Inno Setup)
         run: |
           choco install innosetup -y --no-progress
@@ -35,5 +41,5 @@ jobs:
           Get-FileHash installer\Output\*.exe -Algorithm SHA256 | Format-List | Out-String | Write-Host
       - uses: actions/upload-artifact@v7
         with:
-          name: Claudios-Setup
+          name: CLAUDIOS-Setup
           path: installer/Output/*.exe

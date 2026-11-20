@@ -1,83 +1,106 @@
-CLAUDIOS Quelloffene Lizenz mit Einschränkungen
-(keine kommerzielle Nutzung, keine Veränderung, keine Weitergabe)
+CLAUDIOS - Lizenz (Freeware, nicht Open Source) / License (freeware, not open source)
 
-Version 1.0. Copyright (c) 2026 conejito-vipe. Alle Rechte vorbehalten, soweit sie nicht unten ausdrücklich eingeräumt werden.
+Copyright (c) 2026 conejito-vipe. Alle Rechte vorbehalten. / All rights reserved.
+Kontakt / Contact: https://github.com/conejito-vipe
 
-English version: LICENSE (verbindlich für Nutzer außerhalb deutschsprachiger Länder, siehe Abschnitt 13).
+=====================================================================
+DEUTSCH (verbindliche Fassung)
+=====================================================================
 
-1. Zweck und Status
+1. Gegenstand
+Diese Lizenz gilt für das Programm CLAUDIOS mit Quelltext, Dokumentation und Beigaben ("Software"). Der Quelltext ist zum Lesen und Prüfen einsehbar. Die Software ist trotzdem keine Open-Source-Software. Sie wird öffentlich zugänglich gemacht, um sie zu testen und weiterzuentwickeln. Der Urheber kann künftig Versionen, Erweiterungen oder kommerzielle Lizenzen kostenpflichtig anbieten. Die Software wurde mit Hilfe einer KI erstellt.
 
-Der Quelltext von CLAUDIOS ist aus Gründen der Transparenz, der Sicherheitsprüfung und für die Nutzung durch Privatpersonen einsehbar. CLAUDIOS ist quelloffen im Sinn von "Quelltext einsehbar" (source-available). Es ist keine Open-Source-Software und keine freie Software im Sinn der Open Source Definition oder der Free Software Foundation. Der Urheber behält alle Rechte, die hier nicht ausdrücklich eingeräumt werden.
+2. Erlaubte kostenlose Nutzung
+Du darfst die Software kostenlos nutzen und testen, wenn du
 
-2. Begriffe
+a) eine Privatperson bist und sie nicht kommerziell für eigene Seiten verwendest, oder
 
-"Software" bezeichnet den Quelltext, das Programm, den Installer, die Dokumentation, die Texte, das Logo und alle weiteren Dateien dieses Repositorys, nicht aber die Komponenten Dritter.
+b) eine gemeinnützige Organisation oder ein Verein bist und sie für deine gemeinnützigen Zwecke auf eigenen Systemen einsetzt.
 
-"Komponenten Dritter" bezeichnet Software anderer, die von der Software genutzt, eingebunden oder geladen wird (aufgelistet in THIRD_PARTY_NOTICES.de.md). Sie bleiben unter ihren eigenen Lizenzen.
+Du darfst den Quelltext lesen und prüfen. Weitere Rechte räumt diese Lizenz nicht ein.
 
-"Kommerzielle Nutzung" bezeichnet jede Nutzung durch oder für ein Unternehmen, einen Freiberufler, eine wirtschaftlich handelnde Behörde oder eine andere gewinnorientierte Stelle, jede Nutzung im Zusammenhang mit einem Gewerbe, Beruf oder Einkommen und jede Nutzung für oder im Auftrag von Kunden, einschließlich der Prüfung von Websites von Kunden oder Arbeitgebern. Die Größe des Unternehmens spielt keine Rolle.
+3. Nicht erlaubt ohne vorherige ausdrückliche Zustimmung des Urhebers
 
-"Veränderung" bezeichnet jede Änderung der Software, einschließlich Patchen, Übersetzen, Anpassen, Entfernen oder Umgehen von Grenzen und Schutzmaßnahmen, Verbinden mit anderem Code sowie das Erstellen abgeleiteter Werke oder Forks mit Änderungen.
+a) Kommerzielle Nutzung. Das ist jede Nutzung im Zusammenhang mit einer gewerblichen oder beruflichen Tätigkeit oder zur Erzielung von Einnahmen, insbesondere durch Unternehmen, Selbständige und Agenturen, die Nutzung im Auftrag Dritter sowie Verkauf, Vermietung oder das Anbieten der Software oder ihrer Ergebnisse als Dienstleistung. Alle Nutzer außer den in Abschnitt 2 genannten (zum Beispiel Unternehmen, Selbständige, Behörden) benötigen vorab eine ausdrückliche Freigabe oder Lizenz, auch zum Testen. Die Anfrage geht über das GitHub-Profil des Urhebers (https://github.com/conejito-vipe).
 
-"Weitergabe" bezeichnet jede Form, die Software oder Teile davon anderen zugänglich zu machen, einschließlich Kopieren für andere, Veröffentlichen, Hochladen, Teilen, Verkaufen, Vermieten, Verleihen, Bereitstellen zum Download und Weiterreichen von Installern, Builds, Quelltexten oder Archiven.
+b) Veränderung. Die Software darf nicht verändert, angepasst, übersetzt, in andere Programme eingebaut oder zu abgeleiteten Werken verarbeitet werden. Ausgenommen sind Änderungen, die ausschließlich dazu dienen, dem Urheber einen Verbesserungsvorschlag (Issue oder Pull Request) zu übermitteln; mit der Übermittlung räumst du dem Urheber ein einfaches, unbefristetes Recht ein, den Vorschlag unentgeltlich zu nutzen und in die Software aufzunehmen.
 
-3. Was erlaubt ist
+c) Weitergabe und Verbreitung. Die Software darf Dritten nicht weitergegeben, nicht veröffentlicht, nicht zum Download angeboten und nicht gespiegelt werden, auch nicht unverändert. Bezogen wird sie nur vom Urheber. Notwendige Kopien zur eigenen Nutzung und zur Datensicherung sind erlaubt. Zwingende gesetzliche Rechte (zum Beispiel nach den Paragrafen 69d und 69e des Urheberrechtsgesetzes) bleiben unberührt. Das Ansehen und Forken eines öffentlichen Repositories innerhalb von GitHub, soweit die Nutzungsbedingungen von GitHub es erlauben, bleibt ebenfalls unberührt, gibt aber keine weiteren Rechte nach diesem Abschnitt.
 
-Privatpersonen sowie gemeinnützige Organisationen und Vereine, die zu nicht kommerziellen Zwecken handeln, dürfen kostenlos und unter den Bedingungen dieser Lizenz:
+4. Ausschlüsse (Parteien und extrem rechte Organisationen)
 
-(a) den Quelltext lesen und prüfen;
-(b) die unveränderte Software auf ihren eigenen Computern herunterladen, installieren und ausführen;
-(c) die unveränderte Software aus dem unveränderten Quelltext für den eigenen Gebrauch auf den eigenen Computern bauen;
-(d) die dafür technisch nötigen Kopien anfertigen, einschließlich einer Sicherungskopie für den eigenen Gebrauch;
-(e) die Berichte und Exporte, die die Software erzeugt, frei verwenden, auch an Dritte und an KI-Dienste senden.
+- Politische Parteien sowie deren Gliederungen, Organisationen oder Wahlkampagnen sind von der Nutzung dieser Software ausgeschlossen.
 
-4. Was nicht erlaubt ist
+- Von jeglicher Nutzung ausdrücklich ausgeschlossen sind außerdem Parteien, Vereinigungen, Gruppen und Vereine (sowie Personen oder Organisationen, die in deren Auftrag oder Namen handeln), die
 
-Ohne vorherige schriftliche Erlaubnis des Urhebers ist verboten:
+  a) vom Bundesamt für Verfassungsschutz oder einem Landesamt für Verfassungsschutz als rechtsextremistische Bestrebung eingestuft sind (als gesichert rechtsextremistisch oder als Verdachtsfall), oder
 
-(a) jede kommerzielle Nutzung;
-(b) jede Veränderung;
-(c) jede Weitergabe;
-(d) Urheberrechtsvermerke, Lizenztexte oder den Logo-Hinweis zu entfernen oder zu ändern;
-(e) Namen oder Logo so zu verwenden, dass der Eindruck einer Billigung durch den Urheber entsteht;
-(f) Rückwärtsentwicklung, Dekompilieren oder Disassemblieren, soweit das Gesetz es nicht trotz dieser Klausel erlaubt.
+  b) verboten sind oder deren Verfassungswidrigkeit durch das Bundesverfassungsgericht festgestellt wurde.
 
-5. Ausschlüsse
+  Maßgeblich ist der Stand zum Zeitpunkt der Nutzung. Entfällt die Einstufung oder das Verbot, entfällt auch der Ausschluss.
 
-Politische Parteien, einschließlich ihrer Gliederungen, Organisationen und Wahlkampagnen, sind von jeder Nutzung der Software ausgeschlossen.
+5. Verantwortung beim Einsatz
+Setze die Software nur auf Systemen, Konten und Daten ein, die dir gehören oder für die du ausdrücklich berechtigt bist.
 
-Rechtsextreme, völkische, rassistische, antisemitische, menschenverachtende oder verfassungsfeindliche Parteien, Vereinigungen, Gruppen oder Vereine sowie Personen oder Organisationen, die in deren Auftrag oder Namen handeln, sind von jeder Nutzung der Software ausdrücklich ausgeschlossen.
+6. Keine Gewährleistung, Haftung
+Die Software wird so bereitgestellt, wie sie ist, ohne jegliche Gewährleistung oder Erfolgsgarantie. Die Nutzung geschieht auf eigene Verantwortung. Die Haftung des Urhebers ist auf Vorsatz und grobe Fahrlässigkeit beschränkt. Unberührt bleibt die Haftung für die Verletzung von Leben, Körper und Gesundheit, nach dem Produkthaftungsgesetz und soweit das Gesetz sie zwingend vorschreibt.
 
-6. Erlaubnis für kommerzielle Nutzung, Veränderung und Weitergabe
+7. Beendigung
+Bei einem Verstoß gegen diese Lizenz erlischt dein Nutzungsrecht automatisch. Du musst die Software dann löschen.
 
-Kommerzielle Nutzung, Veränderung und Weitergabe brauchen vorab eine schriftliche Erlaubnis oder eine eigene Lizenz des Urhebers. Bitte frage über das GitHub-Profil des Urhebers an: https://github.com/conejito-vipe. Auf eine Erlaubnis besteht kein Anspruch. Der Urheber darf eine Gebühr verlangen und ablehnen. Anfragen zum Testen oder Evaluieren in einem Unternehmen gelten als kommerzielle Nutzung und brauchen ebenfalls eine Erlaubnis.
+8. Fremdkomponenten
+Fremdkomponenten haben eigene Lizenzen, die für sie gelten und nicht durch diese Lizenz ersetzt werden (zum Beispiel PySide6/Qt, httpx, Playwright, Java, Node.js, die W3C-Prüfprogramme, OWASP ZAP und sslyze; siehe THIRD_PARTY_NOTICES.md).
 
-7. Komponenten Dritter und GitHub
+9. Schlussbestimmungen
+Es gilt deutsches Recht, soweit zwingende Verbraucherschutzvorschriften nichts anderes bestimmen. Ist eine Bestimmung unwirksam, bleiben die übrigen wirksam. Bei Abweichungen zwischen den Fassungen gilt die deutsche.
 
-Die Komponenten Dritter bleiben unter ihren eigenen Lizenzen. Nichts in dieser Lizenz schränkt die Rechte ein, die diese Lizenzen dir geben. Das gilt besonders für die Qt-Bibliotheken (LGPL): Du darfst sie im Ordner-Build des Programms ersetzen und dafür Debugging und Rückwärtsentwicklung betreiben, soweit die LGPL es erlaubt. Verlangt ein solches Recht etwas, das diese Lizenz verbietet, gilt diese Lizenz insoweit nicht.
+=====================================================================
+ENGLISH (translation; the German version is binding)
+=====================================================================
 
-Die Rechte, die die Nutzungsbedingungen von GitHub anderen Nutzern zum Ansehen und Forken öffentlicher Repositorys geben, bleiben unberührt. Ein Fork bleibt an diese Lizenz gebunden. Er darf nicht verändert und nicht weitergegeben werden, soweit das über die Fork-Funktion von GitHub hinausgeht.
+1. Subject matter
+This license applies to the program CLAUDIOS including source code, documentation and extras (the "Software"). The source code can be read and inspected. The Software is nevertheless not open-source software. It is made publicly available for testing and further development. The author may offer future versions, extensions or commercial licenses for a fee. The Software was created with the help of an AI.
 
-8. Rückmeldungen
+2. Permitted free use
+You may use and test the Software free of charge if you are
 
-Fehlermeldungen, Ideen und Sicherheitsmeldungen sind willkommen. Pull Requests mit Code werden nicht angenommen. Mit einer Rückmeldung räumst du dem Urheber ein unentgeltliches, weltweites, zeitlich unbegrenztes und unwiderrufliches Recht ein, sie zu nutzen, auch in der Software.
+a) an individual and use it non-commercially on your own systems, or
 
-9. Verantwortungsvolle Nutzung
+b) a non-profit organization or association and use it for your non-profit purposes on your own systems.
 
-Du darfst die Software nur auf Websites und Systemen einsetzen, die dir gehören oder die du testen darfst. Für die Rechtmäßigkeit deiner Nutzung bist du allein verantwortlich (vergleiche zum Beispiel § 202c StGB und das Recht deines Landes). Die eingebauten Grenzen und Schutzmaßnahmen verhindern nur versehentlichen Missbrauch. Ihre Umgehung ist eine Veränderung und verboten.
+You may read and inspect the source code. This license grants no further rights.
 
-10. Dauer und Beendigung
+3. Not permitted without the author's prior explicit consent
 
-Diese Lizenz endet automatisch, wenn du gegen eine ihrer Bedingungen verstößt. Dann musst du die Nutzung beenden und alle Kopien löschen. Der Urheber darf spätere Versionen unter anderen Bedingungen anbieten, auch kostenpflichtig.
+a) Commercial use. This means any use in connection with a business or professional activity or to generate income, in particular by companies, self-employed people and agencies, use on behalf of third parties, and selling, renting or offering the Software or its results as a service. All users other than those named in Section 2 (for example companies, self-employed people, public authorities) need an explicit permission or license in advance, including for testing. Requests go through the author's GitHub profile (https://github.com/conejito-vipe).
 
-11. Gewährleistung und Haftung
+b) Modification. The Software must not be modified, adapted, translated, built into other programs or turned into derivative works. Exempt are changes made solely to send the author a suggested improvement (issue or pull request); by submitting it you grant the author a non-exclusive, perpetual right to use the suggestion free of charge and to include it in the Software.
 
-Die Software wird "wie besehen" ("AS IS") ohne Gewährleistung und ohne Haftung jeder Art bereitgestellt, soweit gesetzlich zulässig. Die Haftung für Vorsatz und grobe Fahrlässigkeit, für die Verletzung von Leben, Körper und Gesundheit und jede andere Haftung, die sich gesetzlich nicht ausschließen lässt, bleibt unberührt.
+c) Redistribution. The Software must not be passed on to third parties, published, offered for download or mirrored, not even unchanged. It is obtained only from the author. Copies necessary for your own use and for backup are allowed. Mandatory statutory rights (for example under sections 69d and 69e of the German Copyright Act) remain unaffected. Viewing and forking a public repository within GitHub, as far as GitHub's terms of service allow it, also remains unaffected but grants no further rights under this section.
 
-12. Salvatorische Klausel
+4. Exclusions (political parties and far-right organizations)
 
-Ist eine Bestimmung unwirksam, bleiben die übrigen wirksam.
+- Political parties, including their branches, organizations or election campaigns, are excluded from using this Software.
 
-13. Sprachen
+- Also explicitly excluded from any use are parties, associations, groups and clubs (as well as individuals or organizations acting on their behalf or in their name) that
 
-Diese Lizenz gibt es auf Englisch und Deutsch. Für Nutzer in deutschsprachigen Ländern gilt die deutsche Fassung, sonst die englische.
+  a) are classified as a right-wing extremist effort by the Federal Office for the Protection of the Constitution (Bundesamt für Verfassungsschutz) or a state office for the protection of the constitution (either as confirmed right-wing extremist or as a suspected case), or
+
+  b) are banned or whose unconstitutionality has been established by the Federal Constitutional Court.
+
+  What counts is the status at the time of use. If the classification or the ban ends, the exclusion ends as well.
+
+5. Responsibility when using it
+Use the Software only on systems, accounts and data that you own or are explicitly authorized to use it on.
+
+6. No warranty, liability
+The Software is provided "as is", without any warranty or guarantee of success. Use is at your own risk. The author's liability is limited to intent and gross negligence. Liability for injury to life, body or health, under the Product Liability Act and as mandatorily required by law remains unaffected.
+
+7. Termination
+Your right to use the Software ends automatically if you violate this license. You must then delete the Software.
+
+8. Third-party components
+Third-party components have their own licenses, which apply to them and are not replaced by this license (for example PySide6/Qt, httpx, Playwright, Java, Node.js, the W3C validators, OWASP ZAP and sslyze; see THIRD_PARTY_NOTICES.md).
+
+9. Final provisions
+German law applies, unless mandatory consumer protection rules provide otherwise. If a provision is invalid, the others remain valid. If the versions differ, the German one prevails.

@@ -12,7 +12,7 @@ from .limits import LIMITS
 from .net import Gatekeeper, Response
 from .snapshot import Page, Snapshot
 
-ROBOTS_AGENT = "Claudios"
+ROBOTS_AGENT = "CLAUDIOS"
 SKIP_EXT = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".svg", ".ico", ".pdf", ".zip", ".gz", ".rar",
             ".7z", ".mp4", ".mp3", ".woff", ".woff2", ".ttf", ".css", ".js", ".json", ".xml", ".txt", ".exe", ".dmg")
 Progress = Callable[[str, int, int], None]

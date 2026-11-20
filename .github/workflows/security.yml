@@ -1,6 +1,8 @@
 name: Sicherheitsprüfung
 on:
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   audit:
     runs-on: ubuntu-latest

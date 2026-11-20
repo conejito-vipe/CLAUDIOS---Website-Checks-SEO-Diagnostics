@@ -55,6 +55,14 @@ def test_details_toggle():
     assert not card.details_box.isHidden()
 
 
+def test_extra_button_runs_its_action():
+    called = []
+    card = MessageCard(None, "info", "T", "Text", extra=("Ordner", lambda: called.append(1)))
+    assert card.extra_button is not None and card.extra_button.text() == "Ordner"
+    card.extra_button.click()
+    assert called == [1]
+
+
 def test_install_redirects_static_functions(monkeypatch):
     original = {name: getattr(QMessageBox, name) for name in NAMES}
     try:
@@ -67,11 +75,12 @@ def test_install_redirects_static_functions(monkeypatch):
             setattr(QMessageBox, name, func)
 
 
-def test_error_card_shows_code_and_log_file():
+def test_error_card_shows_code_log_file_and_folder_button():
     info = {"code": "CLA-TEST", "title": "Titel", "cause": "Ursache", "action": "Tat"}
     card = error_card(None, info)
     texts = " ".join(label.text() for label in card.findChildren(type(card.titlebar.pill)))
-    assert "CLA-TEST" in texts and "claudios.log" in texts
+    assert "CLA-TEST" in texts and "claudios.log" in texts.lower()
+    assert card.extra_button is not None
 
 
 def test_about_dialog_builds():
@@ -81,5 +90,5 @@ def test_about_dialog_builds():
 
 def test_card_texts_exist_in_both_languages():
     for key in ("card.ok", "card.yes", "card.no", "card.cancel", "card.close", "card.details",
-                "card.details_hide", "card.logs"):
+                "card.details_hide", "card.logs", "card.open_logs"):
         assert TEXTS["de"][key] and TEXTS["en"][key]

@@ -12,19 +12,21 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from .checks import load_all
-from .core._frozen_imports import doh_available
+from .core._frozen_imports import doh_status
 from .core.audit_anchor import default_anchor
 from .core.audit_log import AuditLog, use_default_anchor
+from .core.errorlog import install as install_error_logging, log_startup
 from .core.errors import catalog
 from .core.redact import RedactFilter
 from .core.registry import validate_registry
 from .i18n.brand import brand_all
 from .i18n.strings import TEXTS, n, set_lang, t
-from .paths import data_dir
+from .paths import LOG_NAME, data_dir
 from .settings import load as load_settings
 from .ui.boot_install import BootInstaller, BootState, pending_components
-from .ui.cardbox import install as install_cards
+from .ui.cardbox import MessageCard, install as install_cards
 from .ui.dialogs import error_info, show_error
+from .ui.logfolder import open_logs
 from .ui.main_window import MainWindow
 from .ui.splash import Splash
 from .ui.theme import STYLE
@@ -32,6 +34,7 @@ from .ui.theme_extra import EXTRA
 from .ui.widgets import load_icon
 
 Step = tuple[str, int, Callable[[], None]]
+log = logging.getLogger("claudios")
 
 
 def startup_steps(state: dict) -> list[Step]:
@@ -55,9 +58,12 @@ def startup_steps(state: dict) -> list[Step]:
 
     def load_psl() -> None:
         get_sld("example.co.uk")
-        state["doh_ok"] = doh_available()
-        if not state["doh_ok"]:  # das Programm startet trotzdem, Scans können aber keine Domain auflösen
-            logging.getLogger("claudios").error("DNS over HTTPS is not available (dnspython/httpx/httpcore)")
+        ok, detail = doh_status()
+        state["doh_ok"] = ok
+        if ok:
+            log.info("DNS over HTTPS check: %s", detail)
+        else:  # das Programm startet trotzdem, Scans können aber keine Domain auflösen
+            log.error("DNS over HTTPS is not available: %s", detail)
 
     def check_audit() -> None:
         state["audit_ok"] = AuditLog(data_dir() / "logs" / "audit.jsonl").verify()
@@ -69,7 +75,7 @@ def startup_steps(state: dict) -> list[Step]:
 def _setup_logging() -> None:
     logs = data_dir() / "logs"
     logs.mkdir(parents=True, exist_ok=True)
-    handler = RotatingFileHandler(logs / "claudios.log", maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+    handler = RotatingFileHandler(logs / LOG_NAME, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
     handler.addFilter(RedactFilter())  # keine Geheimnisse in Logs
     handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
     root = logging.getLogger()
@@ -80,7 +86,7 @@ def _setup_logging() -> None:
 
 def main() -> int:
     app = QApplication(sys.argv)
-    app.setApplicationName("Claudios")
+    app.setApplicationName("CLAUDIOS")
     brand_all(TEXTS)  # im Programm immer CLAUDIOS (nach dem Laden aller Textdateien)
     app.setStyleSheet(STYLE + EXTRA)
     install_cards()  # alle Meldungen im Stil des Splash (statt Windows-Titelleiste)
@@ -89,6 +95,8 @@ def main() -> int:
     if icon is not None:
         app.setWindowIcon(icon)
     _setup_logging()
+    install_error_logging()  # jeder Fehler und jede unbehandelte Ausnahme landet im Protokoll
+    log_startup()
     use_default_anchor(default_anchor)  # Kontrollwert gegen das Löschen des Scan-Protokolls (nur im echten Programm)
     settings = load_settings()
     lang = settings.get("language") or ("de" if QLocale.system().name().startswith("de") else "en")
@@ -113,9 +121,11 @@ def main() -> int:
             lines = []
             for name, exc in failures:
                 info = error_info(exc)
+                log.error("component %s failed: %s %r", name, info["code"], exc)
                 lines.append(f"- {(titles or {}).get(name, name)}: {info['code']} {info['title']}")
-            QMessageBox.warning(window, t("app.title"),
-                                t("boot.failed", count=n(len(failures)), details="\n".join(lines)))
+            MessageCard(window, "warning", t("app.title"),
+                        t("boot.failed", count=n(len(failures)), details="\n".join(lines)),
+                        extra=(t("card.open_logs"), open_logs)).run()
 
     def begin_install(comps: list) -> None:
         titles = {c.name: c.title for c in comps}
@@ -166,6 +176,7 @@ def main() -> int:
                 installer.wait(2000)
 
     def on_failed(exc: BaseException) -> None:
+        log.error("startup failed: %r", exc)
         show_error(None, error_info(exc))
         app.quit()
 

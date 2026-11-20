@@ -14,16 +14,16 @@ Freeware für Windows (Python): prüft eine einzelne Website auf sauberes HTML, 
 
 Frühe Version. Über 400 automatische Tests laufen gegen **simulierte** Websites, DNS-Antworten und Werkzeugausgaben. Windows-Build und Installer entstehen in der CI und hatten einen ersten Test unter Windows 10. Das Verhalten in der Praxis (echte Websites, die echten Werkzeuge, die Google-Anmeldung) wird noch geprüft. Ergebnisse sind technische Indizien, keine Zertifizierung und keine Rechtsberatung.
 
-## Lizenz und Nutzung
+## Lizenz & Nutzung
 
-CLAUDIOS ist kostenlos, aber **quelloffen im Sinn von „Quelltext einsehbar“, nicht Open Source**. Kurz gefasst (verbindlich ist die [LICENSE.de.txt](LICENSE.de.txt)):
+CLAUDIOS wird öffentlich bereitgestellt, um es zu testen und weiterzuentwickeln. Die genauen Bedingungen regelt die [LICENSE](./LICENSE); die deutsche Fassung ist verbindlich.
 
-- **Erlaubt:** Privatpersonen und gemeinnützige Organisationen dürfen den Quelltext lesen, das unveränderte Programm installieren und ausführen und es unverändert für den eigenen Gebrauch bauen.
-- **Nicht erlaubt:** kommerzielle Nutzung (auch die Prüfung von Websites von Kunden oder Arbeitgebern, egal wie groß das Unternehmen ist), jede Veränderung und jede Weitergabe des Programms oder des Quelltexts.
-- **Ausgeschlossen:** politische Parteien sowie rechtsextreme, rassistische, antisemitische oder verfassungsfeindliche Gruppen.
-- **Erlaubnis** für alles andere ist auf Anfrage über das GitHub-Profil des Urhebers möglich. Code-Beiträge (Pull Requests) werden nicht angenommen, Fehlermeldungen und Ideen sind willkommen.
+- **Kostenlos nutzbar:** Privatpersonen (nicht kommerziell) sowie gemeinnützige Organisationen und Vereine (für gemeinnützige Zwecke), jeweils auf eigenen Systemen.
+- **Keine kommerzielle Nutzung ohne Freigabe:** Unternehmen, Selbständige, Agenturen und Behörden müssen vorab über mein GitHub-Profil ([@conejito-vipe](https://github.com/conejito-vipe)) eine Freigabe bzw. Lizenz anfragen.
+- **Keine Änderung, keine Weitergabe:** Die Software darf nicht verändert und nicht an Dritte weitergegeben werden, auch nicht unverändert. Der Quelltext ist zum Lesen und Prüfen da.
+- **Ausschlüsse:** Politische Parteien sowie Vereine oder Gruppen, die vom Verfassungsschutz (Bund oder Land) als rechtsextremistische Bestrebung eingestuft oder verboten sind, sind von der Nutzung ausgeschlossen (Einzelheiten in der [LICENSE](./LICENSE)).
 
-Komponenten Dritter behalten ihre eigenen Lizenzen ([Lizenzen Dritter](THIRD_PARTY_NOTICES.de.md)). Das ist keine Rechtsberatung.
+Ohne jegliche Gewährleistung oder Erfolgsgarantie.
 
 ## Was geprüft wird
 

@@ -17,7 +17,7 @@ TEXTS["de"].update({
                              "bewusst erhalten, damit sich die Limits durch eine Neuinstallation nicht zurücksetzen. "
                              "Fortfahren?",
     "app.uninstall.partial": "Einige Teile konnten nicht entfernt werden: {items}. Lösche sie bei Bedarf von Hand im "
-                             "Ordner %LOCALAPPDATA%\\Claudios.",
+                             "Ordner %LOCALAPPDATA%\\CLAUDIOS.",
     "app.uninstall.manual": "Die Werkzeuge und Daten wurden entfernt. Das Programm selbst deinstallierst du über die "
                             "Windows-Einstellungen unter Apps.",
     "res.summary_aborted": "{target} · Status: {status} · keine Gesamtwertung · {pages} Seiten · {requests} Anfragen "
@@ -35,7 +35,7 @@ TEXTS["en"].update({
                              "The scan log with the daily limits is deliberately kept so that a reinstallation does "
                              "not reset the limits. Continue?",
     "app.uninstall.partial": "Some parts could not be removed: {items}. Delete them by hand in the folder "
-                             "%LOCALAPPDATA%\\Claudios if you like.",
+                             "%LOCALAPPDATA%\\CLAUDIOS if you like.",
     "app.uninstall.manual": "The tools and data were removed. Uninstall the program itself in the Windows settings "
                             "under Apps.",
     "res.summary_aborted": "{target} · Status: {status} · no overall score · {pages} pages · {requests} requests "

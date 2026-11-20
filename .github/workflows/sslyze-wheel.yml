@@ -1,0 +1,34 @@
+name: sslyze-Wheel erzeugen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  wheel:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Wheel bauen
+        run: python tools/build_sslyze_wheel.py
+      - name: Als Release-Datei ablegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = Get-Content wheel-out/tag.txt
+          $file = (Get-ChildItem wheel-out/*.whl).FullName
+          gh release create $tag $file --title $tag --notes "sslyze als fertiges Wheel für CLAUDIOS (eigene Kopie, SHA256 in sslyze-wheel.json)."
+          if ($LASTEXITCODE -ne 0) { gh release upload $tag $file --clobber }
+      - name: Adresse und Prüfsumme ins Repository schreiben
+        run: |
+          Copy-Item wheel-out/sslyze-wheel.json src/claudios/components/sslyze-wheel.json -Force
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/claudios/components/sslyze-wheel.json
+          git commit -m "sslyze-Wheel festgeschrieben"
+          git push

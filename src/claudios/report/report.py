@@ -207,4 +207,4 @@ def build_zip(result: ScanResult, dest: Path | str, lang: str = "de") -> Path:
 
 def default_zip_name(result: ScanResult) -> str:
     dom = re.sub(r"[^a-z0-9.-]", "-", result.snapshot.target.host.lower())[:60]
-    return f"claudios-report-{dom}-{datetime.now().strftime('%Y%m%d-%H%M')}.zip"
+    return f"CLAUDIOS-report-{dom}-{datetime.now().strftime('%Y%m%d-%H%M')}.zip"

@@ -132,3 +132,13 @@ docs/EXTERNAL_SERVICES.de.md
 docs/ENGINES_AND_RUNTIME.md
 docs/ENGINES_AND_RUNTIME.de.md
 .github/ISSUE_TEMPLATE/bug_report_de.yml
+# Paket 8: Namen, Installer-Bilder, Protokoll, sslyze-Wheel
+tools/make_installer_art.py
+tools/build_sslyze_wheel.py
+.github/workflows/sslyze-wheel.yml
+src/claudios/components/sslyzewheel.py
+src/claudios/core/errorlog.py
+src/claudios/ui/logfolder.py
+tests/test_installer_art.py
+tests/test_sslyze_wheel.py
+tests/test_errorlog.py

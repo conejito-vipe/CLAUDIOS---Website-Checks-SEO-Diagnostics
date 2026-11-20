@@ -29,7 +29,7 @@ def files_of(result) -> list[Path]:
 
 def default_name(result) -> str:
     host = re.sub(r"[^a-z0-9.-]", "-", result.snapshot.target.host.lower())[:60]
-    return f"claudios-screenshots-{host}-{datetime.now().strftime('%Y%m%d-%H%M')}.zip"
+    return f"CLAUDIOS-screenshots-{host}-{datetime.now().strftime('%Y%m%d-%H%M')}.zip"
 
 
 def build_zip(result, dest: Path | str) -> Path:

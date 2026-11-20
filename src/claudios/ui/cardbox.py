@@ -1,9 +1,11 @@
 """Karten-Dialoge im Stil des Splash: rahmenlos, abgerundete Karte mit Schatten und eigener Titelleiste.
 
-CardDialog ist die Basis (auch für den Info-Dialog). MessageCard ersetzt die Qt-Standardmeldungen. install() leitet
-QMessageBox.information/warning/critical/question auf MessageCard um, damit auch Seiten ohne Änderung den neuen Stil
-bekommen. install() wird nur im echten Programm aufgerufen (app.py), nicht in Tests."""
+CardDialog ist die Basis (auch für den Info-Dialog). MessageCard ersetzt die Qt-Standardmeldungen und kann eine zusätzliche
+Schaltfläche tragen (extra), zum Beispiel „Protokollordner öffnen". install() leitet QMessageBox.information/warning/
+critical/question auf MessageCard um. install() wird nur im echten Programm aufgerufen (app.py), nicht in Tests."""
 from __future__ import annotations
+
+from collections.abc import Callable
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
@@ -111,7 +113,8 @@ def _plain(label: QLabel, selectable: bool = False) -> QLabel:
 
 class MessageCard(CardDialog):
     def __init__(self, parent, kind: str, title: str, text: str, *, buttons=SB.Ok, default=None,
-                 footnote: str = "", details: str = "") -> None:
+                 footnote: str = "", details: str = "",
+                 extra: tuple[str, Callable[[], object]] | None = None) -> None:
         super().__init__(parent, title)
         self.setMinimumWidth(2 * MARGIN + 480)
         self.chosen = SB.NoButton
@@ -157,7 +160,13 @@ class MessageCard(CardDialog):
                             shown[0][0])
         self._escape = next((flag for flag, key, _l in shown if key in ("cancel", "no", "close")), shown[0][0])
         self.buttons: dict[str, QPushButton] = {}
+        self.extra_button: QPushButton | None = None
         line = QHBoxLayout()
+        if extra is not None:
+            self.extra_button = QPushButton(extra[0])
+            self.extra_button.setAutoDefault(False)
+            self.extra_button.clicked.connect(lambda _checked=False, action=extra[1]: action())
+            line.addWidget(self.extra_button)
         line.addStretch(1)
         for flag, key, label in shown:
             btn = QPushButton(t(label))

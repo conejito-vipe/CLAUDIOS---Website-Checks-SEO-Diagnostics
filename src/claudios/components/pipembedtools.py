@@ -1,34 +1,57 @@
-"""Installation von sslyze in die mitgelieferte Python-Laufzeit (nur im Windows-Programm ohne eigenes Python).
-Die Laufzeit (Komponente python-runtime) und die pip-Wheel-Datei (pip-wheel) sind über runtime-lock.json mit SHA256
-gepinnt. Die Laufzeit wird in den Ordner der Komponente kopiert; ihre ._pth-Datei bekommt die pip-Wheel-Datei und
-site-packages (bei einer ._pth-Datei gelten Umgebungsvariablen wie PYTHONPATH nicht). pip läuft wie bei piptools nur mit
---require-hashes und --no-deps aus der festen Liste pip-sslyze.json. Ungeprüft: ob der Bau von sslyze aus dem Quellarchiv
-in der eingebetteten Laufzeit gelingt (das zeigt erst der Windows-Build)."""
+"""Installation von sslyze in die mitgelieferte Python-Laufzeit (nur im Windows-Programm ohne eigenes Python). Die Laufzeit
+(Komponente python-runtime) und die pip-Wheel-Datei (pip-wheel) sind über runtime-lock.json mit SHA256 gepinnt. Die Laufzeit
+wird in den Ordner der Komponente kopiert; ihre ._pth-Datei bekommt die pip-Wheel-Datei und site-packages (bei einer
+._pth-Datei gelten Umgebungsvariablen wie PYTHONPATH nicht). pip läuft nur mit --require-hashes und --no-deps aus der festen
+Liste pip-sslyze.json.
+
+Gibt es sslyze-wheel.json (vom Workflow „sslyze-Wheel erzeugen"), wird sslyze als fertiges Wheel mit SHA256-Prüfung geladen
+und ohne Bauen installiert; danach läuft „import sslyze" als Gesundheitstest. Sonst gilt der alte Weg (Bau aus dem
+Quellarchiv). Ungeprüft: ob das unter Windows gelingt (das zeigt erst der Windows-Build). Fehler und das Ende der pip-Ausgabe
+stehen im Protokoll."""
 from __future__ import annotations
 
 import json
+import logging
 import shutil
 import tempfile
 import threading
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
 from .. import paths
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.toolrunner import run_tool
-from . import piptools
+from . import piptools, sslyzewheel
 from .lock import Component
 
 WHEEL_NAME = "pip.whl"
 SITE_LINE = "Lib\\site-packages"
+ENV = {"PIP_DISABLE_PIP_VERSION_CHECK": "1", "PIP_NO_INPUT": "1", "PYTHONNOUSERSITE": "1"}
 status = piptools.status  # gleiche Prüfung: Marker, Programmdatei und Hash der Liste
+log = logging.getLogger("claudios")
 
 
 def _tool(name: str) -> Path | None:
     from . import manager  # erst hier importiert, weil der Manager dieses Modul dynamisch lädt
 
     return manager.tool_path(name)
+
+
+def _tail(result) -> str:
+    for name in ("stderr", "stdout"):
+        data = getattr(result, name, None)
+        if data:
+            text = data.decode("utf-8", "replace") if isinstance(data, bytes) else str(data)
+            return text.strip()[-1500:]
+    return ""
+
+
+def _fail(what: str, result) -> ClaudiosError:
+    code = getattr(result, "returncode", "?")
+    log.error("%s failed (exit code %s): %s", what, code, _tail(result))
+    return ClaudiosError(E.TOOL_FAILED, reason=f"{what} exit code {code}")
 
 
 def prepare_runtime(source: Path, target: Path, wheel: Path) -> Path:
@@ -53,6 +76,40 @@ def pip_command(python: Path, requirements: Path, site: Path, name: str) -> list
             "--target", site, "-r", requirements]
 
 
+def deps_command(python: Path, requirements: Path, site: Path) -> list:
+    """Alle Abhängigkeiten (nur fertige Wheels, mit Prüfsummen), ohne das Werkzeug selbst."""
+    return [python, "-m", "pip", "install", "--require-hashes", "--no-deps", "--only-binary=:all:",
+            "--disable-pip-version-check", "--index-url", piptools.INDEX_URL, "--target", site, "-r", requirements]
+
+
+def wheel_command(python: Path, wheel: Path, site: Path) -> list:
+    """Das bereits per SHA256 geprüfte Wheel, ohne Index und ohne Abhängigkeiten."""
+    return [python, "-m", "pip", "install", "--no-deps", "--no-index", "--disable-pip-version-check",
+            "--target", site, wheel]
+
+
+def _install_pinned(comp: Component, pin: dict, python: Path, site: Path, text: str, tmp: str, base: Path,
+                    report, cancel) -> None:
+    from . import manager
+
+    wheel = Path(tmp) / pin["filename"]
+    manager.download(replace(comp, url=pin["url"], sha256=pin["sha256"], size=pin["size"]), wheel,
+                     progress=report, cancel=cancel)
+    requirements = Path(tmp) / "requirements.txt"
+    requirements.write_text(sslyzewheel.without_requirement(text, comp.name), "utf-8")
+    result = run_tool(deps_command(python, requirements, site), cwd=tmp, timeout=piptools.PIP_TIMEOUT, root=base,
+                      extra_env=ENV)
+    if result.returncode != 0:
+        raise _fail("pip dependencies", result)
+    result = run_tool(wheel_command(python, wheel, site), cwd=tmp, timeout=piptools.PIP_TIMEOUT, root=base,
+                      extra_env=ENV)
+    if result.returncode != 0:
+        raise _fail("pip wheel", result)
+    result = run_tool([python, "-c", "import sslyze"], cwd=tmp, timeout=120.0, root=base, extra_env=ENV)
+    if result.returncode != 0:
+        raise _fail("sslyze import", result)
+
+
 def install(comp: Component, *, root: Path | None = None,
             progress: Callable[[str, str, int, int], None] | None = None,
             cancel: threading.Event | None = None) -> None:
@@ -72,15 +129,19 @@ def install(comp: Component, *, root: Path | None = None,
             shutil.rmtree(target)
         report(comp.name, "download", 0, 1)
         python = prepare_runtime(runtime.parent, target, wheel)
+        site = target / "Lib" / "site-packages"
+        text = piptools._requirements()
+        pin = sslyzewheel.load_pin()
         with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as tmp:
-            requirements = Path(tmp) / "requirements.txt"
-            requirements.write_text(piptools._requirements(), "utf-8")
-            result = run_tool(
-                pip_command(python, requirements, target / "Lib" / "site-packages", comp.name),
-                cwd=tmp, timeout=piptools.PIP_TIMEOUT, root=base,
-                extra_env={"PIP_DISABLE_PIP_VERSION_CHECK": "1", "PIP_NO_INPUT": "1", "PYTHONNOUSERSITE": "1"})
-        if result.returncode != 0:
-            raise ClaudiosError(E.TOOL_FAILED, reason=f"pip exit code {result.returncode}")
+            if pin:
+                _install_pinned(comp, pin, python, site, text, tmp, base, report, cancel)
+            else:
+                requirements = Path(tmp) / "requirements.txt"
+                requirements.write_text(text, "utf-8")
+                result = run_tool(pip_command(python, requirements, site, comp.name), cwd=tmp,
+                                  timeout=piptools.PIP_TIMEOUT, root=base, extra_env=ENV)
+                if result.returncode != 0:
+                    raise _fail("pip", result)
         (target / piptools.MARKER).write_text(json.dumps({
             "version": comp.version, "sha256": digest,
             "installed": datetime.now(UTC).isoformat(timespec="seconds"),

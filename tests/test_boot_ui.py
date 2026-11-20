@@ -187,5 +187,5 @@ async def test_an_aborted_scan_gets_no_score(tmp_path):
 def test_the_installer_script_uses_the_full_title_and_a_placeholder_for_the_author():
     root = Path(__file__).resolve().parent.parent
     text = (root / "installer" / "claudios.iss").read_text("utf-8")
-    assert "CLAUDIOS - Website-Checks-SEO-Diagnostics" in text and "[AUTHOR_NAME]" in text
-    assert "AppPublisher=GitHub - " in text and "OutputBaseFilename=Claudios-Setup-" in text
+    assert "CLAUDIOS - Website-Checks-SEO-Diagnostics" in text and "conejito-vipe" in text
+    assert "AppPublisher=GitHub - " in text and "OutputBaseFilename=CLAUDIOS-Setup-" in text

@@ -14,16 +14,16 @@ Freeware Windows tool (Python) that checks a single website for clean HTML, CSS 
 
 Early version. More than 400 automated tests run against **simulated** websites, DNS answers and tool outputs. The Windows build and installer are produced in CI and have had a first test on Windows 10. Real-world behaviour (live sites, the real tools, the Google sign-in) is still being verified. Treat results as technical indications, not as a certification and not as legal advice.
 
-## License and use
+## License & Usage
 
-CLAUDIOS is free of charge, but **source-available, not open source**. In short (the [LICENSE](LICENSE) is binding):
+CLAUDIOS is made publicly available for testing and ongoing development. See the [LICENSE](./LICENSE) file for the full terms; the German version is binding.
 
-- **Allowed:** private individuals and non-profit organisations may read the source code, install and run the unmodified program and build it unmodified for their own use.
-- **Not allowed:** commercial use (including checking websites of clients or employers, whatever the company size), any modification and any distribution of the program or the source code.
-- **Excluded:** political parties and far-right, racist, antisemitic or anti-constitutional groups.
-- **Permission** for anything else is possible on request through the author's GitHub profile. Code contributions (pull requests) are not accepted, bug reports and ideas are welcome.
+- **Free use:** individuals (non-commercial) and non-profit organizations and associations (for non-profit purposes), each on their own systems.
+- **No commercial use without permission:** companies, self-employed people, agencies and public authorities must contact me in advance via my GitHub profile ([@conejito-vipe](https://github.com/conejito-vipe)) to request permission or a license.
+- **No modification, no redistribution:** the software must not be modified or passed on to third parties, not even unchanged. The source code is there to be read and inspected.
+- **Exclusions:** political parties, as well as associations or groups that are classified as a right-wing extremist effort by the Office for the Protection of the Constitution (federal or state) or that are banned, are excluded from using this software (details in the [LICENSE](./LICENSE)).
 
-Third-party components keep their own licences ([Third-party notices](THIRD_PARTY_NOTICES.md)). This is not legal advice.
+Without any warranty or guarantee of success.
 
 ## What it checks
 

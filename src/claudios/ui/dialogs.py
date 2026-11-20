@@ -10,8 +10,9 @@ from .. import REPO_URL, __version__
 from ..buildinfo import python_lines
 from ..core.errors import ClaudiosError, ErrorCode, describe
 from ..i18n.strings import get_lang, n, t
-from ..paths import logs_dir
+from ..paths import LOG_NAME, logs_dir
 from .cardbox import MARGIN, CardDialog, MessageCard
+from .logfolder import open_logs
 
 
 def error_info(exc: BaseException) -> dict[str, str]:
@@ -22,11 +23,12 @@ def error_info(exc: BaseException) -> dict[str, str]:
 
 
 def error_card(parent, info: dict[str, str]) -> MessageCard:
-    """Baut den Fehlerdialog (Code und Zeit zum Kopieren, dazu der Ort der Protokolldatei)."""
+    """Baut den Fehlerdialog (Code und Zeit zum Kopieren, Ort der Protokolldatei, Knopf zum Protokollordner)."""
     stamp = datetime.now().isoformat(timespec="seconds")
-    footnote = f"{info['code']} · {stamp}\n{t('card.logs', path=logs_dir() / 'claudios.log')}"
+    footnote = f"{info['code']} · {stamp}\n{t('card.logs', path=logs_dir() / LOG_NAME)}"
     text = f"{info['cause']}\n\n{t('err.todo')} {info['action']}"
-    return MessageCard(parent, "warning", info["title"], text, footnote=footnote)
+    return MessageCard(parent, "warning", info["title"], text, footnote=footnote,
+                       extra=(t("card.open_logs"), open_logs))
 
 
 def show_error(parent, info: dict[str, str]) -> None:

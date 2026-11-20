@@ -1,4 +1,4 @@
-"""Seite „Komponenten“: Status, Installieren/Reparieren und Entfernen mit Auswahl."""
+"""Seite „Komponenten": Status (✅ oder ❌), Installieren/Reparieren und Entfernen mit Auswahl."""
 from __future__ import annotations
 
 import threading
@@ -24,6 +24,9 @@ from ..components.lock import load_lock
 from ..core.numfmt import format_bytes
 from ..i18n.strings import get_lang, n, t
 from .dialogs import error_info, show_error
+from .logfolder import open_logs
+
+STATE_ICONS = {"installed": "✅", "missing": "❌", "outdated": "🔄", "not_pinned": "⚠️"}
 
 
 def _plain(label: QLabel) -> QLabel:
@@ -137,14 +140,16 @@ class ComponentsPage(QWidget):
         self.cancel_btn = QPushButton()
         self.cancel_btn.setEnabled(False)
         self.remove_btn = QPushButton()
+        self.logs_btn = QPushButton()
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         for widget in (self.intro, self.table, self.total, self.hint, self.bar, self.status,
-                       self.install_btn, self.cancel_btn, self.remove_btn):
+                       self.install_btn, self.cancel_btn, self.remove_btn, self.logs_btn):
             lay.addWidget(widget)
         self.install_btn.clicked.connect(self.install)
         self.cancel_btn.clicked.connect(self.cancel)
         self.remove_btn.clicked.connect(self.remove)
+        self.logs_btn.clicked.connect(lambda _checked=False: open_logs())
 
     def retranslate(self) -> None:
         self.intro.setText(t("cmp.intro"))
@@ -153,6 +158,7 @@ class ComponentsPage(QWidget):
         self.install_btn.setText(t("cmp.install"))
         self.cancel_btn.setText(t("cmp.cancel"))
         self.remove_btn.setText(t("cmp.uninstall"))
+        self.logs_btn.setText(t("card.open_logs"))
         self.refresh()
 
     def refresh(self) -> None:
@@ -166,9 +172,13 @@ class ComponentsPage(QWidget):
             self.table.insertRow(row)
             state_key = "cmp.st." + state
             cells = (comp.title, comp.version or "–", format_bytes(comp.size, lang) if comp.size else "–",
-                     t(state_key))
+                     STATE_ICONS.get(state, "❔"))
             for col, value in enumerate(cells):
-                self.table.setItem(row, col, QTableWidgetItem(value))
+                item = QTableWidgetItem(value)
+                if col == 3:
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    item.setToolTip(t(state_key))
+                self.table.setItem(row, col, item)
         used = sum(item.size for item in manager.uninstall_items(self._lock) if item.kind == "tool")
         self.total.setText(t("cmp.total", size=format_bytes(used, lang)))
         if self._lock_error:
