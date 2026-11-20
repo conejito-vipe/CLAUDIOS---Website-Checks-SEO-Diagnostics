@@ -1,10 +1,12 @@
-"""Installation von Firefox und WebKit für die Browser-Gegenprobe (Playwright). Die Browser kommen in denselben Ordner wie
-Chromium (tools/playwright/browsers). Playwright lädt sie von seinem eigenen Server über HTTPS; diese Dateien sind NICHT
-durch eine eigene Prüfsumme von Claudios gepinnt (wie bei Chromium). Der Marker dieser Komponente liegt in
-tools/pw-browsers und speichert den Hash der Playwright-Sperrdatei."""
+"""Installation von Firefox und WebKit für die Browser-Gegenprobe (Playwright). Die Browser kommen in denselben
+Ordner wie Chromium (tools/playwright/browsers). Playwright lädt sie von seinem eigenen Server über HTTPS; diese
+Dateien sind NICHT durch eine eigene Prüfsumme von Claudios gepinnt (wie bei Chromium). Der Marker dieser Komponente
+liegt in tools/pw-browsers und speichert den Hash der Playwright-Sperrdatei. Der Download meldet keinen Fortschritt:
+ein Beobachter (dlwatch) schätzt ihn aus dem Wachstum der Ordner."""
 from __future__ import annotations
 
 import json
+import tempfile
 import threading
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -14,12 +16,14 @@ from .. import paths
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.toolrunner import run_tool
 from . import playwrighttools
+from .dlwatch import SizeWatcher
 from .lock import Component
 from .npmtools import node_env
 
 MARKER = ".claudios-installed.json"
 ENGINES = ("firefox", "webkit")
 BROWSER_TIMEOUT = 1800.0
+EXPECTED_BYTES = 400 * 1024 * 1024  # Schätzung (ungeprüft), nur für die Fortschrittsanzeige
 
 
 def playwright_dir(root: Path | None = None) -> Path:
@@ -69,11 +73,16 @@ def install(comp: Component, *, root: Path | None = None,
         raise ClaudiosError(E.INSTALL_CANCELLED)
     base = root or paths.tools_dir()
     try:
-        report(comp.name, "download", 0, 1)
+        report(comp.name, "download", 0, 100)
         env = node_env(node.parent)
-        env["PLAYWRIGHT_BROWSERS_PATH"] = str(playwright_dir(root) / "browsers")
-        result = run_tool([node, cli, "install", *ENGINES], cwd=playwright_dir(root), timeout=BROWSER_TIMEOUT,
-                          root=base, extra_env=env)
+        browsers = playwright_dir(root) / "browsers"
+        env["PLAYWRIGHT_BROWSERS_PATH"] = str(browsers)
+        with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as tmp:
+            env["TMP"] = env["TEMP"] = env["TMPDIR"] = tmp
+            with SizeWatcher([browsers, Path(tmp)], EXPECTED_BYTES,
+                             lambda done, total: report(comp.name, "download", done, total), base=0, span=95):
+                result = run_tool([node, cli, "install", *ENGINES], cwd=playwright_dir(root),
+                                  timeout=BROWSER_TIMEOUT, root=base, extra_env=env)
         if result.returncode != 0:
             raise ClaudiosError(E.TOOL_FAILED, reason=f"browser download exit code {result.returncode}")
         if not has_engines(root):
