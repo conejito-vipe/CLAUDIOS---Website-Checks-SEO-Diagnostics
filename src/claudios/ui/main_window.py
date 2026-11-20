@@ -23,6 +23,7 @@ from ..i18n.strings import get_lang, set_lang, t
 from ..settings import save as save_settings
 from .components_page import ComponentsPage
 from .dialogs import AboutDialog
+from .finding_detail import DetailLinker
 from .highlight import attach
 from .pages import DocPage, ScanPage, SettingsPage
 from .results_page import ResultsPage
@@ -72,6 +73,7 @@ class MainWindow(CardWindow):
         self.resize(1040, 700)
         self.setMinimumSize(760, 520)
         self._prev = 0
+        self.last_result = None
 
         self.scan = ScanPage(lambda: self.settings)
         self.results = ResultsPage()
@@ -89,6 +91,7 @@ class MainWindow(CardWindow):
         self.about_row = len(keys) - 1
         _style_headings(self.pages)
         attach(self.tech.view)  # Syntax-Hervorhebung der Technik-Doku (früher in der Seite „Einrichtung")
+        self.detail = DetailLinker(self, lambda: self.last_result)  # Klick auf einen Befund: Erklärung
 
         self.nav = QListWidget()
         self.nav.setObjectName("nav")
@@ -126,6 +129,11 @@ class MainWindow(CardWindow):
         self.retranslate()
         self.nav.setCurrentRow(0)
 
+    def _attach_details(self) -> None:
+        for page in self.pages:
+            if type(page).__name__ != "ComponentsPage":
+                self.detail.attach(page)
+
     def retranslate(self) -> None:
         self.setWindowTitle(t("app.title"))
         for index, key in enumerate(self.nav_keys):
@@ -134,6 +142,7 @@ class MainWindow(CardWindow):
         for page in self.pages:
             page.retranslate()
         self.footer.retranslate()
+        self._attach_details()
 
     def set_language(self, lang: str) -> None:
         set_lang(lang)
@@ -158,9 +167,12 @@ class MainWindow(CardWindow):
         if row >= 0:
             self._prev = row
             self.stack.setCurrentIndex(row)
+            self._attach_details()  # Seiten bauen ihre Listen teils erst beim Anzeigen
 
     def _on_result(self, result) -> None:
+        self.last_result = result
         self.results.show_result(result)
+        self._attach_details()
         self.nav.setCurrentRow(1)
 
     def closeEvent(self, event) -> None:  # noqa: N802

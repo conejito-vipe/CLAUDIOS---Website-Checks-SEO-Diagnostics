@@ -1,6 +1,6 @@
 """Kontrollwert gegen das Löschen des Audit-Logs: Anzahl der Einträge und letzter Hash liegen im
 Windows-Anmeldeinformationsspeicher (nie in einer Datei). Stimmt das Protokoll nicht mehr dazu, wird es beiseitegelegt,
-ein neues beginnt mit dem Eintrag "tamper", und Scans sind für 24 Stunden gesperrt.
+ein neues beginnt mit dem Eintrag "tamper", und Scans sind für die Sperrzeit (3 Stunden) gesperrt.
 Grenze: Wer Protokoll und Kontrollwert löscht, sieht aus wie eine Neuinstallation (Reibung, kein Schutz)."""
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ class Anchor:
         self.save(len(recs), recs[-1]["hash"], force=True)
 
     def check(self, log: AuditLog, now: float | None = None) -> None:
-        """Wirft AUDIT_TAMPERED, solange eine Veränderung weniger als 24 Stunden zurückliegt."""
+        """Wirft AUDIT_TAMPERED, solange eine Veränderung innerhalb der Sperrzeit zurückliegt."""
         now = time.time() if now is None else now
         state = self.load()
         reason, recs = self._inspect(log, state)

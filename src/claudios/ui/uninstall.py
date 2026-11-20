@@ -1,7 +1,7 @@
 """Deinstallation aus dem Programm: entfernt Komponenten, Cache, Protokolldateien, Einstellungen, Berichte, den Verlauf
 und gespeicherte API-Schlüssel und startet danach den Deinstaller von Inno Setup (unins000.exe im Programmordner).
 Das Scan-Protokoll (audit.jsonl) und sein Kontrollwert bleiben bewusst erhalten: sonst würde eine Neuinstallation die
-Tageslimits zurücksetzen oder die 24-Stunden-Sperre auslösen."""
+Tageslimits zurücksetzen oder die 3-Stunden-Sperre auslösen."""
 from __future__ import annotations
 
 import logging

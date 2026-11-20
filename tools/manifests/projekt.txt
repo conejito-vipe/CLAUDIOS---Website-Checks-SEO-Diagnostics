@@ -152,3 +152,11 @@ tests/test_fsutil.py
 tests/test_dohfallback.py
 tests/test_instance.py
 tests/test_comp_info.py
+# Paket 10: Hinweis zum Scan-Protokoll im Export-Dialog
+src/claudios/i18n/strings_zz_notes.py
+tests/test_audit_note.py
+# Paket 11: Befund-Erklärung, Splash-Abstand, 250 Seiten
+src/claudios/ui/finding_detail.py
+src/claudios/i18n/strings_detail.py
+tests/test_finding_detail.py
+tests/test_pack11.py

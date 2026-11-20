@@ -7,8 +7,8 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Limits:
     max_depth: int = 6                      # Startseite = Ebene 1
-    pages_level1: int = 25                  # ohne Verifizierung
-    pages_level2: int = 100                 # mit Google-Verifizierung
+    pages_level1: int = 250                  # ohne Verifizierung
+    pages_level2: int = 250                 # mit Google-Verifizierung
     quick_pages: int = 5
     requests_per_second: float = 2.0
     requests_per_second_max: float = 5.0

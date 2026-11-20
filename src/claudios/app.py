@@ -68,7 +68,10 @@ def startup_steps(state: dict) -> list[Step]:
             log.error("DNS over HTTPS is not available: %s", detail)
 
     def check_audit() -> None:
-        state["audit_ok"] = AuditLog(data_dir() / "logs" / "audit.jsonl").verify()
+        try:
+            state["audit_ok"] = AuditLog(data_dir() / "logs" / "audit.jsonl").verify()
+        except (ValueError, KeyError, TypeError, OSError):  # unlesbares Protokoll: nur warnen, nicht abstürzen
+            state["audit_ok"] = False
 
     return [("splash.s1", 1, check_dirs), ("splash.s2", 1, load_catalog), ("splash.s3", 2, check_registry),
             ("splash.s4", 3, load_psl), ("splash.s5", 1, check_audit)]
@@ -105,7 +108,7 @@ def main() -> int:
     settings = load_settings()
     lang = settings.get("language") or ("de" if QLocale.system().name().startswith("de") else "en")
     set_lang(lang)
-    instance_lock = acquire(data_dir() / "claudios.lock")
+    instance_lock = acquire(data_dir() / "CLAUDIOS.lock")
     if instance_lock is None:
         log.warning("CLAUDIOS is already running, this instance exits")
         MessageCard(None, "info", t("app.title"), t("app.running")).run()

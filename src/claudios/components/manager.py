@@ -256,7 +256,7 @@ def dir_size(path: Path) -> int:
 
 
 def _log_files() -> list[Path]:
-    return [p for p in paths.logs_dir().glob("claudios.log*") if p.is_file()]
+    return [p for p in paths.logs_dir().iterdir() if p.is_file() and p.name.lower().startswith("claudios.log")]
 
 
 def uninstall_items(lock: list[Component] | None = None, root: Path | None = None) -> list[UninstallItem]:

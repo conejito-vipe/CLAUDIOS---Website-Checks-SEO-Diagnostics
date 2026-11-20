@@ -1,6 +1,7 @@
 """Splash nach der Vorlage: Pill oben links, Logo mit Claim, dünner oranger Balken, Status und Prozent. Die Schritte sind echt
 (keine Fake-Animation); der Balken ist nach Aufwand gewichtet. Nach den Startschritten kann die Anwendung hier die
-Einrichtung fehlender Komponenten anzeigen (show_progress, show_skip). Größe: 70 % der früheren 940 x 640."""
+Einrichtung fehlender Komponenten anzeigen (show_progress, show_skip). Größe: 70 % der früheren 940 x 640. Zwischen Logo und
+Balken liegt ein fester Mindestabstand (LOGO_GAP), auch wenn die Statuszeile mehrere Zeilen braucht."""
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, QTimer, Signal
@@ -10,7 +11,8 @@ from ..i18n.strings import n, t
 from .widgets import CardWindow, load_logo
 
 WIDTH, HEIGHT = 658, 448
-LOGO_HEIGHT = 238
+LOGO_HEIGHT = 190
+LOGO_GAP = 28
 
 
 class Splash(CardWindow):
@@ -36,11 +38,14 @@ class Splash(CardWindow):
         else:
             logo.setText("CLAUDIOS")
             logo.setObjectName("logofallback")
+        self.logo = logo
         self.body.addStretch(1)
         self.body.addWidget(logo)
         self.body.addStretch(1)
+        self.body.addSpacing(LOGO_GAP)
 
         bottom = QWidget()
+        self.bottom = bottom
         col = QVBoxLayout(bottom)
         col.setContentsMargins(24, 0, 24, 16)
         col.setSpacing(10)

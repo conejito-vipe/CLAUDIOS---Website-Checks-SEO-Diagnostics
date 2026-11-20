@@ -7,7 +7,7 @@ TEXTS["de"].update({
     "nav.gsc": "Search Console", "probe.gsc": "Search-Console-Daten",
     "gsc.title": "Google Search Console und Stufe 2",
     "gsc.intro": "Mit der Anmeldung beweist du, dass die Domain dir gehört (Inhaber- oder Vollzugriff in der Search "
-                 "Console). Erst dann gibt es Stufe 2: aktive Prüfungen, bis zu 100 Seiten und Search-Console-Daten. "
+                 "Console). Erst dann gibt es Stufe 2: aktive Prüfungen, bis zu 250 Seiten und Search-Console-Daten. "
                  "Dein Google-Passwort sieht CLAUDIOS nie, die Anmeldung läuft im Browser, angefordert wird nur "
                  "Lesezugriff. Das Token bleibt im Arbeitsspeicher, außer du wählst „angemeldet bleiben“. Ein eigenes "
                  "Google-Cloud-Projekt ist nötig, siehe docs/GOOGLE_SETUP.md.",
@@ -23,7 +23,7 @@ TEXTS["de"].update({
     "gsc.sites": "Deine Properties:", "gsc.refresh": "Properties neu laden",
     "gsc.level2": "Stufe 2 für verifizierte Domains verwenden (gilt bis zum Programmende)",
     "gsc.level2_ask": "Stufe 2 schaltet aktive Prüfungen frei (feste Pfadliste, TLS-Angriffstests, ZAP) und lädt "
-                      "bis zu 100 Seiten. Verwende sie nur für Domains, die dir gehören. Vor jedem Scan wird die "
+                      "bis zu 250 Seiten. Verwende sie nur für Domains, die dir gehören. Vor jedem Scan wird die "
                       "Berechtigung neu geprüft. Aktivieren?",
     "gsc.level2_on": "Stufe 2 ist aktiv: Scans von Domains in deinen Properties laufen mit Stufe 2.",
     "gsc.csv_import": "CSV-Auswertung importieren …",
@@ -36,7 +36,7 @@ TEXTS["en"].update({
     "nav.gsc": "Search Console", "probe.gsc": "Search Console data",
     "gsc.title": "Google Search Console and level 2",
     "gsc.intro": "By signing in you prove that the domain belongs to you (owner or full access in Search Console). "
-                 "Only then is there level 2: active checks, up to 100 pages and Search Console data. CLAUDIOS never "
+                 "Only then is there level 2: active checks, up to 250 pages and Search Console data. CLAUDIOS never "
                  "sees your Google password, the sign-in happens in your browser, only read access is requested. The "
                  "token stays in memory unless you choose 'stay signed in'. You need your own Google Cloud project, "
                  "see docs/GOOGLE_SETUP.md.",

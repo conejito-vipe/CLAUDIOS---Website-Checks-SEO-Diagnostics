@@ -52,7 +52,7 @@ Als Herausgeber steht im Installer und in der Liste der installierten Apps **Git
 ## Sicherheit durch Design
 
 - Nur HTTPS; Zertifikatsfehler brechen den Scan mit klarer Begründung ab
-- Höchstens 6 Crawl-Ebenen; 25 Seiten (Selbstauskunft) bzw. 100 Seiten (Google-verifiziert); gedrosselt
+- Höchstens 6 Crawl-Ebenen; bis zu 250 Seiten; gedrosselt
 - Eine Domain pro Scan; Tages- und Stundenlimits, Abkühlzeit zwischen Scans und ein manipulationssicheres Scan-Protokoll
 - Keine Kommandozeile, API, Massenabfrage, Plugins oder Telemetrie
 - Passwörter, Cookie-Werte und Tokens werden nie gespeichert oder exportiert

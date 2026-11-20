@@ -52,7 +52,7 @@ The publisher name in the installer and in the list of installed apps is **GitHu
 ## Safety by design
 
 - HTTPS only; certificate errors abort the scan with a clear reason
-- At most 6 crawl levels; 25 pages (self-declaration) or 100 pages (Google-verified); throttled
+- At most 6 crawl levels; up to 250 pages; throttled
 - One domain per scan; daily and hourly limits, a cool-down between scans and a tamper-evident scan log
 - No command line, API, batch mode, plugins or telemetry
 - Passwords, cookie values and tokens are never stored or exported

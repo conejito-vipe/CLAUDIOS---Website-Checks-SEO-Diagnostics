@@ -12,7 +12,7 @@ from ..components import manager
 from ..components.lock import load_lock
 from ..core.errors import ClaudiosError, ErrorCode as E
 
-OPTIONAL = frozenset({"pw-browsers"})  # groß und nur für das Profil Tief nötig: nie automatisch
+OPTIONAL = frozenset()  # alles wird beim Start eingerichtet, auch Firefox und WebKit (pw-browsers)
 
 
 def pending_components(lock=None, status=None) -> list:
