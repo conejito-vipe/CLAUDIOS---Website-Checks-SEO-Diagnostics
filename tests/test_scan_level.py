@@ -71,7 +71,7 @@ def test_the_scan_page_shows_the_level_and_the_google_button_opens_the_console_p
         assert page.google.isEnabled() and "Stufe 1" in page.level_lbl.text()
         monkeypatch.setattr(session, "SESSION", fake())
         page.url.setText("example.com")
-        assert "sc-domain:example.com" in page.level_lbl.text() and "100" in page.level_lbl.text()
+        assert "sc-domain:example.com" in page.level_lbl.text() and "250" in page.level_lbl.text()
         page.url.setText("other.org")
         assert page.level_lbl.text() == t("scan.level_nomatch")
         window = QWidget()

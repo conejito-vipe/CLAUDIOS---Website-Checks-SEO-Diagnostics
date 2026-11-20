@@ -56,9 +56,9 @@ async def test_missing_robots_txt_does_not_block_crawling():
     assert len(snap.pages) == 2
 
 
-async def test_page_limit_for_level_1_is_25():
-    gk = FakeGatekeeper(lambda path: [f"/p{i}" for i in range(40)] if path == "/" else [])
+async def test_page_limit_for_level_1_is_250():
+    gk = FakeGatekeeper(lambda path: [f"/p{i}" for i in range(300)] if path == "/" else [])
     snap = make_snap(level=1)
     await crawl(gk, snap)
-    assert len(snap.pages) == 25
+    assert len(snap.pages) == 250
     assert any(s["reason"] == "page_limit" for s in snap.skipped)

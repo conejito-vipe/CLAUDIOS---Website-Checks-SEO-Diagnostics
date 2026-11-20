@@ -77,11 +77,11 @@ def test_board_percent_and_text():
     assert BootState(0).percent() == 100
 
 
-def test_only_missing_non_optional_components_are_pending():
+def test_only_missing_all_components_are_pending():
     comps = [SimpleNamespace(name="node"), SimpleNamespace(name="java"), SimpleNamespace(name="pw-browsers"),
              SimpleNamespace(name="zap")]
     state = {"node": "installed", "java": "missing", "pw-browsers": "missing", "zap": "outdated"}
-    assert [c.name for c in pending_components(comps, lambda c: state[c.name])] == ["java", "zap"]
+    assert [c.name for c in pending_components(comps, lambda c: state[c.name])] == ["java", "pw-browsers", "zap"]
     assert pending_components(comps, lambda c: 1 / 0) == []
 
 
