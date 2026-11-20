@@ -12,6 +12,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from .checks import load_all
+from .core import dohfallback, fsutil
 from .core._frozen_imports import doh_status
 from .core.audit_anchor import default_anchor
 from .core.audit_log import AuditLog, use_default_anchor
@@ -26,6 +27,7 @@ from .settings import load as load_settings
 from .ui.boot_install import BootInstaller, BootState, pending_components
 from .ui.cardbox import MessageCard, install as install_cards
 from .ui.dialogs import error_info, show_error
+from .ui.instance import acquire
 from .ui.logfolder import open_logs
 from .ui.main_window import MainWindow
 from .ui.splash import Splash
@@ -97,10 +99,17 @@ def main() -> int:
     _setup_logging()
     install_error_logging()  # jeder Fehler und jede unbehandelte Ausnahme landet im Protokoll
     log_startup()
+    fsutil.harden()  # Wiederholungen bei Dateisperren durch Virenscanner (Windows)
+    log.info("DNS over HTTPS mode: %s", dohfallback.install_if_needed())
     use_default_anchor(default_anchor)  # Kontrollwert gegen das Löschen des Scan-Protokolls (nur im echten Programm)
     settings = load_settings()
     lang = settings.get("language") or ("de" if QLocale.system().name().startswith("de") else "en")
     set_lang(lang)
+    instance_lock = acquire(data_dir() / "claudios.lock")
+    if instance_lock is None:
+        log.warning("CLAUDIOS is already running, this instance exits")
+        MessageCard(None, "info", t("app.title"), t("app.running")).run()
+        return 0
     state: dict = {}
     splash = Splash(startup_steps(state))
     windows: list[MainWindow] = []
@@ -132,6 +141,7 @@ def main() -> int:
         board = BootState(len(comps))
         installer = BootInstaller(comps)
         installers.append(installer)
+        started: set[str] = set()
         splash.show_skip(True)
         splash.show_progress(0, t("boot.intro"))
 
@@ -140,10 +150,14 @@ def main() -> int:
                                                     active=board.active_text(titles)))
 
         def on_progress(name: str, _phase: str, done: int, total: int) -> None:
+            if name not in started:  # Zeitstempel im Protokoll zeigen, wie lange eine Komponente braucht
+                started.add(name)
+                log.info("component %s: started", name)
             board.update(name, done, total)
             show()
 
-        def on_one(name: str, _error: object) -> None:
+        def on_one(name: str, error: object) -> None:
+            log.info("component %s: %s", name, "finished" if error is None else f"failed ({error!r})")
             board.finish(name)
             show()
 
@@ -185,4 +199,6 @@ def main() -> int:
     splash.failed.connect(on_failed)
     splash.show()
     splash.start()
-    return app.exec()
+    code = app.exec()
+    instance_lock.unlock()
+    return code

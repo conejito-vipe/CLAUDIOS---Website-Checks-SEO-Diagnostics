@@ -11,7 +11,7 @@ This document describes how CLAUDIOS prevents being used against foreign website
 | Input | One domain, HTTPS only, port 443, strict host name rules, no local suffixes, no IP addresses, Punycode. `http://` typed in the scan field becomes `https://`, nothing else is relaxed | `core/guard.py`, `ui/urlinput.py` |
 | Self-declaration / level 2 | Level 1 only with the check mark. Level 2 only with a proof from the live check of the Search Console properties: valid for one host and one property, 15 minutes, one use | `core/proof.py`, `gsc/session.py` |
 | Quota | Cool-down 30 s (shown as a countdown), 5 scans per hour, 5 (level 1) or 12 (level 2) per domain and day | `core/quota.py`, `core/limits.py` |
-| Scan log | Hash chain plus a control value in the Windows Credential Manager. A deleted or changed log blocks scans for 24 hours | `core/audit_log.py`, `core/audit_anchor.py` |
+| Scan log | Hash chain plus a control value in the Windows Credential Manager. A deleted or changed log blocks scans for 3 hours | `core/audit_log.py`, `core/audit_anchor.py` |
 | Gatekeeper | Every own request passes here: DNS only over DoH, all addresses must be public, connection to the verified IP, rate and size limits | `core/net.py` |
 | Tools | Browser, ZAP and sslyze: total budget 1,800 s, 15 s pause between runs, at most 4 runs per kind and scan | `core/toolbudget.py`, `core/toolrunner.py` |
 | DNS rebinding | The resolution is re-checked before and after the ZAP run and the Firefox/WebKit run. The Chromium run pins the target host to the verified IP. Embedded IPv4 addresses in NAT64 and 6to4 addresses are judged by the IPv4 address | `core/rebind.py`, `core/guard.py`, `checks/_browser.py` |
@@ -30,3 +30,7 @@ This document describes how CLAUDIOS prevents being used against foreign website
 ## How it is tested
 
 The tests `test_abuse_protection.py`, `test_audit_anchor.py`, `test_rebinding.py`, `test_foreign_hosts.py` and `test_tool_budget.py` cover the layers. An allow-list in a test prevents new active checks or level-2 probes from appearing unnoticed.
+
+## Do not touch the scan log by hand
+
+The scan log (`audit.jsonl` in the `logs` folder) is chained with hashes and has a control value in the Windows Credential Manager. If the file is edited, replaced by a copy, moved or deleted (or if the CLAUDIOS data folder is deleted while the control value stays), the program treats this as tampering and blocks new scans for 3 hours. Copy the file only as a backup and leave the original in place. The uninstall function keeps the log on purpose.

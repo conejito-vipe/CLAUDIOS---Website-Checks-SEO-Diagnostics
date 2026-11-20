@@ -63,7 +63,7 @@ class Limits:
     scans_per_hour: int = 5
     scans_per_domain_day_level1: int = 5
     scans_per_domain_day_level2: int = 12
-    audit_tamper_lock_seconds: int = 86400  # Sperre, wenn das Protokoll gelöscht oder verändert wurde
+    audit_tamper_lock_seconds: int = 10800  # Sperre, wenn das Protokoll gelöscht oder verändert wurde
     active_paths_max: int = 40
     history_max_per_domain: int = 20        # gespeicherte Scan-Zusammenfassungen je Domain (nur mit Schalter)
 

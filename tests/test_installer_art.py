@@ -1,4 +1,4 @@
-"""Symbol und Installer-Bilder: alle Symbolgrößen, Bildgrößen, Hintergrundfarbe, Zuschnitt auf den Inhalt."""
+"""Symbol und Installer-Bilder: alle Symbolgrößen, Bildgrößen, Hintergrundfarben, Zuschnitt auf den Inhalt, kein Rand."""
 import importlib.util
 from pathlib import Path
 
@@ -41,7 +41,27 @@ def test_build_writes_icon_and_wizard_images(tmp_path):
     assert {(16, 16), (32, 32), (48, 48), (256, 256)} <= sizes
     big = Image.open(tmp_path / "art" / "wizard.bmp")
     assert big.size == module.WIZARD_SIZE and big.getpixel((0, 0)) == module.BG
-    assert Image.open(tmp_path / "art" / "wizard-small.bmp").size == module.SMALL_SIZE
+    small = Image.open(tmp_path / "art" / "wizard-small.bmp")
+    assert small.size == module.SMALL_SIZE and small.getpixel((0, 0)) == module.WHITE
+
+
+def test_the_logo_fills_the_icon_without_a_margin():
+    module = _load()
+    logo = Image.new("RGBA", (50, 50), (238, 106, 18, 255))
+    canvas = module.on_canvas(logo, (256, 256), module.ICON_MARGIN, (0, 0, 0, 0))
+    assert canvas.getpixel((0, 0))[3] == 255 and canvas.getpixel((255, 255))[3] == 255
+
+
+def test_a_square_mark_is_preferred_for_the_icon(tmp_path):
+    module = _load()
+    assets = tmp_path / "assets"
+    assets.mkdir()
+    _logo(assets / "logo-full.png")
+    Image.new("RGBA", (64, 64), (10, 20, 30, 255)).save(assets / "logo-mark.png")
+    module.build(assets, tmp_path / "art")
+    icon = Image.open(tmp_path / "art" / "app.ico")
+    icon.size = (256, 256)
+    assert icon.convert("RGBA").getpixel((128, 128))[:3] == (10, 20, 30)
 
 
 def test_build_without_logos_fails_clearly(tmp_path):

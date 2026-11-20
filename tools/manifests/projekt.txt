@@ -142,3 +142,13 @@ src/claudios/ui/logfolder.py
 tests/test_installer_art.py
 tests/test_sslyze_wheel.py
 tests/test_errorlog.py
+# Paket 9: DoH-Ersatz, Dateisperren, Doppelstart, Komponenten-Anzeige
+src/claudios/core/fsutil.py
+src/claudios/core/dohfallback.py
+src/claudios/ui/instance.py
+src/claudios/components/info.py
+src/claudios/i18n/strings_z_pack9.py
+tests/test_fsutil.py
+tests/test_dohfallback.py
+tests/test_instance.py
+tests/test_comp_info.py

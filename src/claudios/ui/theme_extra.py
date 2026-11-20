@@ -1,5 +1,5 @@
 """Ergänzende Stilregeln, die nach theme.STYLE gelten (spätere Regeln gleicher Genauigkeit gewinnen): bessere Lesbarkeit,
-größere Überschriften, kleiner Chip, roter Deinstallieren-Knopf und der Stil des Splash für Dialoge."""
+größere Überschriften, flacher Chip (8 px hoch), roter Deinstallieren-Knopf und der Stil des Splash für Dialoge."""
 from __future__ import annotations
 
 from .theme import BG, INK
@@ -7,7 +7,8 @@ from .theme import BG, INK
 EXTRA = """
 QWidget { font-size: 14px; }
 QLabel#muted { color: #3F4E59; }
-QLabel#pill { font-size: 9px; padding: 1px 7px; border-radius: 6px; }
+QLabel#pill { font-size: 8px; padding: 0px 7px; border-radius: 4px; min-height: 8px; max-height: 8px; }
+QLabel#logofallback { font-size: 38px; }
 QLabel#h1 { font-size: 22px; font-weight: 700; color: %INK%; }
 QLabel#h2 { font-size: 15px; font-weight: 600; color: %INK%; }
 QPushButton#danger { background: #C62828; color: white; border: none; font-weight: 600; padding: 8px 14px; }

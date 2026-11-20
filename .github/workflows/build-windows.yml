@@ -29,6 +29,10 @@ jobs:
           foreach ($pkg in @("httpx", "httpcore", "h2", "hpack", "hyperframe", "dns", "anyio", "h11", "idna", "sniffio", "certifi")) {
             $opts += @("--collect-submodules", $pkg)
           }
+          # dnspython prueft die Paket-Metadaten (have_doh); ohne sie meldet es "NoDOH"
+          foreach ($pkg in @("httpx", "httpcore", "h2", "dnspython")) {
+            $opts += @("--copy-metadata", $pkg)
+          }
           $opts += @("--collect-data", "certifi", "--hidden-import", "dns.query")
           $opts += @("--add-data", "assets;claudios/assets", "installer/launcher.py")
           pyinstaller @opts

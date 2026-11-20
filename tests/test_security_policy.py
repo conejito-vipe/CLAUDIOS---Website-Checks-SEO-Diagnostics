@@ -13,10 +13,10 @@ WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
 ALLOWED_IMPORTS = {
     "subprocess": {"toolrunner.py", "piptools.py", "probe_zap.py"},
     "socket": {"tlsprobe.py", "probe_zap.py"},
-    "ssl": {"net.py", "tlsprobe.py"},
+    "ssl": {"net.py", "tlsprobe.py", "dohfallback.py"},
     "ctypes": {"credstore.py"},
     "http.server": {"oauth.py"},
-    "dns.query": {"guard.py"},
+    "dns.query": {"guard.py", "dohfallback.py"},
     "pickle": set(), "marshal": set(), "shelve": set(), "yaml": set(), "telnetlib": set(), "ftplib": set(),
     "smtplib": set(), "urllib.request": set(), "requests": set(),
 }

@@ -1,6 +1,6 @@
-"""Splash nach der Vorlage: Pill oben links, Logo mit Claim, dünner oranger Balken, Status und Prozent.
-Die Schritte sind echt (keine Fake-Animation); der Balken ist nach Aufwand gewichtet. Nach den Startschritten kann
-die Anwendung hier die Einrichtung fehlender Komponenten anzeigen (show_progress, show_skip)."""
+"""Splash nach der Vorlage: Pill oben links, Logo mit Claim, dünner oranger Balken, Status und Prozent. Die Schritte sind echt
+(keine Fake-Animation); der Balken ist nach Aufwand gewichtet. Nach den Startschritten kann die Anwendung hier die
+Einrichtung fehlender Komponenten anzeigen (show_progress, show_skip). Größe: 70 % der früheren 940 x 640."""
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, QTimer, Signal
@@ -8,6 +8,9 @@ from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QProgressBar, Q
 
 from ..i18n.strings import n, t
 from .widgets import CardWindow, load_logo
+
+WIDTH, HEIGHT = 658, 448
+LOGO_HEIGHT = 238
 
 
 class Splash(CardWindow):
@@ -18,7 +21,7 @@ class Splash(CardWindow):
 
     def __init__(self, steps: list) -> None:
         super().__init__(with_lang=False)
-        self.setFixedSize(940, 640)
+        self.setFixedSize(WIDTH, HEIGHT)
         self._steps = steps
         self._index = 0
         self._done = 0
@@ -29,7 +32,7 @@ class Splash(CardWindow):
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pix = load_logo()
         if pix is not None:
-            logo.setPixmap(pix.scaledToHeight(340, Qt.TransformationMode.SmoothTransformation))
+            logo.setPixmap(pix.scaledToHeight(LOGO_HEIGHT, Qt.TransformationMode.SmoothTransformation))
         else:
             logo.setText("CLAUDIOS")
             logo.setObjectName("logofallback")
@@ -39,20 +42,25 @@ class Splash(CardWindow):
 
         bottom = QWidget()
         col = QVBoxLayout(bottom)
-        col.setContentsMargins(24, 0, 24, 20)
-        col.setSpacing(6)
+        col.setContentsMargins(24, 0, 24, 16)
+        col.setSpacing(10)
         self.bar = QProgressBar()
         self.bar.setRange(0, 100)
         self.bar.setTextVisible(False)
         row = QHBoxLayout()
+        row.setSpacing(16)
         self.status = QLabel()
         self.status.setObjectName("muted")
         self.status.setTextFormat(Qt.TextFormat.PlainText)
         self.status.setWordWrap(True)
+        self.status.setMinimumHeight(40)  # zwei Zeilen Platz, damit nichts überlappt
+        self.status.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.percent = QLabel()
         self.percent.setObjectName("muted")
+        self.percent.setMinimumWidth(48)
+        self.percent.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
         row.addWidget(self.status, 1)
-        row.addWidget(self.percent)
+        row.addWidget(self.percent, 0, Qt.AlignmentFlag.AlignTop)
         self.skip_btn = QPushButton()
         self.skip_btn.setVisible(False)
         self.skip_btn.clicked.connect(lambda _checked=False: self.skipped.emit())

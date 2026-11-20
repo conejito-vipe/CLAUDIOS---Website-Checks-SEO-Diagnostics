@@ -1,6 +1,6 @@
-"""Sorgt dafür, dass PyInstaller alle Teile von httpx, httpcore und h2 einsammelt, die dnspython für DNS über HTTPS
-braucht. dnspython lädt httpcore._backends.sync nur indirekt; fehlt es im gebauten Programm, meldet dnspython NoDOH und
-kein Scan kann eine Domain auflösen. doh_status() prüft beim Start jeden Baustein einzeln und liefert den Grund."""
+"""Sorgt dafür, dass PyInstaller alle Teile von httpx, httpcore, h2 und dnspython einsammelt, die DNS über HTTPS braucht.
+doh_status() prüft beim Start jeden Baustein einzeln und liefert den Grund. Meldet dnspython have_doh=False (fehlende
+Paket-Metadaten im gebauten Programm), springt core/dohfallback.py ein; das gilt dann als verfügbar."""
 from __future__ import annotations
 
 import importlib
@@ -21,7 +21,7 @@ OPTIONAL = ("h2.connection", "anyio", "certifi")
 
 
 def doh_status() -> tuple[bool, str]:
-    """(ok, Beschreibung). ok ist False, wenn ein nötiger Baustein fehlt oder dnspython DoH selbst abgeschaltet hat."""
+    """(ok, Beschreibung). ok ist False, wenn ein nötiger Baustein fehlt oder DoH weder nativ noch per Ersatz läuft."""
     problems: list[str] = []
     ok = True
     for name in REQUIRED + OPTIONAL:
@@ -33,8 +33,13 @@ def doh_status() -> tuple[bool, str]:
     try:
         query = importlib.import_module("dns.query")
         if getattr(query, "have_doh", None) is False:
-            problems.append("dns.query.have_doh is False")
-            ok = False
+            from . import dohfallback
+
+            if getattr(query, "https", None) is dohfallback.https_query:
+                problems.append("dnspython reports have_doh=False, built-in DoH fallback is active")
+            else:
+                problems.append("dns.query.have_doh is False")
+                ok = False
     except Exception as exc:  # noqa: BLE001
         problems.append(f"dns.query: {type(exc).__name__}: {exc}")
         ok = False
@@ -42,5 +47,5 @@ def doh_status() -> tuple[bool, str]:
 
 
 def doh_available() -> bool:
-    """True, wenn die Bausteine für DNS über HTTPS (httpx, httpcore, dnspython) geladen werden können."""
+    """True, wenn DNS über HTTPS genutzt werden kann."""
     return doh_status()[0]

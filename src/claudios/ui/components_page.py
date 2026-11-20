@@ -1,4 +1,4 @@
-"""Seite „Komponenten": Status (✅ oder ❌), Installieren/Reparieren und Entfernen mit Auswahl."""
+"""Seite „Komponenten": Version, Download, belegter Platz und Status (✅ oder ❌), Installieren/Reparieren, Entfernen."""
 from __future__ import annotations
 
 import threading
@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..components import manager
+from ..components import info, manager
 from ..components.lock import load_lock
 from ..core.numfmt import format_bytes
 from ..i18n.strings import get_lang, n, t
@@ -122,11 +122,16 @@ class ComponentsPage(QWidget):
         except (ValueError, KeyError, OSError) as exc:
             self._lock_error = type(exc).__name__
         self.intro = _plain(QLabel())
-        self.table = QTableWidget(0, 4)
+        self.table = QTableWidget(0, 5)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setWordWrap(True)
         self.table.verticalHeader().setVisible(False)
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        for column in (2, 3, 4):
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
         self.total = _plain(QLabel())
         self.total.setObjectName("muted")
         self.hint = _plain(QLabel())
@@ -153,8 +158,8 @@ class ComponentsPage(QWidget):
 
     def retranslate(self) -> None:
         self.intro.setText(t("cmp.intro"))
-        self.table.setHorizontalHeaderLabels(
-            [t("cmp.col.name"), t("cmp.col.version"), t("cmp.col.size"), t("cmp.col.status")])
+        self.table.setHorizontalHeaderLabels([t("cmp.col.name"), t("cmp.col.version"), t("cmp.col.download"),
+                                              t("cmp.col.disk"), t("cmp.col.status")])
         self.install_btn.setText(t("cmp.install"))
         self.cancel_btn.setText(t("cmp.cancel"))
         self.remove_btn.setText(t("cmp.uninstall"))
@@ -165,22 +170,34 @@ class ComponentsPage(QWidget):
         lang = get_lang()
         self.table.setRowCount(0)
         unpinned = False
+        used = 0
         for comp in self._lock:
             state = manager.status(comp)
             unpinned = unpinned or state == "not_pinned"
+            disk = info.disk_size(comp) if state in ("installed", "outdated") else 0
+            used += disk
+            download, approx = info.download_size_of(comp)
+            if not download:
+                download_text = "–"
+            elif approx:
+                download_text = t("cmp.approx", size=format_bytes(download, lang))
+            else:
+                download_text = format_bytes(download, lang)
             row = self.table.rowCount()
             self.table.insertRow(row)
             state_key = "cmp.st." + state
-            cells = (comp.title, comp.version or "–", format_bytes(comp.size, lang) if comp.size else "–",
-                     STATE_ICONS.get(state, "❔"))
+            cells = (comp.title, info.version_of(comp) or "–", download_text,
+                     format_bytes(disk, lang) if disk else "–", STATE_ICONS.get(state, "❔"))
             for col, value in enumerate(cells):
                 item = QTableWidgetItem(value)
-                if col == 3:
+                if col == 4:
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                     item.setToolTip(t(state_key))
+                elif col in (2, 3):
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                 self.table.setItem(row, col, item)
-        used = sum(item.size for item in manager.uninstall_items(self._lock) if item.kind == "tool")
-        self.total.setText(t("cmp.total", size=format_bytes(used, lang)))
+        self.table.resizeRowsToContents()
+        self.total.setText(t("cmp.total2", size=format_bytes(used, lang)))
         if self._lock_error:
             self.hint.setText(t("cmp.lock_error", reason=self._lock_error))
         else:

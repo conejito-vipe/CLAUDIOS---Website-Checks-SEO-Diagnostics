@@ -49,7 +49,7 @@ REQUIRED: list[tuple[str, list[str]]] = [
                                           "strings_setup strings_tools strings_zap")
      + files(SRC + "i18n/", ".json", "errors errors_components errors_extra")),
     ("report", files(SRC + "report/", ".py", "__init__ report")),
-    ("ui", files(SRC + "ui/", ".py", "__init__ components_page dialogs highlight main_window page_gsc page_setup "
+    ("ui", files(SRC + "ui/", ".py", "__init__ components_page dialogs highlight main_window page_gsc "
                                     "pages splash theme widgets worker")),
     ("tests", files("tests/", ".py", "conftest test_active_paths test_browser test_checks_and_report "
                                       "test_components test_core test_crawler test_dns_links test_gsc test_gui "

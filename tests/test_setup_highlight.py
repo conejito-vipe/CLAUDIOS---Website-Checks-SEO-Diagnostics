@@ -1,8 +1,5 @@
-from types import SimpleNamespace
-
 import pytest
 
-from claudios import paths
 from claudios.i18n.strings import TEXTS
 
 SAMPLE = "\n".join([
@@ -56,35 +53,7 @@ def test_only_the_code_part_is_highlighted_as_python(qapp):
     assert blocks[9].userState() == 0 and ranges(blocks[11]) == [("Warum?", color("label"))]
 
 
-def test_setup_page_navigates_and_remembers_that_it_is_done(qapp, env):
-    from PySide6.QtGui import QSyntaxHighlighter
-    from PySide6.QtWidgets import QPlainTextEdit
-
-    from claudios.components.lock import load_lock
-    from claudios.ui import page_setup
-
-    class Nav:
-        row = None
-
-        def setCurrentRow(self, row):  # noqa: N802 (Name von Qt)
-            self.row = row
-
-    window = SimpleNamespace(tech=SimpleNamespace(view=QPlainTextEdit()), nav=Nav(),
-                             nav_keys=("nav.scan", "nav.components", "nav.setup"))
-    page = page_setup.create(window)
-    page.retranslate()
-    assert page.components.count() == len(load_lock())
-    assert len(window.tech.view.document().findChildren(QSyntaxHighlighter)) == 1
-    page.go("nav.components")
-    assert window.nav.row == 1
-    page.go("nav.unknown")
-    assert window.nav.row == 1
-    assert not (paths.config_dir() / page_setup.MARKER).exists()
-    page.finish()
-    assert (paths.config_dir() / page_setup.MARKER).is_file() and window.nav.row == 0
-
-
-def test_main_window_contains_the_setup_page_and_a_highlighted_technical_doc(qapp, env):
+def test_main_window_has_no_setup_page_and_a_highlighted_technical_doc(qapp, env):
     from PySide6.QtGui import QSyntaxHighlighter
 
     from claudios.i18n.strings import get_lang, set_lang
@@ -95,7 +64,7 @@ def test_main_window_contains_the_setup_page_and_a_highlighted_technical_doc(qap
     try:
         set_lang("de")
         window = MainWindow({"language": "de", "allow_localhost": False})
-        assert "nav.setup" in window.nav_keys and window.nav_keys[-1] == "nav.about"
+        assert "nav.setup" not in window.nav_keys and window.nav_keys[-1] == "nav.about"
         assert window.nav.count() == len(window.nav_keys) == len(window.pages) + 1
         doc = window.tech.view.document()
         highlighters = doc.findChildren(QSyntaxHighlighter)
@@ -106,7 +75,6 @@ def test_main_window_contains_the_setup_page_and_a_highlighted_technical_doc(qap
             block = block.next()
         assert block.isValid() and ("def", color("keyword")) in ranges(block)
         window.set_language("en")
-        assert window.nav.item(window.nav_keys.index("nav.setup")).text() == "Setup"
     finally:
         set_lang(old)
 

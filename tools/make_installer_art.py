@@ -1,7 +1,8 @@
 """Erzeugt aus den Logos das Programmsymbol (ICO mit allen üblichen Größen von 16 bis 256 Pixel) und die Bilder des
-Installers (großes Seitenbild für Willkommen und Fertigstellen, kleines Bild oben rechts). Hintergrund der Bilder ist die
-Farbe des Hauptfensters (#E9EEF2). Das Logo wird vor dem Skalieren auf seinen Inhalt zugeschnitten, damit es nicht klein
-in einem leeren Rand steht. Die Ausgabe liegt in installer/art (wird nicht ins Repository eingecheckt)."""
+Installers. Das Logo wird auf seinen Inhalt zugeschnitten und füllt das Symbol ohne Rand. Quelle für das Symbol und das kleine
+Bild: assets/logo-mark.png (quadratisches Zeichen, falls vorhanden), sonst logo-icon.png, sonst logo-full.png. Großes
+Seitenbild: Farbe des Hauptfensters (#E9EEF2). Kleines Bild oben rechts: Weiß, passend zur weißen Kopfzeile des
+Installers (wirkt transparent). Die Ausgabe liegt in installer/art (wird nicht eingecheckt)."""
 from __future__ import annotations
 
 import sys
@@ -11,9 +12,13 @@ from PIL import Image, ImageChops
 
 ROOT = Path(__file__).resolve().parent.parent
 BG = (0xE9, 0xEE, 0xF2)
+WHITE = (255, 255, 255)
 ICON_SIZES = (16, 24, 32, 48, 64, 96, 128, 256)
 WIZARD_SIZE = (328, 628)   # doppelte Größe von 164x314; Inno Setup skaliert bei Bedarf herunter
 SMALL_SIZE = (110, 110)    # doppelte Größe von 55x55
+ICON_MARGIN = 0
+SMALL_MARGIN = 2
+MARK_NAMES = ("logo-mark.png", "logo-icon.png", "logo-full.png")
 
 
 def crop_to_content(img: Image.Image) -> Image.Image:
@@ -44,23 +49,26 @@ def _first(folder: Path, names: tuple[str, ...]) -> Path | None:
 
 
 def build(assets: Path, out: Path) -> list[Path]:
-    icon_src = _first(assets, ("logo-icon.png", "logo-full.png"))
+    mark_src = _first(assets, MARK_NAMES)
     wizard_src = _first(assets, ("logo-full.png", "logo-icon.png"))
-    if icon_src is None or wizard_src is None:
+    if mark_src is None or wizard_src is None:
         raise FileNotFoundError("assets/logo-full.png fehlt")
     out.mkdir(parents=True, exist_ok=True)
-    icon_logo = crop_to_content(Image.open(icon_src))
+    mark = crop_to_content(Image.open(mark_src))
     wizard_logo = crop_to_content(Image.open(wizard_src))
+    ratio = mark.width / mark.height
+    if ratio > 1.3 or ratio < 0.77:
+        print(f"::warning title=Symbol::Das Logo ist nicht quadratisch (Verhältnis {ratio:.2f}) und wirkt im Symbol klein. "
+              "Lege ein quadratisches Zeichen als assets/logo-mark.png ab.")
     written = []
     ico = out / "app.ico"
-    on_canvas(icon_logo, (256, 256), 6, (0, 0, 0, 0)).save(ico, format="ICO", sizes=[(s, s) for s in ICON_SIZES])
+    on_canvas(mark, (256, 256), ICON_MARGIN, (0, 0, 0, 0)).save(ico, format="ICO", sizes=[(s, s) for s in ICON_SIZES])
     written.append(ico)
-    background = (*BG, 255)
     big = out / "wizard.bmp"
-    on_canvas(wizard_logo, WIZARD_SIZE, 24, background).convert("RGB").save(big, format="BMP")
+    on_canvas(wizard_logo, WIZARD_SIZE, 24, (*BG, 255)).convert("RGB").save(big, format="BMP")
     written.append(big)
     small = out / "wizard-small.bmp"
-    on_canvas(icon_logo, SMALL_SIZE, 10, background).convert("RGB").save(small, format="BMP")
+    on_canvas(mark, SMALL_SIZE, SMALL_MARGIN, (*WHITE, 255)).convert("RGB").save(small, format="BMP")
     written.append(small)
     return written
 

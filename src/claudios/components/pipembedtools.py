@@ -1,13 +1,14 @@
 """Installation von sslyze in die mitgelieferte Python-Laufzeit (nur im Windows-Programm ohne eigenes Python). Die Laufzeit
 (Komponente python-runtime) und die pip-Wheel-Datei (pip-wheel) sind über runtime-lock.json mit SHA256 gepinnt. Die Laufzeit
 wird in den Ordner der Komponente kopiert; ihre ._pth-Datei bekommt die pip-Wheel-Datei und site-packages (bei einer
-._pth-Datei gelten Umgebungsvariablen wie PYTHONPATH nicht). pip läuft nur mit --require-hashes und --no-deps aus der festen
-Liste pip-sslyze.json.
+._pth-Datei gelten Umgebungsvariablen wie PYTHONPATH nicht). Zusätzlich wird pip nach site-packages entpackt, weil
+„python -m pip" im Windows-Lauf „No module named pip" meldete. pip läuft nur mit --require-hashes und --no-deps aus der
+festen Liste pip-sslyze.json.
 
 Gibt es sslyze-wheel.json (vom Workflow „sslyze-Wheel erzeugen"), wird sslyze als fertiges Wheel mit SHA256-Prüfung geladen
 und ohne Bauen installiert; danach läuft „import sslyze" als Gesundheitstest. Sonst gilt der alte Weg (Bau aus dem
-Quellarchiv). Ungeprüft: ob das unter Windows gelingt (das zeigt erst der Windows-Build). Fehler und das Ende der pip-Ausgabe
-stehen im Protokoll."""
+Quellarchiv). Ungeprüft: ob das unter Windows gelingt. Fehler, das Ende der pip-Ausgabe und bei pip-Fehlern sys.path samt
+._pth-Datei stehen im Protokoll."""
 from __future__ import annotations
 
 import json
@@ -54,6 +55,18 @@ def _fail(what: str, result) -> ClaudiosError:
     return ClaudiosError(E.TOOL_FAILED, reason=f"{what} exit code {code}")
 
 
+def _diagnose(python: Path, tmp: str, base: Path) -> None:
+    """Schreibt sys.path und die ._pth-Datei ins Protokoll, damit ein pip-Fehler Daten liefert."""
+    try:
+        result = run_tool([python, "-c", "import sys; print(sys.path)"], cwd=tmp, timeout=60.0, root=base, extra_env=ENV)
+        log.error("embedded python sys.path: %s", _tail(result))
+        pth = next(iter(python.parent.glob("python*._pth")), None)
+        if pth is not None:
+            log.error("%s: %s", pth.name, pth.read_text("utf-8", errors="replace").replace("\n", " | "))
+    except Exception as exc:  # noqa: BLE001 – die Diagnose darf nie selbst scheitern
+        log.error("diagnostic failed: %r", exc)
+
+
 def prepare_runtime(source: Path, target: Path, wheel: Path) -> Path:
     """Kopiert die Laufzeit nach target und schaltet pip.whl und site-packages in der ._pth-Datei ein."""
     if not (source / "python.exe").is_file():
@@ -68,6 +81,16 @@ def prepare_runtime(source: Path, target: Path, wheel: Path) -> Path:
     shutil.copy2(wheel, target / WHEEL_NAME)
     (target / "Lib" / "site-packages").mkdir(parents=True, exist_ok=True)
     return target / "python.exe"
+
+
+def _unpack_pip(target: Path, site: Path) -> None:
+    """pip zusätzlich als normales Paket nach site-packages entpacken (Wheel ist eine ZIP-Datei, SHA256 schon geprüft)."""
+    from . import manager
+
+    try:
+        manager.extract(target / WHEEL_NAME, site, False)
+    except ClaudiosError as exc:
+        log.warning("pip wheel could not be unpacked, pip is used from the wheel file: %s", exc)
 
 
 def pip_command(python: Path, requirements: Path, site: Path, name: str) -> list:
@@ -100,7 +123,9 @@ def _install_pinned(comp: Component, pin: dict, python: Path, site: Path, text: 
     result = run_tool(deps_command(python, requirements, site), cwd=tmp, timeout=piptools.PIP_TIMEOUT, root=base,
                       extra_env=ENV)
     if result.returncode != 0:
-        raise _fail("pip dependencies", result)
+        error = _fail("pip dependencies", result)
+        _diagnose(python, tmp, base)
+        raise error
     result = run_tool(wheel_command(python, wheel, site), cwd=tmp, timeout=piptools.PIP_TIMEOUT, root=base,
                       extra_env=ENV)
     if result.returncode != 0:
@@ -130,6 +155,7 @@ def install(comp: Component, *, root: Path | None = None,
         report(comp.name, "download", 0, 1)
         python = prepare_runtime(runtime.parent, target, wheel)
         site = target / "Lib" / "site-packages"
+        _unpack_pip(target, site)
         text = piptools._requirements()
         pin = sslyzewheel.load_pin()
         with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as tmp:
@@ -141,7 +167,9 @@ def install(comp: Component, *, root: Path | None = None,
                 result = run_tool(pip_command(python, requirements, site, comp.name), cwd=tmp,
                                   timeout=piptools.PIP_TIMEOUT, root=base, extra_env=ENV)
                 if result.returncode != 0:
-                    raise _fail("pip", result)
+                    error = _fail("pip", result)
+                    _diagnose(python, tmp, base)
+                    raise error
         (target / piptools.MARKER).write_text(json.dumps({
             "version": comp.version, "sha256": digest,
             "installed": datetime.now(UTC).isoformat(timespec="seconds"),

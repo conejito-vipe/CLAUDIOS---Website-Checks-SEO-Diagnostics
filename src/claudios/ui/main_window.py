@@ -23,6 +23,7 @@ from ..i18n.strings import get_lang, set_lang, t
 from ..settings import save as save_settings
 from .components_page import ComponentsPage
 from .dialogs import AboutDialog
+from .highlight import attach
 from .pages import DocPage, ScanPage, SettingsPage
 from .results_page import ResultsPage
 from .uninstall import run_uninstall
@@ -87,6 +88,7 @@ class MainWindow(CardWindow):
         self.nav_keys = tuple(keys)
         self.about_row = len(keys) - 1
         _style_headings(self.pages)
+        attach(self.tech.view)  # Syntax-Hervorhebung der Technik-Doku (früher in der Seite „Einrichtung")
 
         self.nav = QListWidget()
         self.nav.setObjectName("nav")
