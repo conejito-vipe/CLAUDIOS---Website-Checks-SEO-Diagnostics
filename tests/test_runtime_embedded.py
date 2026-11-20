@@ -19,6 +19,8 @@ from claudios.core.toolrunner import ToolResult
 
 GOOD = {"python": {"version": "3.12.10", "url": "https://example.test/py.zip", "sha256": "a" * 64, "size": 10},
         "pip": {"version": "25.0", "url": "https://example.test/pip.whl", "sha256": "B" * 64, "size": 5}}
+PIN = {"url": "https://example.test/sslyze-6.3.1-py3-none-any.whl", "sha256": "c" * 64,
+       "filename": "sslyze-6.3.1-py3-none-any.whl", "size": 5, "version": "6.3.1"}
 
 
 @pytest.fixture
@@ -86,8 +88,10 @@ def _tools(root: Path, monkeypatch):
 
 
 def test_install_runs_pip_with_hashes_into_the_copy_and_writes_the_marker(env, monkeypatch):
+    """Alter Weg (Bau aus dem Quellarchiv), wenn es kein festes Wheel gibt."""
     root = env / "tools"
     _tools(root, monkeypatch)
+    monkeypatch.setattr(pipembedtools.sslyzewheel, "load_pin", lambda: {})
     calls = []
 
     def fake(args, **kwargs):
@@ -108,6 +112,7 @@ def test_install_runs_pip_with_hashes_into_the_copy_and_writes_the_marker(env, m
 def test_a_failed_install_leaves_nothing_behind_and_a_missing_runtime_is_reported(env, monkeypatch):
     root = env / "tools"
     _tools(root, monkeypatch)
+    monkeypatch.setattr(pipembedtools.sslyzewheel, "load_pin", lambda: {})
     monkeypatch.setattr(pipembedtools, "run_tool", lambda args, **kwargs: ToolResult(1, "", "", False))
     comp = extra_sslyze.build(True)
     with pytest.raises(ClaudiosError) as error:
@@ -117,6 +122,53 @@ def test_a_failed_install_leaves_nothing_behind_and_a_missing_runtime_is_reporte
     with pytest.raises(ClaudiosError) as error:
         pipembedtools.install(comp, root=root)
     assert error.value.code == E.COMPONENT_MISSING
+
+
+def _pinned(env, monkeypatch, fail_on=None):
+    """Wheel-Weg mit gefälschtem Download und gefälschten Prozessen (kein Netz). Gibt Downloads und Aufrufe zurück."""
+    root = env / "tools"
+    _tools(root, monkeypatch)
+    monkeypatch.setattr(pipembedtools.sslyzewheel, "load_pin", lambda: PIN)
+    downloads, calls = [], []
+
+    def fake_download(comp, dest, **kwargs):
+        downloads.append((comp.url, comp.sha256))
+        dest.write_bytes(b"wheel")
+
+    def fake(args, **kwargs):
+        last = str(args[-1])
+        text = Path(args[-1]).read_text("utf-8") if last.endswith("requirements.txt") else ""
+        calls.append(([str(a) for a in args], text))
+        code = 1 if fail_on and fail_on in [str(a) for a in args] else 0
+        return ToolResult(code, "", "", False)
+
+    monkeypatch.setattr(manager, "download", fake_download)
+    monkeypatch.setattr(pipembedtools, "run_tool", fake)
+    return root, downloads, calls
+
+
+def test_a_pinned_wheel_is_checked_installed_without_building_and_imported(env, monkeypatch):
+    root, downloads, calls = _pinned(env, monkeypatch)
+    comp = extra_sslyze.build(True)
+    pipembedtools.install(comp, root=root)
+    assert downloads == [(PIN["url"], PIN["sha256"])]
+    assert len(calls) == 3
+    deps, text = calls[0]
+    assert "--require-hashes" in deps and "--no-deps" in deps and "--no-binary=sslyze" not in deps
+    assert "sslyze==" not in text and "nassl==" in text and "--hash=sha256:" in text
+    wheel_call, _ = calls[1]
+    assert "--no-index" in wheel_call and "--no-deps" in wheel_call and wheel_call[-1].endswith(PIN["filename"])
+    assert calls[2][0][-2:] == ["-c", "import sslyze"]
+    assert pipembedtools.status(comp, root) == "installed"
+
+
+def test_a_wheel_that_cannot_be_imported_counts_as_failed_and_leaves_nothing(env, monkeypatch):
+    root, _downloads, calls = _pinned(env, monkeypatch, fail_on="import sslyze")
+    comp = extra_sslyze.build(True)
+    with pytest.raises(ClaudiosError) as error:
+        pipembedtools.install(comp, root=root)
+    assert error.value.code == E.TOOL_FAILED and not (root / "sslyze").exists()
+    assert len(calls) == 3
 
 
 def test_the_lock_script_picks_only_the_universal_wheel():
