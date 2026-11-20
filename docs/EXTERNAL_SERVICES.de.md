@@ -1,8 +1,8 @@
-# Externe Dienste in Claudios
+# Externe Dienste in CLAUDIOS
 
 English version: [EXTERNAL_SERVICES.md](EXTERNAL_SERVICES.md)
 
-Claudios spricht grundsätzlich nur mit der geprüften Website. Dienste, die Daten an Dritte senden, sind **standardmäßig aus** und lassen sich auf der Seite „Externe Dienste“ einzeln einschalten (jeweils mit Rückfrage). Der Schalter steht in `config/services.json` (nur „Dienst: an/aus“, keine Schlüssel, keine Adressen). Lokale Optionen (Screenshots) stehen in `config/options.json`.
+CLAUDIOS spricht grundsätzlich nur mit der geprüften Website. Dienste, die Daten an Dritte senden, sind **standardmäßig aus** und lassen sich auf der Seite „Externe Dienste“ einzeln einschalten (jeweils mit Rückfrage). Der Schalter steht in `config/services.json` (nur „Dienst: an/aus“, keine Schlüssel, keine Adressen). Lokale Optionen (Screenshots) stehen in `config/options.json`.
 
 | Dienst | Wohin | Was wird gesendet | Was sieht der Dritte |
 |---|---|---|---|

@@ -1,8 +1,8 @@
-# External services in Claudios
+# External services in CLAUDIOS
 
 Deutsche Fassung: [EXTERNAL_SERVICES.de.md](EXTERNAL_SERVICES.de.md)
 
-Claudios talks only to the website you check. Services that send data to third parties are **off by default** and can be switched on one by one on the page "External services" (each with a confirmation). The switch is stored in `config/services.json` (only "service: on/off", no keys, no addresses). Local options (screenshots) are stored in `config/options.json`.
+CLAUDIOS talks only to the website you check. Services that send data to third parties are **off by default** and can be switched on one by one on the page "External services" (each with a confirmation). The switch is stored in `config/services.json` (only "service: on/off", no keys, no addresses). Local options (screenshots) are stored in `config/options.json`.
 
 | Service | Where | What is sent | What the third party sees |
 |---|---|---|---|

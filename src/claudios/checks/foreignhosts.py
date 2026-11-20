@@ -17,11 +17,11 @@ NEEDS = ("node", "playwright")
            "eine Fehlkonfiguration oder auf einen Angriff über DNS-Rebinding. ## Chromium, Firefox, WebKit and ZAP "
            "resolve the names of third-party hosts themselves. If a name points to a private or local address, the "
            "browser talks to the visitor's own network. This hints at a misconfiguration or at a DNS rebinding attack.",
-       method="Nach den Browser-Läufen und dem ZAP-Lauf löst Claudios jeden beobachteten Fremd-Host erneut per "
+       method="Nach den Browser-Läufen und dem ZAP-Lauf löst CLAUDIOS jeden beobachteten Fremd-Host erneut per "
               "DNS-over-HTTPS auf (höchstens 30 Hosts, 45 Sekunden). Zeigt einer auf eine nicht öffentliche Adresse, "
               "werden seine Daten aus dem Ergebnis entfernt. Der Zugriff selbst war da schon geschehen: die Prüfung "
               "erkennt ihn, sie verhindert ihn nicht. Hosts ohne DNS-Antwort gelten als unbekannt. Fehlen alle Daten, "
-              "gilt die Prüfung als nicht ausgeführt. ## After the browser runs and the ZAP run Claudios resolves every "
+              "gilt die Prüfung als nicht ausgeführt. ## After the browser runs and the ZAP run CLAUDIOS resolves every "
               "observed third-party host again via DNS over HTTPS (at most 30 hosts, 45 seconds). If one points to a "
               "non-public address, its data is removed from the result. The access had already happened: the check "
               "detects it, it does not prevent it. Hosts without a DNS answer count as unknown. Without any data the "

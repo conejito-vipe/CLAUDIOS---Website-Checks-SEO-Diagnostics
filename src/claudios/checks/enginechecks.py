@@ -27,11 +27,11 @@ def _baseline(snap) -> dict[str, dict]:
        method="Nur im Profil Tief und nur mit installierter Komponente Firefox und WebKit. Lädt bis zu 3 Seiten in beiden "
               "Browsern (Playwright, ein Lauf) und vergleicht mit dem Chromium-Lauf: Ladefehler, JavaScript-Ausnahmen und "
               "horizontales Scrollen bei 360 px. Anders als bei Chromium ist der Zielhost nicht an die geprüfte IP "
-              "festgelegt: Claudios prüft die Auflösung vor und nach dem Lauf und verwirft Daten auffälliger Fremd-Hosts. "
+              "festgelegt: CLAUDIOS prüft die Auflösung vor und nach dem Lauf und verwirft Daten auffälliger Fremd-Hosts. "
               "WebKit unter Windows ist nicht Safari, sondern die Engine in Playwright. ## Only in the deep profile and only "
               "with the Firefox and WebKit component installed. Loads up to 3 pages in both browsers (Playwright, one "
               "run) and compares with the Chromium run: load errors, JavaScript exceptions and horizontal scrolling at "
-              "360 px. Unlike Chromium the target host is not pinned to the verified IP: Claudios checks the resolution "
+              "360 px. Unlike Chromium the target host is not pinned to the verified IP: CLAUDIOS checks the resolution "
               "before and after the run and discards data of suspicious third-party hosts. WebKit on Windows is not "
               "Safari but the engine shipped with Playwright.",
        logic="Seite lädt nur in diesem Browser nicht: Warnung. Neue JavaScript-Ausnahmen oder Überlauf bei 360 px nur "

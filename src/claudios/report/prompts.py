@@ -61,7 +61,7 @@ TEXT = {
 }
 
 _DE = """# Auftrag an Claude: Schwerpunkt {name}
-Anbei der Prüfbericht des Tools **Claudios** (Website-Checks) als ZIP. Bitte konzentriere dich auf den Schwerpunkt **{name}**.
+Anbei der Prüfbericht des Tools **CLAUDIOS** (Website-Checks) als ZIP. Bitte konzentriere dich auf den Schwerpunkt **{name}**.
 Relevant sind Befunde, deren Prüfungs-ID mit diesen Präfixen beginnt: {prefixes}. Andere Befunde nur erwähnen, wenn sie das Thema berühren.
 
 {guidance}
@@ -70,7 +70,7 @@ Gehe so vor:
 1. **Bewerte** den Zustand der Website im Schwerpunkt {name}.
 2. **Priorisiere** die Befunde (kritisch zuerst) und erkläre je Befund kurz, warum er wichtig ist.
 3. Gib **konkrete Lösungsvorschläge mit Codebeispielen**.
-4. Nenne mögliche **Fehlalarme** und was Claudios nicht prüfen konnte (siehe `checks[].status` und `scan.status`). Nicht ausgeführte Prüfungen gelten nie als bestanden.
+4. Nenne mögliche **Fehlalarme** und was CLAUDIOS nicht prüfen konnte (siehe `checks[].status` und `scan.status`). Nicht ausgeführte Prüfungen gelten nie als bestanden.
 5. Fasse am Ende einen **Maßnahmenplan** zusammen (Quick Wins, mittelfristig).
 
 Hinweise: Die Berichte enthalten keine Passwörter, Cookie-Werte oder Tokens. Zahlen in `report.html` und `summary.md` sind deutsch formatiert (**Punkt = Tausendertrenner**, Komma = Dezimal); in `report.json` stehen reine Zahlen. `summary.md` zeigt nur die Befunde des Schwerpunkts, `report.json` enthält alle.
@@ -78,7 +78,7 @@ Befunde sind technische Indizien, keine Rechtsberatung. Antworte auf Deutsch.
 """
 
 _EN = """# Task for Claude: focus on {name}
-Attached is the report of the tool **Claudios** (website checks) as a ZIP. Please concentrate on **{name}**.
+Attached is the report of the tool **CLAUDIOS** (website checks) as a ZIP. Please concentrate on **{name}**.
 Relevant are findings whose check ID starts with these prefixes: {prefixes}. Mention other findings only if they touch the topic.
 
 {guidance}
@@ -87,7 +87,7 @@ Proceed like this:
 1. **Assess** the state of the website regarding {name}.
 2. **Prioritise** the findings (critical first) and briefly explain why each matters.
 3. Provide **concrete fixes with code examples**.
-4. Point out possible **false positives** and what Claudios could not check (see `checks[].status` and `scan.status`). Checks that did not run never count as passed.
+4. Point out possible **false positives** and what CLAUDIOS could not check (see `checks[].status` and `scan.status`). Checks that did not run never count as passed.
 5. Finish with an **action plan** (quick wins, medium term).
 
 Notes: The reports contain no passwords, cookie values or tokens. Numbers in `report.html` and `summary.md` use English formatting (**comma = thousands separator**, period = decimal); `report.json` contains plain numbers. `summary.md` shows only the findings of the focus, `report.json` contains all of them.

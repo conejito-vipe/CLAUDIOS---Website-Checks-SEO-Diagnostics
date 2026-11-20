@@ -1,8 +1,8 @@
 {
 "CLA-BRW-001": {"de": ["Browser-Prüfung fehlgeschlagen", "Der Browser konnte die Seite nicht prüfen ({reason}).", "Prüfe im Bereich „Komponenten“, ob der Browser installiert ist, und versuche es erneut."],
                 "en": ["Browser check failed", "The browser could not check the page ({reason}).", "Check in the 'Components' section that the browser is installed and try again."]},
-"CLA-GGL-001": {"de": ["Google-Anmeldung fehlgeschlagen", "Die Anmeldung bei Google ist fehlgeschlagen ({reason}).", "Melde dich erneut an. Claudios sieht dein Google-Passwort nie, die Anmeldung läuft im Browser."],
-                "en": ["Google sign-in failed", "Signing in with Google failed ({reason}).", "Sign in again. Claudios never sees your Google password, the sign-in happens in your browser."]},
+"CLA-GGL-001": {"de": ["Google-Anmeldung fehlgeschlagen", "Die Anmeldung bei Google ist fehlgeschlagen ({reason}).", "Melde dich erneut an. CLAUDIOS sieht dein Google-Passwort nie, die Anmeldung läuft im Browser."],
+                "en": ["Google sign-in failed", "Signing in with Google failed ({reason}).", "Sign in again. CLAUDIOS never sees your Google password, the sign-in happens in your browser."]},
 "CLA-GGL-002": {"de": ["Domain nicht verifiziert", "Die Domain {host} liegt in keiner Search-Console-Property, für die dein Konto Inhaber- oder Vollzugriff hat.", "Wähle eine passende Property oder verifiziere die Domain zuerst in der Google Search Console."],
                 "en": ["Domain not verified", "The domain {host} is not part of any Search Console property for which your account has owner or full access.", "Choose a matching property or verify the domain in Google Search Console first."]},
 "CLA-GGL-003": {"de": ["Import fehlgeschlagen", "Die Search-Console-Datei konnte nicht gelesen werden ({reason}).", "Exportiere die Datei in der Search Console erneut als CSV und wähle sie noch einmal."],

@@ -8,7 +8,7 @@ TEXTS["de"].update({
     "gsc.title": "Google Search Console und Stufe 2",
     "gsc.intro": "Mit der Anmeldung beweist du, dass die Domain dir gehört (Inhaber- oder Vollzugriff in der Search "
                  "Console). Erst dann gibt es Stufe 2: aktive Prüfungen, bis zu 100 Seiten und Search-Console-Daten. "
-                 "Dein Google-Passwort sieht Claudios nie, die Anmeldung läuft im Browser, angefordert wird nur "
+                 "Dein Google-Passwort sieht CLAUDIOS nie, die Anmeldung läuft im Browser, angefordert wird nur "
                  "Lesezugriff. Das Token bleibt im Arbeitsspeicher, außer du wählst „angemeldet bleiben“. Ein eigenes "
                  "Google-Cloud-Projekt ist nötig, siehe docs/GOOGLE_SETUP.md.",
     "gsc.client.none": "Es ist noch kein Google-Client importiert.",
@@ -36,7 +36,7 @@ TEXTS["en"].update({
     "nav.gsc": "Search Console", "probe.gsc": "Search Console data",
     "gsc.title": "Google Search Console and level 2",
     "gsc.intro": "By signing in you prove that the domain belongs to you (owner or full access in Search Console). "
-                 "Only then is there level 2: active checks, up to 100 pages and Search Console data. Claudios never "
+                 "Only then is there level 2: active checks, up to 100 pages and Search Console data. CLAUDIOS never "
                  "sees your Google password, the sign-in happens in your browser, only read access is requested. The "
                  "token stays in memory unless you choose 'stay signed in'. You need your own Google Cloud project, "
                  "see docs/GOOGLE_SETUP.md.",

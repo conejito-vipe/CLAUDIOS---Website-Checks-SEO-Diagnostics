@@ -14,7 +14,7 @@ TEXTS["de"].update({
                  "Safe Browsing und PageSpeed über einen eigenen Client, der nur feste Google-Hosts erreicht.",
     "svc.rdap.switch": "Domainablauf per RDAP abfragen (Standard: aus)",
     "svc.rdap.info": "Gesendet wird die registrierbare Domain (zum Beispiel beispiel.de), nie eine Unterseite. Zuerst "
-                     "fragt Claudios bei IANA nach dem zuständigen Server, danach bei diesem Server nach der Domain. "
+                     "fragt CLAUDIOS bei IANA nach dem zuständigen Server, danach bei diesem Server nach der Domain. "
                      "Beide Server sehen deine IP-Adresse. Ergebnis ist das Ablaufdatum der Domain.",
     "svc.rdap.ask": "Beim nächsten Scan wird die registrierbare Domain an IANA und den zuständigen RDAP-Server "
                     "gesendet. Diese Server sehen deine IP-Adresse. Einschalten?",
@@ -63,7 +63,7 @@ TEXTS["en"].update({
                  "by default. The queries to IANA and RDAP use the same protection as all other requests, Safe Browsing "
                  "and PageSpeed use their own client that only reaches fixed Google hosts.",
     "svc.rdap.switch": "Query domain expiry via RDAP (default: off)",
-    "svc.rdap.info": "The registrable domain (for example example.com) is sent, never a subpage. Claudios first asks "
+    "svc.rdap.info": "The registrable domain (for example example.com) is sent, never a subpage. CLAUDIOS first asks "
                      "IANA for the responsible server and then asks that server about the domain. Both servers see "
                      "your IP address. The result is the expiry date of the domain.",
     "svc.rdap.ask": "With the next scan the registrable domain will be sent to IANA and the responsible RDAP server. "

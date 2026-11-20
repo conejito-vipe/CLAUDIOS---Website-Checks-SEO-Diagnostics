@@ -7,8 +7,8 @@ English version: [ENGINES_AND_RUNTIME.md](ENGINES_AND_RUNTIME.md)
 - **Wann:** nur im Profil Tief und nur mit der Komponente „Firefox und WebKit“ (Seite Komponenten).
 - **Was:** höchstens 3 Seiten, ein Lauf von `engine_probe.js`. Er zählt zum Werkzeugbudget (Browser-Läufe je Scan: 4).
 - **Regeln:** wie beim Chromium-Lauf: kein HTTP, keine lokalen Adressen, keine Service Worker, Zertifikatsfehler werden nie ignoriert.
-- **Grenze:** Der Zielhost ist hier **nicht** an die geprüfte IP festgelegt (bei Chromium geschieht das mit `--host-resolver-rules`). Claudios prüft die Auflösung vor und nach dem Lauf (`core/rebind.py`) und danach die beobachteten Fremd-Hosts (`core/foreign.py`, Prüfung `BRW-FRN-001`). Ein Wechsel mitten im Lauf wird erkannt, nicht verhindert.
-- **Downloads:** Playwright lädt Firefox und WebKit von seinem eigenen Server über HTTPS. Claudios pinnt diese Dateien nicht (wie bei Chromium).
+- **Grenze:** Der Zielhost ist hier **nicht** an die geprüfte IP festgelegt (bei Chromium geschieht das mit `--host-resolver-rules`). CLAUDIOS prüft die Auflösung vor und nach dem Lauf (`core/rebind.py`) und danach die beobachteten Fremd-Hosts (`core/foreign.py`, Prüfung `BRW-FRN-001`). Ein Wechsel mitten im Lauf wird erkannt, nicht verhindert.
+- **Downloads:** Playwright lädt Firefox und WebKit von seinem eigenen Server über HTTPS. CLAUDIOS pinnt diese Dateien nicht (wie bei Chromium).
 
 ## Python-Laufzeit für sslyze (nur im gebauten Windows-Programm)
 

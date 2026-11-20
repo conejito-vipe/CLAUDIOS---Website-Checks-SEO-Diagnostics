@@ -15,9 +15,9 @@ TEXTS["de"].update({
     "setup.to_gsc": "Zur Search Console",
     "setup.step3": "3. Den ersten Scan deiner eigenen Website starten.",
     "setup.to_scan": "Zum Scan",
-    "setup.notes": "Hinweise: sslyze lässt sich nur installieren, wenn Claudios aus dem Quellcode gestartet wird, der "
+    "setup.notes": "Hinweise: sslyze lässt sich nur installieren, wenn CLAUDIOS aus dem Quellcode gestartet wird, der "
                    "Windows-Build bringt noch keine eigene Python-Laufzeit mit. Der Chromium-Download des "
-                   "Browser-Pakets ist nicht durch eine eigene Prüfsumme von Claudios gesichert.",
+                   "Browser-Pakets ist nicht durch eine eigene Prüfsumme von CLAUDIOS gesichert.",
     "setup.finish": "Einrichtung abschließen (nicht mehr automatisch zeigen)",
 })
 
@@ -33,8 +33,8 @@ TEXTS["en"].update({
     "setup.to_gsc": "Go to Search Console",
     "setup.step3": "3. Start the first scan of your own website.",
     "setup.to_scan": "Go to Scan",
-    "setup.notes": "Notes: sslyze can only be installed when Claudios is started from the source code, the Windows "
+    "setup.notes": "Notes: sslyze can only be installed when CLAUDIOS is started from the source code, the Windows "
                    "build does not yet ship its own Python runtime. The Chromium download of the browser package is "
-                   "not secured by a checksum of Claudios.",
+                   "not secured by a checksum of CLAUDIOS.",
     "setup.finish": "Finish setup (do not show automatically again)",
 })

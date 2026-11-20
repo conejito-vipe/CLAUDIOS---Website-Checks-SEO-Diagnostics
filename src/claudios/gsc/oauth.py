@@ -1,5 +1,5 @@
 """Anmeldung bei Google per OAuth 2.0 für Desktop-Programme (PKCE, State, einmaliger Rückgabeport auf 127.0.0.1).
-Dein Google-Passwort sieht Claudios nie: die Anmeldung läuft im Browser. Angefordert wird nur der Lesezugriff auf die
+Dein Google-Passwort sieht CLAUDIOS nie: die Anmeldung läuft im Browser. Angefordert wird nur der Lesezugriff auf die
 Search Console. Die Rückgabeadresse auf dem eigenen Rechner ist unverschlüsselt (Loopback). Google schreibt das für
 Desktop-Programme so vor. Sie ist die dokumentierte Ausnahme der Nur-HTTPS-Regel."""
 from __future__ import annotations
@@ -24,8 +24,8 @@ SCOPE = "https://www.googleapis.com/auth/webmasters.readonly"
 HOST = "127.0.0.1"
 SCHEME = "http"
 WAIT_SECONDS = 180.0
-_PAGE = (b"<!doctype html><meta charset=utf-8><title>Claudios</title>"
-         b"<p>Claudios: Anmeldung abgeschlossen / sign-in finished. Du kannst dieses Fenster schliessen / "
+_PAGE = (b"<!doctype html><meta charset=utf-8><title>CLAUDIOS</title>"
+         b"<p>CLAUDIOS: Anmeldung abgeschlossen / sign-in finished. Du kannst dieses Fenster schliessen / "
          b"You can close this window.</p>")
 
 
