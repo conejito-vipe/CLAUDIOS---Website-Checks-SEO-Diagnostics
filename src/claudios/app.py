@@ -23,6 +23,7 @@ from .i18n.strings import TEXTS, n, set_lang, t
 from .paths import data_dir
 from .settings import load as load_settings
 from .ui.boot_install import BootInstaller, BootState, pending_components
+from .ui.cardbox import install as install_cards
 from .ui.dialogs import error_info, show_error
 from .ui.main_window import MainWindow
 from .ui.splash import Splash
@@ -82,6 +83,7 @@ def main() -> int:
     app.setApplicationName("Claudios")
     brand_all(TEXTS)  # im Programm immer CLAUDIOS (nach dem Laden aller Textdateien)
     app.setStyleSheet(STYLE + EXTRA)
+    install_cards()  # alle Meldungen im Stil des Splash (statt Windows-Titelleiste)
     app.setFont(QFont("Segoe UI", 10))
     icon = load_icon()
     if icon is not None:
