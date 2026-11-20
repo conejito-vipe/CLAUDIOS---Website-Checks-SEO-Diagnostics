@@ -1,7 +1,8 @@
-"""Installation von Playwright, axe-core und Chromium: die npm-Pakete kommen aus einer festen Sperrdatei
-(npm ci --ignore-scripts, nur gegen die offizielle Registry über HTTPS, Prüfsummen von npm). Danach lädt Playwright
-den Chromium-Browser von seinem eigenen Server (HTTPS). Diese Browser-Datei ist NICHT durch eine eigene Prüfsumme
-von Claudios gepinnt. Das Handbuch weist darauf hin."""
+"""Installation von Playwright, axe-core und Chromium: die npm-Pakete kommen aus einer festen Sperrdatei (npm ci
+--ignore-scripts, nur gegen die offizielle Registry über HTTPS, Prüfsummen von npm). Danach lädt Playwright den
+Chromium-Browser von seinem eigenen Server (HTTPS). Diese Browser-Datei ist NICHT durch eine eigene Prüfsumme von
+Claudios gepinnt. Das Handbuch weist darauf hin. Der Browser-Download meldet keinen Fortschritt: ein Beobachter
+(dlwatch) schätzt ihn aus dem Wachstum der Ordner."""
 from __future__ import annotations
 
 import hashlib
@@ -17,6 +18,7 @@ from pathlib import Path
 from .. import paths
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.toolrunner import run_tool
+from .dlwatch import SizeWatcher
 from .lock import Component
 from .npmtools import node_env
 
@@ -26,6 +28,7 @@ FILES = (("pw-package.json", "package.json"), ("pw-package-lock.json", "package-
          ("browser_probe.js", "browser_probe.js"))
 NPM_TIMEOUT = 900.0
 BROWSER_TIMEOUT = 1800.0
+EXPECTED_BYTES = 400 * 1024 * 1024  # Schätzung (ungeprüft), nur für die Fortschrittsanzeige
 
 
 def _resource_bytes(name: str) -> bytes:
@@ -87,7 +90,7 @@ def install(comp: Component, *, root: Path | None = None,
             stage.mkdir()
             for source, name in FILES:
                 (stage / name).write_bytes(_resource_bytes(source))
-            report(comp.name, "download", 0, 2)
+            report(comp.name, "download", 0, 100)
             env = node_env(node.parent)
             result = run_tool(
                 [node, npm_cli, "ci", "--ignore-scripts", "--no-audit", "--no-fund",
@@ -100,9 +103,16 @@ def install(comp: Component, *, root: Path | None = None,
                 raise ClaudiosError(E.TOOL_FAILED, reason=f"{comp.name}: {comp.exe} not found")
             if cancel is not None and cancel.is_set():
                 raise ClaudiosError(E.INSTALL_CANCELLED)
-            report(comp.name, "download", 1, 2)
-            env["PLAYWRIGHT_BROWSERS_PATH"] = str(stage / "browsers")
-            result = run_tool([node, cli, "install", "chromium"], cwd=stage, timeout=BROWSER_TIMEOUT, extra_env=env)
+            report(comp.name, "download", 50, 100)
+            browsers = stage / "browsers"
+            download_tmp = Path(tmp_name) / "dl"  # eigener Temp-Ordner: dort liegt die Zip-Datei während des Downloads
+            download_tmp.mkdir()
+            env["PLAYWRIGHT_BROWSERS_PATH"] = str(browsers)
+            env["TMP"] = env["TEMP"] = env["TMPDIR"] = str(download_tmp)
+            with SizeWatcher([browsers, download_tmp], EXPECTED_BYTES,
+                             lambda done, total: report(comp.name, "download", done, total)):
+                result = run_tool([node, cli, "install", "chromium"], cwd=stage, timeout=BROWSER_TIMEOUT,
+                                  extra_env=env)
             if result.returncode != 0:
                 raise ClaudiosError(E.TOOL_FAILED, reason=f"browser download exit code {result.returncode}")
             (stage / MARKER).write_text(json.dumps({
