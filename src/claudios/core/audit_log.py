@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import threading
 import time
 from collections.abc import Callable
@@ -39,16 +40,47 @@ class AuditLog:
     def records(self) -> list[dict]:
         if not self.path.exists():
             return []
-        return [json.loads(x) for x in self.path.read_text("utf-8").splitlines() if x.strip()]
+        return self._parse(self.path.read_text("utf-8-sig"))
+
+    @staticmethod
+    def _parse(text: str) -> list[dict]:
+        """Eine letzte Zeile ohne Zeilenende, die sich nicht lesen lässt, ist halb geschrieben (Abbruch) und zählt nicht."""
+        lines = text.split("\n")
+        if lines and lines[-1].strip():
+            try:
+                json.loads(lines[-1])
+            except ValueError:
+                lines.pop()
+        return [json.loads(x) for x in lines if x.strip()]
+
+    def _heal(self) -> None:
+        """Entfernt einen halb geschriebenen letzten Eintrag, bevor neu angehängt wird."""
+        try:
+            raw = self.path.read_bytes()
+        except OSError:
+            return
+        if not raw or raw.endswith(b"\n"):
+            return
+        cut = raw.rfind(b"\n") + 1
+        try:
+            json.loads(raw[cut:].decode("utf-8-sig"))
+        except ValueError:
+            self.path.write_bytes(raw[:cut])
+        else:
+            with self.path.open("ab") as fh:
+                fh.write(b"\n")
 
     def append(self, event: str, **data: str | int | float | bool) -> None:
         with self._lock:
+            self._heal()
             recs = self.records()
             prev = recs[-1]["hash"] if recs else _ZERO
             rec = {"t": round(time.time(), 3), "event": event, "data": data, "prev": prev}
             rec["hash"] = _digest(prev, rec)
             with self.path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(rec, ensure_ascii=True) + "\n")
+                fh.flush()
+                os.fsync(fh.fileno())
             if self.anchor is not None:
                 self.anchor.save(len(recs) + 1, rec["hash"])
 

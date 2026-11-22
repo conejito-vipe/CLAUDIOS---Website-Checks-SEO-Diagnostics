@@ -191,3 +191,6 @@ tests/test_crawler_dedupe.py
 tests/test_crawler_logout.py
 # Paket 19: Query-Varianten nur bei unbekanntem Pfad (Variante A)
 tests/test_crawler_query.py
+# Paket 20: Adress-Kodierung vereinheitlichen, Protokoll uebersteht Abbruch
+tests/test_norm_encoding.py
+tests/test_audit_crash.py

@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from collections import Counter, deque
 from collections.abc import Callable
-from urllib.parse import parse_qsl, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
 from .errors import ClaudiosError, ErrorCode as E
@@ -33,9 +33,19 @@ def has_paging(query: str) -> bool:
     return any(key.lower() in PAGING_KEYS for key, _value in parse_qsl(query, keep_blank_values=True))
 
 
+_NON_ASCII = re.compile(r"[^\x00-\x7f]+")
+_PERCENT = re.compile(r"%[0-9a-fA-F]{2}")
+
+
+def _canon(part: str) -> str:
+    """Nicht-ASCII-Zeichen als %XX (UTF-8), vorhandene %xx groß: ü und %C3%BC sind dieselbe Adresse. %2F bleibt."""
+    part = _NON_ASCII.sub(lambda m: quote(m.group(0), safe=""), part)
+    return _PERCENT.sub(lambda m: m.group(0).upper(), part)
+
+
 def norm(url: str) -> str:
     p = urlsplit(url)
-    return urlunsplit((p.scheme.lower(), (p.netloc or "").lower(), p.path or "/", p.query, ""))
+    return urlunsplit((p.scheme.lower(), (p.netloc or "").lower(), _canon(p.path) or "/", _canon(p.query), ""))
 
 
 def build_page(resp: Response, depth: int) -> Page:
