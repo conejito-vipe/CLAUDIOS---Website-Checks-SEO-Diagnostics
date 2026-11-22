@@ -21,6 +21,7 @@ from .probes import gather_probes
 from .proof import require as require_proof
 from .quota import ScanLock, check_quota
 from .registry import REGISTRY
+from .runstatus import limits_scan
 from .scoring import compute_scores
 from .snapshot import Snapshot
 from .toolbudget import scan_budget
@@ -130,7 +131,7 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
             findings, executed = run_checks(snap, level, profile, components, progress=progress,
                                             should_stop=stopped)
             if snap.status == "complete" and (any(p.error for p in snap.pages)
-                                              or any(v != "ran" for v in executed.values())):
+                                              or any(limits_scan(v) for v in executed.values())):
                 snap.status = "limited"
             audit.append("scan_end", domain=target.registrable, status=snap.status)
     # Ein abgebrochener Scan hat keine aussagekräftige Wertung: 0 und keine Kategorien statt eines Scheinwerts

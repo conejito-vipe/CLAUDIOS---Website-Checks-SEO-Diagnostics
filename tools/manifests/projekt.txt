@@ -198,3 +198,6 @@ tests/test_audit_crash.py
 src/claudios/core/crashlog.py
 src/claudios/ui/heartbeat.py
 tests/test_crashlog.py
+# Paket 22: Status mit Einschraenkungen nur bei echten Problemen
+src/claudios/core/runstatus.py
+tests/test_runstatus.py
