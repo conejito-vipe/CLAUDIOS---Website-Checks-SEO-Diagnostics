@@ -185,3 +185,5 @@ tests/test_ui_paket14.py
 tests/test_contributing.py
 # Paket 16: Sitemap mit CDATA lesen
 tests/test_sitemap_cdata.py
+# Paket 17: Crawler zaehlt Weiterleitungs-Duplikate nicht doppelt
+tests/test_crawler_dedupe.py

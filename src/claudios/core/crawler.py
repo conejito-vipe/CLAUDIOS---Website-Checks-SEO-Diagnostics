@@ -101,6 +101,8 @@ async def crawl(gk: Gatekeeper, snap: Snapshot, *, progress: Progress | None = N
                 raise
 
     seen = {norm(first.url)}
+    done = {norm(first.url)}  # Endadressen der schon aufgenommenen Seiten
+    duplicates = {"reason": "duplicate", "count": 0}
     variants: Counter[str] = Counter()
     queue: deque[tuple[str, int]] = deque()
 
@@ -135,6 +137,14 @@ async def crawl(gk: Gatekeeper, snap: Snapshot, *, progress: Progress | None = N
                 raise
             snap.pages.append(Page(url=url, depth=depth, error=e.code.value))
             continue
+        final = norm(resp.url)
+        if final in done:  # Weiterleitung auf eine schon gecrawlte Seite: nicht noch einmal zählen
+            if not duplicates["count"]:
+                snap.skipped.append(duplicates)
+            duplicates["count"] += 1
+            continue
+        done.add(final)
+        seen.add(final)
         pg = build_page(resp, depth)
         extract_links(pg, crawl_host)
         snap.pages.append(pg)
