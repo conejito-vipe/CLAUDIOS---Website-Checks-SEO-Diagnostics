@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from collections import Counter, deque
 from collections.abc import Callable
-from urllib.parse import urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
 from .errors import ClaudiosError, ErrorCode as E
@@ -23,6 +23,14 @@ def is_logout(path: str, query: str = "") -> bool:
     """Abmelde-Adressen werden nicht abgerufen (ein GET darf nichts auslösen, auch wenn es meist folgenlos bleibt)."""
     parts = [x for x in path.lower().split("/") if x]
     return (bool(parts) and parts[-1] in LOGOUT_WORDS) or "logout" in query.lower()
+
+
+PAGING_KEYS = frozenset({"page", "paged", "p", "pg", "start", "limitstart", "offset", "seite"})
+
+
+def has_paging(query: str) -> bool:
+    """Seitenumbruch (?start=1, ?page=2) ist eine eigene Seite, keine Variante derselben."""
+    return any(key.lower() in PAGING_KEYS for key, _value in parse_qsl(query, keep_blank_values=True))
 
 
 def norm(url: str) -> str:
@@ -110,17 +118,26 @@ async def crawl(gk: Gatekeeper, snap: Snapshot, *, progress: Progress | None = N
     seen = {norm(first.url)}
     done = {norm(first.url)}  # Endadressen der schon aufgenommenen Seiten
     duplicates = {"reason": "duplicate", "count": 0}
+    query_skips = {"reason": "query_variant", "count": 0}
     variants: Counter[str] = Counter()
     queue: deque[tuple[str, int]] = deque()
 
     def enqueue(p: Page) -> None:
         if p.depth >= LIMITS.max_depth:
             return
+        known = {norm(x) for x in p.internal_links if not urlsplit(x).query}  # Pfade ohne Query auf dieser Seite
         for link in p.internal_links:
             n = norm(link)
             sp = urlsplit(n)
             if n in seen or sp.path.lower().endswith(SKIP_EXT) or is_logout(sp.path, sp.query) or len(seen) >= LIMITS.max_queued_urls:
                 continue
+            if sp.query and not has_paging(sp.query):
+                plain = urlunsplit((sp.scheme, sp.netloc, sp.path, "", ""))
+                if plain in seen or plain in known:  # derselbe Pfad ist schon bekannt: nur eine Query-Variante davon
+                    if not query_skips["count"]:
+                        snap.skipped.append(query_skips)
+                    query_skips["count"] += 1
+                    continue
             if sp.query:
                 variants[sp.path] += 1
                 if variants[sp.path] > LIMITS.max_query_variants_per_path:

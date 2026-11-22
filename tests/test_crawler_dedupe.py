@@ -27,9 +27,8 @@ class FakeGK:
         parts = urlsplit(url)
         if parts.path == "/robots.txt":
             return Response(url, 404, {}, [], b"", False, 1)
-        if parts.query.startswith("rCH="):  # wie Joomla: 303 auf die Seite ohne Parameter
-            final = f"https://example.com{parts.path}"
-            return Response(final, 200, HEADERS, [url], self.pages[parts.path].encode(), False, 1)
+        if parts.path.startswith("/old"):  # alte Adresse: Weiterleitung auf /a
+            return Response("https://example.com/a", 200, HEADERS, [url], self.pages["/a"].encode(), False, 1)
         return Response(url, 200, HEADERS, [], self.pages[parts.path].encode(), False, 1)
 
 
@@ -38,7 +37,7 @@ def new_snap():
 
 
 async def test_redirect_duplicates_are_not_counted_twice():
-    pages = {"/": html("/a", "/a?rCH=2", "/a?rCH=-2", "/b"), "/a": html("/"), "/b": html("/a")}
+    pages = {"/": html("/a", "/old1", "/old2", "/b"), "/a": html("/"), "/b": html("/a")}
     gk, snap = FakeGK(pages), new_snap()
     await crawl(gk, snap)
     assert sorted(p.url for p in snap.pages) == ["https://example.com/", "https://example.com/a",

@@ -189,3 +189,5 @@ tests/test_sitemap_cdata.py
 tests/test_crawler_dedupe.py
 # Paket 18: Sitemap-CDATA mit &amp; und Abmelde-Adressen im Crawler
 tests/test_crawler_logout.py
+# Paket 19: Query-Varianten nur bei unbekanntem Pfad (Variante A)
+tests/test_crawler_query.py
