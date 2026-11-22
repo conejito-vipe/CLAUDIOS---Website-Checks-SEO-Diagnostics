@@ -1,3 +1,5 @@
-**Hinweis / Note:** Pull requests with code are not accepted, see LICENSE. Pull Requests mit Code werden nicht angenommen, siehe LICENSE.de.txt.
+**Hinweis / Note:** Pull requests are welcome as suggested improvements, see LICENSE section 3b. Pull Requests sind als Verbesserungsvorschlag willkommen, siehe LICENSE.de.txt Abschnitt 3b.
 
-Bug reports and ideas belong into issues. Fehlermeldungen und Ideen gehören in Issues.
+Changes are allowed only to send this suggestion. Änderungen sind nur zum Übermitteln dieses Vorschlags erlaubt.
+
+Never include passwords, tokens or private URLs. Keine Passwörter, Tokens oder privaten Adressen.

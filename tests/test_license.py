@@ -38,5 +38,5 @@ def test_the_documents_point_to_the_licence_and_the_installer_shows_it_per_langu
 
 
 def test_code_contributions_are_declined():
-    assert "pull requests with code are not accepted" in read("CONTRIBUTING.md")
-    assert "Pull Requests mit Code nicht angenommen" in read("CONTRIBUTING.de.md")
+    assert "pull requests are welcome as suggestions" in read("CONTRIBUTING.md")
+    assert "Pull Requests als Verbesserungsvorschlag willkommen" in read("CONTRIBUTING.de.md")

@@ -181,3 +181,5 @@ src/claudios/ui/code_source.py
 tests/test_code_source.py
 tests/test_links_redirect.py
 tests/test_ui_paket14.py
+# Paket 15: Verbesserungsvorschlaege willkommen (Lizenz 3b)
+tests/test_contributing.py

@@ -2,11 +2,12 @@
 
 English version: [CONTRIBUTING.md](CONTRIBUTING.md)
 
-Danke für dein Interesse. Die [LICENSE.de.txt](LICENSE.de.txt) verbietet Veränderung und Weitergabe, deshalb werden **Pull Requests mit Code nicht angenommen**.
+Danke für dein Interesse. Die [LICENSE.de.txt](LICENSE.de.txt) verbietet Veränderung und Weitergabe, mit einer Ausnahme (Abschnitt 3b): Du darfst die Software ausschließlich verändern, um dem Urheber einen Verbesserungsvorschlag zu übermitteln. Deshalb sind **Pull Requests als Verbesserungsvorschlag willkommen**, ebenso Issues. Ob ein Vorschlag übernommen wird, entscheidet der Urheber.
 
 ## Was hilft
 
-- **Fehlermeldungen und Ideen:** Eröffne ein Issue (Vorlage „Fehlermeldung (Deutsch)“). Nenne den Fehlercode (zum Beispiel `CLA-TLS-001`) und, wenn du magst, die letzten Zeilen aus `claudios.log` ohne private Adressen.
+- **Fehlermeldungen und Ideen:** Eröffne ein Issue (Vorlage „Fehlermeldung (Deutsch)“). Nenne den Fehlercode (zum Beispiel `CLA-TLS-001`) und, wenn du magst, die letzten Zeilen aus `CLAUDIOS.log` ohne private Adressen.
+- **Verbesserungsvorschläge:** Eröffne ein Issue oder einen Pull Request. Mit der Übermittlung räumst du dem Urheber das Recht aus Abschnitt 3b der Lizenz ein. Beschränke die Änderung auf den Vorschlag.
 - **Sicherheitsmeldungen:** Nutze **Security → Report a vulnerability**, siehe [SECURITY.de.md](SECURITY.de.md). Keine öffentlichen Issues für Schwachstellen.
 - **Poste nie** Passwörter, Tokens, Cookie-Werte oder private Adressen.
 

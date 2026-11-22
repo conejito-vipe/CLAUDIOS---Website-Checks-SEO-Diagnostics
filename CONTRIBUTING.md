@@ -2,11 +2,12 @@
 
 Deutsche Fassung: [CONTRIBUTING.de.md](CONTRIBUTING.de.md)
 
-Thanks for your interest. The [LICENSE](LICENSE) forbids modification and distribution, so **pull requests with code are not accepted**.
+Thanks for your interest. The [LICENSE](LICENSE) forbids modification and distribution, with one exception (section 3b): you may change the Software solely to send the author a suggested improvement. So **pull requests are welcome as suggestions**, and so are issues. Whether a suggestion is adopted is the author's decision.
 
 ## What helps
 
-- **Bug reports and ideas:** open an issue (use the template "Bug report"). Include the error code (for example `CLA-TLS-001`) and, if you like, the last lines of `claudios.log` without private addresses.
+- **Bug reports and ideas:** open an issue (use the template "Bug report"). Include the error code (for example `CLA-TLS-001`) and, if you like, the last lines of `CLAUDIOS.log` without private addresses.
+- **Suggested improvements:** open an issue or a pull request. By submitting it you grant the author the right described in section 3b of the LICENSE. Keep the change limited to the suggestion.
 - **Security reports:** use **Security → Report a vulnerability**, see [SECURITY.md](SECURITY.md). No public issues for vulnerabilities.
 - **Never post** passwords, tokens, cookie values or private URLs.
 
