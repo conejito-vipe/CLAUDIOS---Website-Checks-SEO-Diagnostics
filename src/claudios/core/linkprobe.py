@@ -1,5 +1,5 @@
 """Externe Links prüfen: nur über den Gatekeeper (HTTPS, gedrosselt, SSRF-Schutz), HEAD mit GET-Rückfall.
-Es werden keine Seiten gelesen und keinen Weiterleitungen gefolgt: nur der Statuscode zählt (follow=False). Jeder Link hat ein
+Es werden keine Seiten gelesen und Weiterleitungen werden nicht verfolgt: nur der Statuscode zählt (follow=False). Jeder Link hat ein
 festes Zeitlimit; antwortet ein Host zweimal nicht, werden seine übrigen Links nicht mehr versucht (sonst hält ein toter
 Server den ganzen Scan auf). Fortschritt und Abbruch werden je Link geprüft."""
 from __future__ import annotations

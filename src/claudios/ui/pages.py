@@ -449,6 +449,10 @@ class SettingsPage(QWidget):
         self.localhost.setChecked(bool(settings.get("allow_localhost")))
         self.warn = _plain(QLabel())
         self.warn.setObjectName("muted")
+        self.updates = QCheckBox()
+        self.updates.setChecked(settings.get("update_check") is not False)
+        self.update_note = _plain(QLabel())
+        self.update_note.setObjectName("muted")
         self.limits = _plain(QLabel())
         self.limits.setObjectName("muted")
         lay = QVBoxLayout(self)
@@ -456,9 +460,21 @@ class SettingsPage(QWidget):
         lay.addWidget(self.localhost)
         lay.addWidget(self.warn)
         lay.addSpacing(16)
+        lay.addWidget(self.updates)
+        lay.addWidget(self.update_note)
+        lay.addSpacing(16)
         lay.addWidget(self.limits)
         lay.addStretch(1)
         self.localhost.toggled.connect(self._toggle)
+        self.updates.toggled.connect(self._toggle_updates)
+
+    def _toggle_updates(self, checked: bool) -> None:
+        """Aus wird gespeichert, an ist der Normalfall (Schlüssel fehlt)."""
+        if checked:
+            self._settings.pop("update_check", None)
+        else:
+            self._settings["update_check"] = False
+        save_settings(self._settings)
 
     def _toggle(self, checked: bool) -> None:
         self._settings["allow_localhost"] = checked
@@ -466,6 +482,8 @@ class SettingsPage(QWidget):
 
     def retranslate(self) -> None:
         self.localhost.setText(t("settings.localhost"))
+        self.updates.setText(t("settings.updates"))
+        self.update_note.setText(t("settings.updates_note"))
         self.warn.setText(t("settings.localhost_warn"))
         self.limits.setText(t("settings.limits", depth=n(LIMITS.max_depth), p1=n(LIMITS.pages_level1),
                               p2=n(LIMITS.pages_level2)))

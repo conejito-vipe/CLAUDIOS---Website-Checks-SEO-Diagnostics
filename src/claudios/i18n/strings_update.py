@@ -20,3 +20,15 @@ TEXTS["en"].update({
     "upd.downloading": "Downloading update {version} … {percent} %",
     "upd.start_failed": "The installer could not be started. The file is here: {path}",
 })
+
+
+TEXTS["de"].update({
+    "settings.updates": "Beim Start nach einer neuen Version suchen",
+    "settings.updates_note": "Dazu fragt das installierte Programm beim Start bei GitHub nach der neuesten Version. "
+                             "Ausgeschaltet findet diese Anfrage nicht statt. Die Änderung gilt ab dem nächsten Start.",
+})
+TEXTS["en"].update({
+    "settings.updates": "Check for a new version at startup",
+    "settings.updates_note": "For this, the installed program asks GitHub for the latest version at startup. "
+                             "When switched off, this request is not made. The change applies from the next start.",
+})

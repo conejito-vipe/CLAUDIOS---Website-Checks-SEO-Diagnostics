@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
     QDialog,
+    QHBoxLayout,
     QHeaderView,
     QLabel,
     QMessageBox,
@@ -23,6 +24,7 @@ from ..components import info, manager
 from ..components.lock import load_lock
 from ..core.numfmt import format_bytes
 from ..i18n.strings import get_lang, n, t
+from .cardbox import MARGIN, CardDialog
 from .dialogs import error_info, show_error
 from .logfolder import open_logs
 
@@ -61,15 +63,15 @@ class InstallThread(QThread):
         self._cancel.set()
 
 
-class UninstallDialog(QDialog):
+class UninstallDialog(CardDialog):
     def __init__(self, parent, items: list, lock: list) -> None:
-        super().__init__(parent)
+        super().__init__(parent, t("unin.title"))
         self._lock = lock
-        self.setWindowTitle(t("unin.title"))
-        self.resize(520, 420)
-        lay = QVBoxLayout(self)
-        intro = _plain(QLabel(t("unin.intro")))
-        lay.addWidget(intro)
+        self.resize(2 * MARGIN + 560, 2 * MARGIN + 440)
+        heading = _plain(QLabel(t("unin.title")))
+        heading.setObjectName("h1")
+        self.content.addWidget(heading)
+        self.content.addWidget(_plain(QLabel(t("unin.intro"))))
         lang = get_lang()
         self._boxes: dict[str, QCheckBox] = {}
         for item in items:
@@ -81,21 +83,26 @@ class UninstallDialog(QDialog):
             box = QCheckBox(f"{label} ({format_bytes(item.size, lang)})")
             box.setChecked(item.default)
             box.toggled.connect(self._update)
-            lay.addWidget(box)
+            self.content.addWidget(box)
             self._boxes[item.key] = box
         self.warn = _plain(QLabel())
-        lay.addWidget(self.warn)
+        self.content.addWidget(self.warn)
         note = _plain(QLabel(t("unin.audit_note")))
         note.setObjectName("muted")
-        lay.addWidget(note)
-        lay.addStretch(1)
+        self.content.addWidget(note)
+        self.content.addStretch(1)
+        row = QHBoxLayout()
+        row.addStretch(1)
+        cancel = QPushButton(t("unin.cancel"))
+        cancel.setAutoDefault(False)
         ok = QPushButton(t("unin.ok"))
         ok.setObjectName("primary")
-        cancel = QPushButton(t("unin.cancel"))
+        ok.setDefault(True)
         ok.clicked.connect(self.accept)
         cancel.clicked.connect(self.reject)
-        lay.addWidget(ok)
-        lay.addWidget(cancel)
+        row.addWidget(cancel)
+        row.addWidget(ok)
+        self.content.addLayout(row)
         self._update()
 
     def selected(self) -> list[str]:

@@ -75,10 +75,16 @@ def redirect_chains(snap):
        why="Defekte externe Links zeigen veraltete Inhalte und wirken unseriös. ## "
            "Broken external links show outdated content and look unprofessional.",
        method="Jede eindeutige externe https-Adresse wird höchstens einmal mit HEAD (bei Ablehnung mit GET) über den "
-              "gedrosselten Gatekeeper geprüft: höchstens 200 Adressen und 5 Minuten. Externe Seiten werden nicht "
+              "gedrosselten Gatekeeper geprüft: höchstens 200 Adressen und 5 Minuten, "
+               "je Adresse 8 Sekunden. Weiterleitungen werden nicht verfolgt (nur der erste Statuscode zählt), "
+               "träge Server werden nach zwei Zeitüberschreitungen übersprungen."
+               " Externe Seiten werden nicht "
               "gecrawlt, Links auf unverschlüsseltes HTTP werden nicht abgerufen. ## Every unique external https "
               "address is checked at most once with HEAD (GET if rejected) through the throttled gatekeeper: at "
-              "most 200 addresses and 5 minutes. External sites are not crawled, links to unencrypted HTTP are "
+              "most 200 addresses and 5 minutes, "
+               "8 seconds per address. Redirects are not followed (only the first status code counts), "
+               "and slow servers are skipped after two timeouts."
+               " External sites are not crawled, links to unencrypted HTTP are "
               "not fetched.",
        logic="HTTP 404/410 oder ungültiges Zertifikat: Fehler. Andere 4xx/5xx oder nicht erreichbar: Warnung. "
              "401/403/429/999: Info (Server verweigert Prüfung). Nicht geprüfte Reste: Info. ## "

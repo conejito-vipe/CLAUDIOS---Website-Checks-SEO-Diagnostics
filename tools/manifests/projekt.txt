@@ -176,3 +176,8 @@ src/claudios/report/history_latest.py
 tests/test_pack13_ui.py
 tests/test_scanprogress.py
 tests/test_code_excerpt.py
+# Paket 14: Codefenster CSS/JS, Link-Hinweis, Update-Schalter, Karten-Dialog
+src/claudios/ui/code_source.py
+tests/test_code_source.py
+tests/test_links_redirect.py
+tests/test_ui_paket14.py

@@ -1,5 +1,5 @@
 """Erklärung zu einem Befund. Ein Klick auf eine Zeile der Ergebnisliste öffnet einen Dialog mit dem Befund (Meldung, Beleg,
-betroffene Adressen aus dem Scan), einem Codefenster (nur bei HTML-Seiten und Belegen mit „Line N“: gelb für Hinweis und
+betroffene Adressen aus dem Scan), einem Codefenster (bei gespeicherten HTML-, CSS- und JavaScript-Dateien und Belegen mit „Line N“: gelb für Hinweis und
 Warnung, rot für Fehler und kritisch) und der Beschreibung der Prüfung aus der Registry (warum wichtig, wie beheben, wie
 geprüft, Quellen als Links).
 
@@ -23,6 +23,7 @@ from ..core.redact import redact_url
 from ..core.registry import REGISTRY
 from ..i18n.strings import get_lang, t, text
 from .cardbox import MARGIN, CardDialog
+from .code_source import source_for
 
 log = logging.getLogger("claudios")
 ID = re.compile(r"\b[A-Z]{2,4}-[A-Z]{2,4}-\d{3}\b")
@@ -105,10 +106,11 @@ def _cut(line: str) -> str:
     return line[:MAX_LINE] + "…" if len(line) > MAX_LINE else line
 
 
-def code_excerpt(result, urls, evidence: str, severity: int, context: int = 3) -> dict | None:
+def code_excerpt(result, urls, evidence: str, severity: int, context: int = 3,
+                 check_id: str = "") -> dict | None:
     """Zeilen um die im Beleg genannte Zeile einer gespeicherten HTML-Seite, sonst None."""
     number = line_of(evidence)
-    found = _page_html(result, urls)
+    found = source_for(result, urls, check_id)
     if number is None or found is None:
         return None
     lines = found[1].split("\n")
@@ -208,7 +210,7 @@ def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=N
     if result is not None:
         for group in ordered:
             excerpt = code_excerpt(result, group.get("example_urls") or [], str(group.get("evidence") or ""),
-                                   int(group.get("severity") or 0))
+                                   int(group.get("severity") or 0), check_id=check_id)
             if excerpt is not None:
                 parts.append(excerpt_html(excerpt, lang))
                 break
