@@ -13,7 +13,8 @@ from .errors import ClaudiosError, ErrorCode as E
 from .limits import LIMITS
 
 # Ohne \s* um die Gruppe: sonst ist die Suche bei vielen Leerzeichen quadratisch. Gekürzt wird in _locs().
-_LOC = re.compile(r"<loc>([^<]*)</loc>", re.I)
+# Auch <loc><![CDATA[...]]></loc> (manche CMS schreiben so). Leerraum nur begrenzt, [^\]]* statt .*?: beides bleibt linear.
+_LOC = re.compile(r"<loc>[ \t\r\n]{0,64}(?:<!\[CDATA\[([^\]]*)\]\]>[ \t\r\n]{0,64}|([^<]*))</loc>", re.I)
 # [ \t] statt \s: \s würde bei vielen Zeilenumbrüchen von jedem Zeilenanfang aus alles durchlaufen.
 _SITEMAP_LINE = re.compile(r"^[ \t]*sitemap:[ \t]*(\S+)", re.I | re.M)
 _HEAD_UNSUPPORTED = (400, 403, 405, 501)
@@ -21,7 +22,8 @@ _ROOT_WINDOW = 5000
 
 
 def _locs(text: str) -> list[str]:
-    return [url for url in (html.unescape(x).strip() for x in _LOC.findall(text)) if url]
+    found = (cdata.strip() or html.unescape(plain).strip() for cdata, plain in _LOC.findall(text))
+    return [url for url in found if url]
 
 
 def _origin(snap) -> tuple[str, str]:

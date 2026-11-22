@@ -183,3 +183,5 @@ tests/test_links_redirect.py
 tests/test_ui_paket14.py
 # Paket 15: Verbesserungsvorschlaege willkommen (Lizenz 3b)
 tests/test_contributing.py
+# Paket 16: Sitemap mit CDATA lesen
+tests/test_sitemap_cdata.py
