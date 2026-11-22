@@ -33,6 +33,7 @@ from .ui.main_window import MainWindow
 from .ui.splash import Splash
 from .ui.theme import STYLE
 from .ui.theme_extra import EXTRA
+from .ui.update_check import start_update_check
 from .ui.widgets import load_icon
 
 Step = tuple[str, int, Callable[[], None]]
@@ -125,6 +126,7 @@ def main() -> int:
         windows.append(window)
         window.show()
         splash.dismiss()
+        start_update_check(window, settings)  # nur im installierten Programm
         if state.get("audit_ok") is False:
             QMessageBox.warning(window, t("app.title"), t("splash.audit_warn"))
         if state.get("doh_ok") is False:

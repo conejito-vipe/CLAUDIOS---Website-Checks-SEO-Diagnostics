@@ -160,3 +160,10 @@ src/claudios/ui/finding_detail.py
 src/claudios/i18n/strings_detail.py
 tests/test_finding_detail.py
 tests/test_pack11.py
+# Paket 12: Splash, Fensterknöpfe, Fußzeile, Update-Funktion
+src/claudios/core/updater.py
+src/claudios/ui/update_check.py
+src/claudios/ui/footer_link.py
+src/claudios/i18n/strings_update.py
+tests/test_pack12.py
+tests/test_updater.py

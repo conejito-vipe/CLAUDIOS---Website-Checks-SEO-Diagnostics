@@ -3,12 +3,16 @@
 ; Die Funktion "CLAUDIOS deinstallieren" im Programm entfernt sie und startet danach diesen Deinstaller.
 ; Symbol und Bilder kommen aus installer\art (der Build erzeugt sie mit tools\make_installer_art.py); ohne sie gelten
 ; die Standardbilder. Die Lizenz wird je Sprache angezeigt (englisch: LICENSE, deutsch: LICENSE.de.txt).
+; Die Version kommt vom Build (/DAppVersion=...), sonst gilt der Wert unten. Dieselbe AppId bedeutet: eine vorhandene
+; Installation wird aktualisiert (Update über die alte Version).
 ; Hinweis: SmartScreen zeigt einen Herausgeber nur bei signierten Dateien. Ohne Zertifikat steht dort "Unbekannter Herausgeber".
 
 #define AppFullName "CLAUDIOS - Website-Checks-SEO-Diagnostics"
 #define AppShortName "CLAUDIOS"
 #define AppExeName "CLAUDIOS.exe"
-#define AppVersion "0.1.0"
+#ifndef AppVersion
+  #define AppVersion "0.1.0"
+#endif
 #define AuthorName "conejito-vipe"
 
 #ifexist "art\app.ico"
@@ -31,6 +35,9 @@ VersionInfoDescription={#AppFullName}
 VersionInfoProductName={#AppShortName}
 DefaultDirName={localappdata}\Programs\{#AppShortName}
 DefaultGroupName={#AppShortName}
+UsePreviousAppDir=yes
+CloseApplications=yes
+RestartApplications=no
 PrivilegesRequired=lowest
 ArchitecturesInstallIn64BitMode=x64compatible
 Compression=lzma2
@@ -69,6 +76,7 @@ Name: "{autodesktop}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"; Tasks: d
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppShortName}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Check: WizardSilent; Flags: nowait
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\CLAUDIOS\tools"

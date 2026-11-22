@@ -2,9 +2,14 @@ name: Windows-Build und Installer
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Als Release veröffentlichen (Voraussetzung für die Update-Funktion im Programm)"
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -16,6 +21,12 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[gui]" pyinstaller pillow
       - run: python tools/count_loc.py
+      - name: Version bestimmen
+        id: ver
+        run: |
+          $match = Select-String -Path src\claudios\__init__.py -Pattern '__version__\s*=\s*["'']([^"'']+)["'']'
+          if (-not $match) { Write-Error "__version__ nicht gefunden"; exit 1 }
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$($match.Matches[0].Groups[1].Value)"
       - name: Symbol und Installer-Bilder erzeugen
         run: |
           python tools/make_installer_art.py
@@ -39,11 +50,23 @@ jobs:
       - name: Installer bauen (Inno Setup)
         run: |
           choco install innosetup -y --no-progress
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\claudios.iss
-      - name: Prüfsumme berechnen
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=${{ steps.ver.outputs.version }}" installer\claudios.iss
+      - name: Prüfsumme berechnen und als Datei ablegen
         run: |
-          Get-FileHash installer\Output\*.exe -Algorithm SHA256 | Format-List | Out-String | Write-Host
+          $exe = Get-ChildItem installer\Output\CLAUDIOS-Setup-*.exe | Select-Object -First 1
+          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          Write-Host "SHA256: $hash  $($exe.Name)"
+          "$hash  $($exe.Name)" | Set-Content -Path "$($exe.FullName).sha256" -Encoding ascii
       - uses: actions/upload-artifact@v7
         with:
           name: CLAUDIOS-Setup
           path: installer/Output/*.exe
+      - name: Release veröffentlichen
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "v${{ steps.ver.outputs.version }}"
+          $files = @(Get-ChildItem installer\Output\CLAUDIOS-Setup-*.exe, installer\Output\CLAUDIOS-Setup-*.exe.sha256 | ForEach-Object { $_.FullName })
+          gh release create $tag @files --title "CLAUDIOS ${{ steps.ver.outputs.version }}" --notes "Installer mit Prüfsumme (SHA256-Datei liegt dabei)."
+          if ($LASTEXITCODE -ne 0) { gh release upload $tag @files --clobber }

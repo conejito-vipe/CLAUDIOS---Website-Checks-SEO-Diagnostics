@@ -1,7 +1,7 @@
 """Splash nach der Vorlage: Pill oben links, Logo mit Claim, dünner oranger Balken, Status und Prozent. Die Schritte sind echt
 (keine Fake-Animation); der Balken ist nach Aufwand gewichtet. Nach den Startschritten kann die Anwendung hier die
-Einrichtung fehlender Komponenten anzeigen (show_progress, show_skip). Größe: 70 % der früheren 940 x 640. Zwischen Logo und
-Balken liegt ein fester Mindestabstand (LOGO_GAP), auch wenn die Statuszeile mehrere Zeilen braucht."""
+Einrichtung fehlender Komponenten anzeigen (show_progress, show_skip). Der Knopf „Später fortsetzen“ erscheint erst nach
+SKIP_DELAY_MS. Zwischen Logo und Balken liegt ein fester Mindestabstand (LOGO_GAP)."""
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, QTimer, Signal
@@ -11,8 +11,9 @@ from ..i18n.strings import n, t
 from .widgets import CardWindow, load_logo
 
 WIDTH, HEIGHT = 658, 448
-LOGO_HEIGHT = 190
-LOGO_GAP = 28
+LOGO_HEIGHT = 218
+LOGO_GAP = 14
+SKIP_DELAY_MS = 20000
 
 
 class Splash(CardWindow):
@@ -69,6 +70,9 @@ class Splash(CardWindow):
         self.skip_btn = QPushButton()
         self.skip_btn.setVisible(False)
         self.skip_btn.clicked.connect(lambda _checked=False: self.skipped.emit())
+        self._skip_timer = QTimer(self)
+        self._skip_timer.setSingleShot(True)
+        self._skip_timer.timeout.connect(lambda: self.skip_btn.setVisible(True))
         col.addWidget(self.bar)
         col.addLayout(row)
         col.addWidget(self.skip_btn, 0, Qt.AlignmentFlag.AlignRight)
@@ -86,9 +90,17 @@ class Splash(CardWindow):
     def show_progress(self, pct: int, message: str) -> None:
         self._show(pct, message)
 
-    def show_skip(self, visible: bool) -> None:
+    def show_skip(self, visible: bool, delay_ms: int = SKIP_DELAY_MS) -> None:
+        """Zeigt „Später fortsetzen“ erst nach delay_ms (Standard 20 Sekunden)."""
         self.skip_btn.setText(t("boot.skip"))
-        self.skip_btn.setVisible(visible)
+        self._skip_timer.stop()
+        if not visible:
+            self.skip_btn.setVisible(False)
+        elif delay_ms <= 0:
+            self.skip_btn.setVisible(True)
+        else:
+            self.skip_btn.setVisible(False)
+            self._skip_timer.start(delay_ms)
 
     def start(self) -> None:
         QTimer.singleShot(200, self._next)
@@ -113,6 +125,7 @@ class Splash(CardWindow):
 
     def dismiss(self) -> None:
         self._dismissed = True
+        self._skip_timer.stop()
         self.close()
 
     def closeEvent(self, event) -> None:  # noqa: N802

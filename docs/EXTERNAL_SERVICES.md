@@ -33,3 +33,7 @@ Measured once on a GitHub runner (Linux), not yet on Windows:
 ## Still unverified
 
 The answer format of Safe Browsing and PageSpeed **with a valid key**. If it differs, the check counts as not executed, never as passed.
+
+## Update check at start
+
+Unlike the services above this check is **on by default**, because it only asks for the version number. In the installed program (not when started from source) CLAUDIOS asks the GitHub API once per start for the latest release of its own repository. GitHub sees the request itself (your IP address and the user agent `CLAUDIOS/<version>`); no scan data is sent. If a newer version exists, you are asked whether it should be installed. The installer is only started if its SHA256 matches the checksum file of the same release. You can switch the check off in the update dialog ("Do not search automatically"; stored as `update_check` in the settings).

@@ -24,11 +24,12 @@ from ..settings import save as save_settings
 from .components_page import ComponentsPage
 from .dialogs import AboutDialog
 from .finding_detail import DetailLinker
+from .footer_link import LinkFooter
 from .highlight import attach
 from .pages import DocPage, ScanPage, SettingsPage
 from .results_page import ResultsPage
 from .uninstall import run_uninstall
-from .widgets import CardWindow, Footer
+from .widgets import CardWindow
 
 BASE_KEYS = ("nav.scan", "nav.results", "nav.handbook", "nav.tech", "nav.components", "nav.settings")
 SCROLL_PAGES = frozenset({"ServicesPage", "ExportPage", "ComponentsPage", "SettingsPage"})
@@ -111,7 +112,7 @@ class MainWindow(CardWindow):
         self.stack = QStackedWidget()
         for page in self.pages:
             self.stack.addWidget(_scrolled(page) if type(page).__name__ in SCROLL_PAGES else page)
-        self.footer = Footer()
+        self.footer = LinkFooter()
 
         middle = QHBoxLayout()
         middle.setContentsMargins(16, 8, 16, 8)

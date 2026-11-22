@@ -82,6 +82,8 @@ class TitleBar(QWidget):
         for btn in (self.btn_min, self.btn_close):
             btn.setObjectName("winbtn")
             lay.addWidget(btn)
+        self.btn_min.setProperty("role", "min")
+        self.btn_close.setProperty("role", "close")
         self.btn_min.clicked.connect(self._minimize)
         self.btn_close.clicked.connect(self._close)
 

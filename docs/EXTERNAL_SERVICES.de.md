@@ -33,3 +33,7 @@ Einmal auf einem GitHub-Rechner gemessen (Linux), noch nicht unter Windows:
 ## Noch ungeprüft
 
 Das Antwortformat von Safe Browsing und PageSpeed **mit gültigem Schlüssel**. Weicht es ab, gilt die Prüfung als nicht ausgeführt, nie als bestanden.
+
+## Update-Prüfung beim Start
+
+Anders als die Dienste oben ist diese Prüfung **standardmäßig an**, weil sie nur nach der Versionsnummer fragt. Im installierten Programm (nicht beim Start aus dem Quellcode) fragt CLAUDIOS bei jedem Start einmal die GitHub-API nach dem neuesten Release des eigenen Repositories. GitHub sieht die Anfrage selbst (deine IP-Adresse und den User-Agent `CLAUDIOS/<Version>`); Scandaten werden nicht gesendet. Gibt es eine neuere Version, wirst du gefragt, ob sie installiert werden soll. Der Installer startet nur, wenn sein SHA256 zur Prüfsummen-Datei desselben Releases passt. Die Prüfung lässt sich im Update-Dialog abschalten („Nicht mehr automatisch suchen“; gespeichert als `update_check` in den Einstellungen).
