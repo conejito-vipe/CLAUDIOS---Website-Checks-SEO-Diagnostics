@@ -1,6 +1,7 @@
 """Seiten des Hauptfensters: Scan, Ergebnisse, Dokumentation, Einstellungen."""
 from __future__ import annotations
 
+import logging
 import time
 from pathlib import Path
 
@@ -310,6 +311,8 @@ class ScanPage(QWidget):
         marker = (kind, detail) if kind == "probe" else (kind, "")
         if marker != self._last_marker:
             self._last_marker = marker
+            logging.getLogger("claudios").info("scan stage %s %s/%s%s", kind, cur, total,
+                                               f" {detail}" if kind == "probe" else "")
             self._log_top(t(note) if note else message)
         self.activity.emit(line, percent, kind)
 

@@ -194,3 +194,7 @@ tests/test_crawler_query.py
 # Paket 20: Adress-Kodierung vereinheitlichen, Protokoll uebersteht Abbruch
 tests/test_norm_encoding.py
 tests/test_audit_crash.py
+# Paket 21: Absturz-Spur und Waechter gegen Einfrieren
+src/claudios/core/crashlog.py
+src/claudios/ui/heartbeat.py
+tests/test_crashlog.py

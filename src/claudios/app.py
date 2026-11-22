@@ -102,6 +102,9 @@ def main() -> int:
         app.setWindowIcon(icon)
     _setup_logging()
     install_error_logging()  # jeder Fehler und jede unbehandelte Ausnahme landet im Protokoll
+    from .core.crashlog import install as install_crash_log
+
+    install_crash_log()  # Absturz-Spur und Wächter gegen Einfrieren (logs/CLAUDIOS-crash.log)
     log_startup()
     fsutil.harden()  # Wiederholungen bei Dateisperren durch Virenscanner (Windows)
     log.info("DNS over HTTPS mode: %s", dohfallback.install_if_needed())

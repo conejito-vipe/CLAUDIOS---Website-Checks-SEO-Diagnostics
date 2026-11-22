@@ -12,7 +12,7 @@ from PySide6.QtCore import QProcess
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ..components import manager
-from ..core import apikeys
+from ..core import apikeys, crashlog
 from ..i18n.strings import t
 from ..report import history
 
@@ -47,6 +47,7 @@ def perform_removal() -> list[str]:
 
 
 def _close_logging() -> None:
+    crashlog.shutdown()  # sonst hält Windows die Absturz-Spur offen
     root = logging.getLogger()
     for handler in list(root.handlers):
         handler.close()

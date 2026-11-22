@@ -28,6 +28,7 @@ from .components_page import ComponentsPage
 from .dialogs import AboutDialog
 from .finding_detail import DetailLinker
 from .footer_link import LinkFooter
+from .heartbeat import Heartbeat
 from .highlight import attach
 from .pages import DocPage, ScanPage, SettingsPage
 from .results_page import ResultsPage
@@ -154,6 +155,7 @@ class MainWindow(CardWindow):
         self.scan.running_changed.connect(self._on_running)
         self.titlebar.set_lang(get_lang())
         self.retranslate()
+        self._heartbeat = Heartbeat(self)  # Wächter gegen Einfrieren (nur mit Absturz-Spur aktiv)
         self.nav.setCurrentRow(0)
 
     def _attach_details(self) -> None:
