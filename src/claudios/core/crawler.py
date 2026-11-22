@@ -45,11 +45,13 @@ def extract_links(page: Page, crawl_host: str) -> None:
     internal: dict[str, int] = {}
     external: dict[str, int] = {}
     insecure: dict[str, int] = {}
+    base_tag = soup.find("base", href=True)  # relative Links gelten nach HTML-Standard gegen <base href>
+    base_url = urljoin(page.url, str(base_tag["href"]).strip()) if base_tag is not None else page.url
     for a in soup.find_all("a", href=True):
         href = str(a["href"]).strip()
         if not href or href.startswith("#"):
             continue
-        absolute = urljoin(page.url, href).split("#")[0]
+        absolute = urljoin(base_url, href).split("#")[0]
         p = urlsplit(absolute)
         if p.scheme not in ("http", "https") or not p.hostname:
             continue

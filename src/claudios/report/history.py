@@ -29,9 +29,11 @@ def history_dir() -> Path:
 def enabled() -> bool:
     try:
         data = json.loads(_flag().read_text("utf-8"))
+    except FileNotFoundError:
+        return True  # Standard: an (nur Zusammenfassungen, keine Adressen oder Belege)
     except (OSError, ValueError):
         return False
-    return isinstance(data, dict) and data.get("enabled") is True
+    return isinstance(data, dict) and data.get("enabled") is not False
 
 
 def set_enabled(value: bool) -> None:

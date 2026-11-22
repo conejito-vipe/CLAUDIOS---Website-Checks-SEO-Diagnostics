@@ -46,6 +46,7 @@ class ScanThread(QThread):
             self._event.set()
         kwargs = dict(self._kwargs)
         kwargs.setdefault("components", _components())
+        kwargs.setdefault("stop_check", self._cancel_requested.is_set)
         kwargs.update(await asyncio.to_thread(scan_overrides, kwargs["raw_url"], bool(kwargs.get("allow_localhost"))))
         return await run_scan(
             **kwargs,
@@ -57,4 +58,7 @@ class ScanThread(QThread):
         self._cancel_requested.set()
         loop, event = self._loop, self._event
         if loop is not None and event is not None:
-            loop.call_soon_threadsafe(event.set)
+            try:
+                loop.call_soon_threadsafe(event.set)
+            except RuntimeError:  # die Schleife ist schon beendet
+                pass

@@ -1,10 +1,11 @@
 """Seiten des Hauptfensters: Scan, Ergebnisse, Dokumentation, Einstellungen."""
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QTextCursor
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
@@ -40,6 +41,7 @@ from .cooldown import remaining as cooldown_remaining
 from .dialogs import error_info, show_error
 from .expert_box import ExpertBox
 from .levelinfo import KEYS as LEVEL_KEYS, level_info
+from .scanprogress import PhaseClock, format_duration, overall_percent
 from .urlinput import clean_input
 from .worker import ScanThread
 
@@ -62,6 +64,8 @@ def _audit_path() -> Path:
 
 class ScanPage(QWidget):
     scan_finished = Signal(object)
+    activity = Signal(str, int, str)   # Text, Prozent, Abschnitt (crawl, probe, link, check)
+    running_changed = Signal(bool)
 
     def __init__(self, get_settings) -> None:
         super().__init__()
@@ -206,6 +210,7 @@ class ScanPage(QWidget):
         self.cancel_btn.setEnabled(running)
         for widget in (self.url, self.profile, self.confirm, self.google, self.expert):
             widget.setEnabled(not running)
+        self.running_changed.emit(running)
 
     def start(self) -> None:
         if self._thread is not None:
@@ -232,6 +237,10 @@ class ScanPage(QWidget):
             "allow_localhost": local,
         }
         self.log.clear()
+        self._last_marker = None
+        self._clock = PhaseClock()
+        self._t0 = time.monotonic()
+        self._last_marker = None
         self.bar.setValue(0)
         self.status.setText(t("scan.running"))
         self._set_running(True)
@@ -256,14 +265,53 @@ class ScanPage(QWidget):
             thread.cancel()
             thread.wait(20000)
 
+    @staticmethod
+    def _check_name(check_id: str) -> str:
+        try:
+            from ..core.registry import REGISTRY
+
+            return f"{check_id} {REGISTRY[check_id].meta.title[get_lang()]}"
+        except (KeyError, AttributeError):
+            return check_id
+
+    def _log_top(self, text: str) -> None:
+        """Die neueste Aktivität steht oben, das Protokoll läuft nach unten."""
+        cursor = QTextCursor(self.log.document())
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        cursor.insertText(text + "\n")
+
     def _on_progress(self, stage: str, cur: int, total: int) -> None:
-        self.bar.setValue(int(cur / max(total, 1) * 100))
-        if stage.startswith("probe:"):
-            message = t("scan.probe", cur=n(cur), total=n(total), name=t("probe." + stage[6:]))
+        kind, _sep, detail = stage.partition(":")
+        total = max(total, 1)
+        note = None
+        if kind == "crawl":
+            message, note = t("scan.crawl_count", cur=n(cur), total=n(total)), "scan.stage.crawl"
+        elif kind == "link":
+            message = t("scan.link_count", cur=n(cur), total=n(total), url=redact_url(detail)[:90])
+            note = "scan.stage.links"
+        elif kind == "probe":
+            try:
+                name = t("probe." + detail)
+            except KeyError:
+                name = detail
+            message = t("scan.probe", cur=n(cur), total=n(total), name=name)
+        elif kind == "check":
+            message = t("scan.check_count", cur=n(cur), total=n(total), name=self._check_name(detail))
+            note = "scan.stage.checks"
         else:
             message = t("scan.progress", cur=n(cur), total=n(total))
-        self.status.setText(message)
-        self.log.appendPlainText(message)
+        percent = overall_percent(kind, cur, total)
+        eta = self._clock.update(kind, cur, total)
+        line = message
+        if eta is not None:
+            line += "\n" + t("scan.eta", time=format_duration(eta, get_lang()))
+        self.bar.setValue(percent)
+        self.status.setText(line)  # eine Zeile, die hochzählt; das Protokoll bekommt nur eine Zeile je Abschnitt
+        marker = (kind, detail) if kind == "probe" else (kind, "")
+        if marker != self._last_marker:
+            self._last_marker = marker
+            self._log_top(t(note) if note else message)
+        self.activity.emit(line, percent, kind)
 
     def _on_done(self, result) -> None:
         self.confirm.setChecked(False)  # Bestätigung gilt nur für einen Scan
@@ -272,7 +320,7 @@ class ScanPage(QWidget):
         self.status_key = "scan.idle"
         message = t("scan.done_level", status=t(f"status.{snap.status}"), level=n(snap.level))
         self.status.setText(message)
-        self.log.appendPlainText(message)
+        self._log_top(message)
         self.scan_finished.emit(result)
         if snap.abort:
             show_error(self, snap.abort[get_lang()])

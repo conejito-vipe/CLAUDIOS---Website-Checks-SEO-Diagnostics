@@ -1,3 +1,5 @@
+"""Scan-Ablauf: Guard, Beleg, Kontingent, Sperre, Crawl, Probes, Prüfungen, Wertung. Die Prüfphase meldet ihren Fortschritt
+(progress) und lässt sich abbrechen (should_stop): offene Prüfungen gelten dann als „skipped:cancelled“."""
 from __future__ import annotations
 
 import asyncio
@@ -38,15 +40,27 @@ class ScanResult:
 
 
 def run_checks(snap: Snapshot, level: int, profile: str,
-               components: Callable[[str], bool] = lambda name: False) -> tuple[list[Finding], dict[str, str]]:
+               components: Callable[[str], bool] = lambda name: False,
+               progress: Callable[[str, int, int], None] | None = None,
+               should_stop: Callable[[], bool] | None = None) -> tuple[list[Finding], dict[str, str]]:
     """Ein nicht ausgeführter Check wird NIE als 'bestanden' gewertet."""
     load_all()
     findings: list[Finding] = []
     executed: dict[str, str] = {}
-    for cid, rc in sorted(REGISTRY.items()):
+    todo = sorted(((cid, rc) for cid, rc in REGISTRY.items() if profile in rc.meta.profiles),
+                  key=lambda item: (item[0] == "SYS-ABT-001", item[0]))  # die Abbruch-Prüfung läuft zuletzt
+    stopped = False
+    for position, (cid, rc) in enumerate(todo, 1):
         m = rc.meta
-        if profile not in m.profiles:
+        if cid != "SYS-ABT-001" and should_stop is not None and should_stop():
+            if not stopped:
+                stopped = True
+                if not snap.abort:
+                    snap.status, snap.abort = "aborted", _abort_info(E.SCAN_CANCELLED)
+            executed[cid] = "skipped:cancelled"
             continue
+        if progress is not None:
+            progress(f"check:{cid}", position, len(todo))
         if m.kind == "active" and level < 2:  # Verteidigung in der Tiefe: aktive Checks nie ohne Stufe 2
             executed[cid] = "skipped:level2_required"
             continue
@@ -77,7 +91,8 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
                    verified_property: str | None = None, resolver: DohResolver | None = None,
                    progress: Callable[[str, int, int], None] | None = None,
                    cancel: asyncio.Event | None = None,
-                   components: Callable[[str], bool] = lambda name: False) -> ScanResult:
+                   components: Callable[[str], bool] = lambda name: False,
+                   stop_check: Callable[[], bool] | None = None) -> ScanResult:
     if not confirmed:
         raise ClaudiosError(E.PERM_MISSING)
     if level not in (1, 2) or profile not in ("quick", "standard", "deep"):
@@ -88,6 +103,10 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
     check_quota(audit, target.registrable, level)  # zuerst die Quote: ein abgelehnter Scan verbraucht den Beleg nicht
     snap = Snapshot(target=target, level=level, profile=profile)
     requests = bytes_total = 0
+
+    def stopped() -> bool:
+        return (cancel is not None and cancel.is_set()) or (stop_check is not None and stop_check())
+
     with scan_budget():  # Gesamtbudget und Mindestpause für Browser, ZAP und sslyze (core/toolbudget.py)
         with ScanLock(lock_path):
             if level == 2:  # frischer Beleg der Live-Prüfung für genau diese Domain, gilt einmal
@@ -107,11 +126,13 @@ async def run_scan(raw_url: str, *, level: int, profile: str = "standard", confi
             finally:
                 requests, bytes_total = gk.requests, gk.bytes_total
                 await gk.aclose()
-                snap.finished = time.time()
-        findings, executed = run_checks(snap, level, profile, components)
-    if snap.status == "complete" and (any(p.error for p in snap.pages) or any(v != "ran" for v in executed.values())):
-        snap.status = "limited"
-    audit.append("scan_end", domain=target.registrable, status=snap.status)
+            snap.finished = time.time()
+            findings, executed = run_checks(snap, level, profile, components, progress=progress,
+                                            should_stop=stopped)
+            if snap.status == "complete" and (any(p.error for p in snap.pages)
+                                              or any(v != "ran" for v in executed.values())):
+                snap.status = "limited"
+            audit.append("scan_end", domain=target.registrable, status=snap.status)
     # Ein abgebrochener Scan hat keine aussagekräftige Wertung: 0 und keine Kategorien statt eines Scheinwerts
     scores = {"overall": 0, "categories": {}} if snap.status == "aborted" else compute_scores(findings, executed)
     return ScanResult(snap, findings, executed, scores, requests=requests, bytes_total=bytes_total)

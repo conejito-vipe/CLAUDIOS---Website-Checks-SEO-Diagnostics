@@ -35,6 +35,10 @@ async def gather_probes(gk, snap, resolver,
                         progress: Callable[[str, int, int], None] | None = None) -> None:
     if snap.profile == "quick" or snap.target.loopback or not snap.pages:
         return
+    def _link_progress(url: str, cur: int, total: int) -> None:
+        if progress is not None:
+            progress(f"link:{url}", cur, total)
+
     steps = [
         ("dns", lambda: collect_dns(resolver, snap.target.host, snap.target.registrable)),
         ("takeover", lambda: collect_takeover(resolver, snap)),
@@ -43,7 +47,7 @@ async def gather_probes(gk, snap, resolver,
         ("soft404", lambda: probe_soft404(gk, snap)),
         ("assets", lambda: collect_assets(gk, snap)),
         ("tls", lambda: probe_tls(resolver, snap)),
-        ("links", lambda: check_external_links(gk, snap)),
+        ("links", lambda: check_external_links(gk, snap, _link_progress)),
     ]
     steps.extend(_extension_steps(gk, snap, resolver))
     report = progress or (lambda *_: None)

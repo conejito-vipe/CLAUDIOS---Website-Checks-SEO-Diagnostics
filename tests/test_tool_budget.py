@@ -169,7 +169,7 @@ async def test_run_scan_opens_the_budget_only_while_it_runs(monkeypatch, tmp_pat
 
     monkeypatch.setattr(engine, "crawl", fake_crawl)
     monkeypatch.setattr(engine, "gather_probes", fake_probes)
-    monkeypatch.setattr(engine, "run_checks", lambda snap, level, profile, components: ([], {}))
+    monkeypatch.setattr(engine, "run_checks", lambda snap, level, profile, components, **kwargs: ([], {}))
     monkeypatch.setattr(engine, "compute_scores", lambda findings, executed: {"overall": 0})
     result = await engine.run_scan("example.com", level=1, confirmed=True, audit=AuditLog(tmp_path / "audit.jsonl"),
                                    lock_path=tmp_path / "scan.lock")

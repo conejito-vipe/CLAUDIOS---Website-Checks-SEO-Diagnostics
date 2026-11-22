@@ -125,7 +125,9 @@ def test_focus_zip_filters_the_summary_but_keeps_the_full_report(tmp_path):
         assert hashlib.sha256(texts[name].encode()).hexdigest() == info["sha256"]
 
 
-def test_history_is_off_by_default_and_stores_nothing_then(env):
+def test_history_is_on_by_default_and_stores_nothing_when_switched_off(env):
+    assert history.enabled() is True
+    history.set_enabled(False)
     assert history.enabled() is False
     assert history.save(history.record_of(make_result(BAD))) is None
     assert not history.history_dir().exists()

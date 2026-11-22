@@ -1,28 +1,36 @@
 """Erklärung zu einem Befund. Ein Klick auf eine Zeile der Ergebnisliste öffnet einen Dialog mit dem Befund (Meldung, Beleg,
-betroffene Adressen aus dem Scan) und der Beschreibung der Prüfung aus der Registry (warum wichtig, wie beheben, wie geprüft).
+betroffene Adressen aus dem Scan), einem Codefenster (nur bei HTML-Seiten und Belegen mit „Line N“: gelb für Hinweis und
+Warnung, rot für Fehler und kritisch) und der Beschreibung der Prüfung aus der Registry (warum wichtig, wie beheben, wie
+geprüft, Quellen als Links).
 
 Die Liste selbst kennt diese Datei nicht: DetailLinker hängt sich an jede Tabelle, jeden Baum und jede Liste, in deren Zeile eine
-Prüf-ID wie SEC-HDR-001 steht (Zeilen ohne ID machen nichts). Alle Texte aus dem Scan werden als Klartext angezeigt, nie als
-Rich-Text. Die Texte der Prüfung sind allgemein je Prüfung, nicht je Fundstelle."""
+Prüf-ID wie SEC-HDR-001 steht (Zeilen ohne ID machen nichts). Alles aus dem Scan wird maskiert; nur https-Adressen der Quellen und
+der betroffenen Seiten werden zu Links. Die Texte der Prüfung sind allgemein je Prüfung, nicht je Fundstelle."""
 from __future__ import annotations
 
 import logging
 import re
 from collections.abc import Callable
 from functools import partial
+from html import escape
 
-from PySide6.QtCore import QObject, Qt
-from PySide6.QtWidgets import QLabel, QListWidget, QPlainTextEdit, QPushButton, QTableWidget, QTreeWidget, QWidget
+from PySide6.QtCore import QObject, Qt, QUrl
+from PySide6.QtGui import QDesktopServices
+from PySide6.QtWidgets import QLabel, QListWidget, QPushButton, QTableWidget, QTextBrowser, QTreeWidget, QWidget
 
 from ..checks import load_all
+from ..core.redact import redact_url
 from ..core.registry import REGISTRY
 from ..i18n.strings import get_lang, t, text
 from .cardbox import MARGIN, CardDialog
 
 log = logging.getLogger("claudios")
 ID = re.compile(r"\b[A-Z]{2,4}-[A-Z]{2,4}-\d{3}\b")
+LINE = re.compile(r"\b(?:Line|Zeile)\s+(\d+)\b")
 MAX_EVIDENCE = 400
+MAX_LINE = 240
 FLAG = "cl_detail"
+COLORS = {"red": "#F4B6BC", "yellow": "#FFE69C", "blue": "#D6E4F0"}
 
 
 def find_id(texts) -> str | None:
@@ -60,15 +68,74 @@ def meta_refs(meta) -> list[str]:
     return [str(ref) for ref in refs or () if str(ref).startswith("https://")]
 
 
-def _section(title: str, body: str) -> list[str]:
-    return [title, "-" * len(title), body, ""]
-
-
 def _severity(value, lang: str) -> str:
     try:
         return text(lang, f"sev.{int(value)}")
     except (KeyError, ValueError, TypeError):
         return str(value)
+
+
+def _ordered(check_id: str, groups: list[dict], row_texts, lang: str) -> list[dict]:
+    """Der angeklickte Befund zuerst, danach die übrigen Befunde derselben Prüfung."""
+    key = "msg_" + lang
+    own = [g for g in groups if g.get("check_id") == check_id]
+    clicked = next((g for g in own if g.get(key) and any(g[key] in cell for cell in row_texts)), None)
+    return ([clicked] if clicked is not None else []) + [g for g in own if g is not clicked]
+
+
+# ------------------------------------------------------------------ Codefenster
+
+def line_of(evidence: str) -> int | None:
+    match = LINE.search(evidence or "")
+    return int(match.group(1)) if match else None
+
+
+def _page_html(result, urls) -> tuple[str, str] | None:
+    pages = getattr(getattr(result, "snapshot", None), "pages", None) or []
+    for url in urls:
+        for page in pages:
+            body = getattr(page, "html", None)
+            if body and (page.url == url or redact_url(page.url) == url):
+                return page.url, body
+    return None
+
+
+def _cut(line: str) -> str:
+    line = line.rstrip("\r")
+    return line[:MAX_LINE] + "…" if len(line) > MAX_LINE else line
+
+
+def code_excerpt(result, urls, evidence: str, severity: int, context: int = 3) -> dict | None:
+    """Zeilen um die im Beleg genannte Zeile einer gespeicherten HTML-Seite, sonst None."""
+    number = line_of(evidence)
+    found = _page_html(result, urls)
+    if number is None or found is None:
+        return None
+    lines = found[1].split("\n")
+    if not 1 <= number <= len(lines):
+        return None
+    first, last = max(1, number - context), min(len(lines), number + context)
+    color = "red" if severity >= 3 else "yellow" if severity >= 1 else "blue"
+    return {"url": found[0], "line": number, "color": color,
+            "lines": [(i, _cut(lines[i - 1]), i == number) for i in range(first, last + 1)]}
+
+
+def excerpt_html(excerpt: dict, lang: str) -> str:
+    rows = []
+    for number, line, marked in excerpt["lines"]:
+        row = f"{number:>5} | {escape(line)}"
+        if marked:
+            row = f'<span style="background-color:{COLORS[excerpt["color"]]};">{row}</span>'
+        rows.append(row)
+    title = text(lang, "detail.code", url=redact_url(excerpt["url"]), line=excerpt["line"])
+    return (f"<h3>{escape(title)}</h3><p>{escape(text(lang, 'detail.legend'))}</p>"
+            '<pre style="font-family: Consolas, monospace; font-size: 12px;">' + "\n".join(rows) + "</pre>")
+
+
+# ------------------------------------------------------------------ Texte
+
+def _section(title: str, body: str) -> list[str]:
+    return [title, "-" * len(title), body, ""]
 
 
 def _found(groups: list[dict], lang: str) -> str:
@@ -90,11 +157,8 @@ def _found(groups: list[dict], lang: str) -> str:
 
 
 def explain_text(check_id: str, groups: list[dict], row_texts, lang: str, meta=None, with_title: bool = True) -> str:
-    """Der Erklärtext. Der angeklickte Befund steht zuerst, danach die übrigen Befunde derselben Prüfung."""
-    key = "msg_" + lang
-    own = [g for g in groups if g.get("check_id") == check_id]
-    clicked = next((g for g in own if g.get(key) and any(g[key] in cell for cell in row_texts)), None)
-    ordered = ([clicked] if clicked is not None else []) + [g for g in own if g is not clicked]
+    """Der Erklärtext als Klartext. Der angeklickte Befund steht zuerst."""
+    ordered = _ordered(check_id, groups, row_texts, lang)
     lines: list[str] = []
     if with_title:
         lines += [f"{meta_text(meta, 'title', lang) or check_id} ({check_id})", ""]
@@ -113,11 +177,60 @@ def explain_text(check_id: str, groups: list[dict], row_texts, lang: str, meta=N
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _para(value: str) -> str:
+    return "<p>" + escape(value).replace("\n", "<br>") + "</p>"
+
+
+def _link(url: str) -> str:
+    return f'<a href="{escape(url, quote=True)}">{escape(url)}</a>'
+
+
+def _group_html(group: dict, lang: str) -> str:
+    head = f"[{_severity(group.get('severity', 0), lang)}] {group.get('msg_' + lang, '')}"
+    count = int(group.get("count") or 1)
+    if count > 1:
+        head += " (" + text(lang, "detail.times", count=count) + ")"
+    lines = [f"<b>{escape(head)}</b>"]
+    evidence = str(group.get("evidence") or "").strip()
+    if evidence:
+        lines.append(escape(f"{text(lang, 'detail.evidence')}: {evidence[:MAX_EVIDENCE]}"))
+    urls = [str(url) for url in group.get("example_urls") or []]
+    if urls:
+        lines.append(escape(text(lang, "detail.where")) + ":")
+        lines += [_link(url) if url.startswith("https://") else escape(url) for url in urls]
+    return "<p>" + "<br>".join(lines) + "</p>"
+
+
+def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=None, result=None) -> str:
+    ordered = _ordered(check_id, groups, row_texts, lang)
+    parts = [f"<h3>{escape(text(lang, 'detail.found'))}</h3>"]
+    parts += [_group_html(group, lang) for group in ordered] or [_para(text(lang, "detail.none"))]
+    if result is not None:
+        for group in ordered:
+            excerpt = code_excerpt(result, group.get("example_urls") or [], str(group.get("evidence") or ""),
+                                   int(group.get("severity") or 0))
+            if excerpt is not None:
+                parts.append(excerpt_html(excerpt, lang))
+                break
+    if meta is None:
+        parts.append(_para(text(lang, "detail.nometa")))
+    else:
+        for label, name in (("detail.why", "why"), ("detail.fix", "fix"), ("detail.method", "method"),
+                            ("detail.logic", "logic")):
+            body = meta_text(meta, name, lang)
+            if body:
+                parts += [f"<h3>{escape(text(lang, label))}</h3>", _para(body)]
+        refs = meta_refs(meta)
+        if refs:
+            parts += [f"<h3>{escape(text(lang, 'detail.refs'))}</h3>", "<p>" + "<br>".join(_link(r) for r in refs) + "</p>"]
+    return "".join(parts)
+
+
 class FindingDialog(CardDialog):
-    def __init__(self, parent, check_id: str, groups: list[dict], row_texts) -> None:
+    def __init__(self, parent, check_id: str, groups: list[dict], row_texts, result=None) -> None:
         super().__init__(parent, t("detail.title"))
         self.check_id = check_id
-        self.resize(2 * MARGIN + 700, 2 * MARGIN + 580)
+        self.resize(2 * MARGIN + 740, 2 * MARGIN + 620)
         lang = get_lang()
         meta = meta_for(check_id)
         heading = QLabel(f"{meta_text(meta, 'title', lang) or check_id} ({check_id})")
@@ -125,13 +238,21 @@ class FindingDialog(CardDialog):
         heading.setTextFormat(Qt.TextFormat.PlainText)
         heading.setWordWrap(True)
         self.content.addWidget(heading)
-        self.view = QPlainTextEdit(explain_text(check_id, groups, row_texts, lang, meta, with_title=False))
-        self.view.setReadOnly(True)
+        self.view = QTextBrowser()
+        self.view.setOpenLinks(False)
+        self.view.setOpenExternalLinks(False)
+        self.view.anchorClicked.connect(self._open)
+        self.view.setHtml(explain_html(check_id, groups, row_texts, lang, meta, result))
         self.content.addWidget(self.view, 1)
         close = QPushButton(t("card.close"))
         close.setObjectName("primary")
         close.clicked.connect(self.accept)
         self.content.addWidget(close)
+
+    @staticmethod
+    def _open(url: QUrl) -> None:
+        if url.scheme() == "https":  # nur https, nie ein anderes Schema aus Inhalten
+            QDesktopServices.openUrl(url)
 
 
 def _collect(root: QWidget, kind) -> list:
@@ -205,5 +326,5 @@ class DetailLinker(QObject):
         check_id = find_id(texts)
         if check_id is None:
             return False
-        FindingDialog(self._window, check_id, self._groups(), texts).exec()
+        FindingDialog(self._window, check_id, self._groups(), texts, self._get_result()).exec()
         return True

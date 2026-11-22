@@ -6,12 +6,15 @@ import importlib
 import pkgutil
 from pathlib import Path
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QAbstractScrollArea,
     QFrame,
     QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
+    QProgressBar,
     QPushButton,
     QScrollArea,
     QStackedWidget,
@@ -106,7 +109,28 @@ class MainWindow(CardWindow):
         side_lay = QVBoxLayout(side)
         side_lay.setContentsMargins(0, 0, 0, 0)
         side_lay.setSpacing(8)
-        side_lay.addWidget(self.nav, 1)
+        self.nav.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self._jumped = False
+        self.live_box = QWidget()  # Anzeige eines laufenden Scans, auf jeder Seite sichtbar
+        live_lay = QVBoxLayout(self.live_box)
+        live_lay.setContentsMargins(8, 0, 8, 0)
+        live_lay.setSpacing(4)
+        self.live_title = QLabel()
+        self.live_title.setObjectName("h2")
+        self.live_text = QLabel()
+        self.live_text.setObjectName("muted")
+        self.live_text.setWordWrap(True)
+        self.live_text.setTextFormat(Qt.TextFormat.PlainText)
+        self.live_bar = QProgressBar()
+        self.live_bar.setRange(0, 100)
+        self.live_bar.setTextVisible(False)
+        for widget in (self.live_title, self.live_text, self.live_bar):
+            live_lay.addWidget(widget)
+        self.live_box.setVisible(False)
+        side_lay.addWidget(self.nav)
+        side_lay.addSpacing(18)
+        side_lay.addWidget(self.live_box)
+        side_lay.addStretch(1)
         side_lay.addWidget(self.uninstall_btn)
 
         self.stack = QStackedWidget()
@@ -126,6 +150,8 @@ class MainWindow(CardWindow):
         self.footer.clicked.connect(self.show_about)
         self.nav.currentRowChanged.connect(self._on_nav)
         self.scan.scan_finished.connect(self._on_result)
+        self.scan.activity.connect(self._on_activity)
+        self.scan.running_changed.connect(self._on_running)
         self.titlebar.set_lang(get_lang())
         self.retranslate()
         self.nav.setCurrentRow(0)
@@ -140,6 +166,7 @@ class MainWindow(CardWindow):
         for index, key in enumerate(self.nav_keys):
             self.nav.item(index).setText(t(key))
         self.uninstall_btn.setText(t("app.uninstall"))
+        self.live_title.setText(t("nav.running"))
         for page in self.pages:
             page.retranslate()
         self.footer.retranslate()
@@ -169,6 +196,24 @@ class MainWindow(CardWindow):
             self._prev = row
             self.stack.setCurrentIndex(row)
             self._attach_details()  # Seiten bauen ihre Listen teils erst beim Anzeigen
+
+    def _on_running(self, running: bool) -> None:
+        self.live_box.setVisible(running)
+        if running:
+            self._jumped = False
+            self.live_bar.setValue(0)
+            self.live_text.setText("")
+        else:
+            self.results.hide_live()
+
+    def _on_activity(self, message: str, percent: int, kind: str) -> None:
+        self.live_bar.setValue(percent)
+        self.live_text.setText(message.split("\n")[0][:80])
+        self.results.show_live(message, percent)
+        if kind != "crawl" and not self._jumped:  # nach dem Laden der Seiten: in die Ergebnisse wechseln
+            self._jumped = True
+            if self.nav.currentRow() == 0:
+                self.nav.setCurrentRow(1)
 
     def _on_result(self, result) -> None:
         self.last_result = result

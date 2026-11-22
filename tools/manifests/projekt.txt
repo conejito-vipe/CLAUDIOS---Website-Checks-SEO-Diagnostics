@@ -167,3 +167,12 @@ src/claudios/ui/footer_link.py
 src/claudios/i18n/strings_update.py
 tests/test_pack12.py
 tests/test_updater.py
+# Paket 13a: Scan-Anzeige, externe Links, Abbruch
+src/claudios/i18n/strings_scanprog.py
+tests/test_pack13a.py
+# Paket 13: Scan-Anzeige, Links, Abbruch, Navigationsbalken, Verlauf, Codefenster
+src/claudios/ui/scanprogress.py
+src/claudios/report/history_latest.py
+tests/test_pack13_ui.py
+tests/test_scanprogress.py
+tests/test_code_excerpt.py
