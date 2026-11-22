@@ -24,8 +24,8 @@ def test_locs_reads_plain_cdata_and_mixed_entries():
     assert _locs(mixed) == ["https://example.com/1", "https://example.com/2"]
 
 
-def test_locs_keeps_cdata_text_literal_and_ignores_empty_entries():
-    assert _locs("<loc><![CDATA[https://example.com/q?a=1&amp;b=2]]></loc>") == ["https://example.com/q?a=1&amp;b=2"]
+def test_locs_unescapes_amp_in_cdata_and_ignores_empty_entries():
+    assert _locs("<loc><![CDATA[https://example.com/q?a=1&amp;b=2]]></loc>") == ["https://example.com/q?a=1&b=2"]
     assert _locs("<loc></loc><loc><![CDATA[]]></loc><loc>   </loc>") == []
 
 

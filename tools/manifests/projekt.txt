@@ -187,3 +187,5 @@ tests/test_contributing.py
 tests/test_sitemap_cdata.py
 # Paket 17: Crawler zaehlt Weiterleitungs-Duplikate nicht doppelt
 tests/test_crawler_dedupe.py
+# Paket 18: Sitemap-CDATA mit &amp; und Abmelde-Adressen im Crawler
+tests/test_crawler_logout.py

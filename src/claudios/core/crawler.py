@@ -16,6 +16,13 @@ ROBOTS_AGENT = "CLAUDIOS"
 SKIP_EXT = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".svg", ".ico", ".pdf", ".zip", ".gz", ".rar",
             ".7z", ".mp4", ".mp3", ".woff", ".woff2", ".ttf", ".css", ".js", ".json", ".xml", ".txt", ".exe", ".dmg")
 Progress = Callable[[str, int, int], None]
+LOGOUT_WORDS = frozenset({"logout", "log-out", "logoff", "log-off", "signout", "sign-out", "abmelden"})
+
+
+def is_logout(path: str, query: str = "") -> bool:
+    """Abmelde-Adressen werden nicht abgerufen (ein GET darf nichts auslösen, auch wenn es meist folgenlos bleibt)."""
+    parts = [x for x in path.lower().split("/") if x]
+    return (bool(parts) and parts[-1] in LOGOUT_WORDS) or "logout" in query.lower()
 
 
 def norm(url: str) -> str:
@@ -112,7 +119,7 @@ async def crawl(gk: Gatekeeper, snap: Snapshot, *, progress: Progress | None = N
         for link in p.internal_links:
             n = norm(link)
             sp = urlsplit(n)
-            if n in seen or sp.path.lower().endswith(SKIP_EXT) or len(seen) >= LIMITS.max_queued_urls:
+            if n in seen or sp.path.lower().endswith(SKIP_EXT) or is_logout(sp.path, sp.query) or len(seen) >= LIMITS.max_queued_urls:
                 continue
             if sp.query:
                 variants[sp.path] += 1

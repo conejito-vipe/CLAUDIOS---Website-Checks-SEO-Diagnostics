@@ -22,7 +22,7 @@ _ROOT_WINDOW = 5000
 
 
 def _locs(text: str) -> list[str]:
-    found = (cdata.strip() or html.unescape(plain).strip() for cdata, plain in _LOC.findall(text))
+    found = (cdata.strip().replace("&amp;", "&") or html.unescape(plain).strip() for cdata, plain in _LOC.findall(text))
     return [url for url in found if url]
 
 
