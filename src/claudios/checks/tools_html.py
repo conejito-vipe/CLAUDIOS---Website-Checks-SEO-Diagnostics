@@ -3,6 +3,7 @@ Fehlt ein Werkzeug oder ist seine Ausgabe unlesbar, gilt die Prüfung als nicht 
 from __future__ import annotations
 
 import json
+import logging
 import tempfile
 from pathlib import Path
 
@@ -13,6 +14,8 @@ from ..core.limits import LIMITS
 from ..core.registry import check
 from ..core.toolrunner import run_tool
 from ._util import CheckSkipped, F, S
+
+log = logging.getLogger("claudios")
 
 
 def _tools(*names: str) -> list[Path]:
@@ -29,6 +32,25 @@ def _json(text: str):
         raise CheckSkipped("tool_output_unreadable") from None
 
 
+def _vnu_messages(result, files: int) -> list:
+    """Meldungen aus der JSON-Ausgabe von vnu. Abgeschnittene oder unlesbare Ausgabe: nicht ausgeführt, mit Größe im Protokoll."""
+    text = getattr(result, "stdout", "") or ""
+    truncated = bool(getattr(result, "truncated", False))
+    if truncated:
+        log.info("vnu output truncated: %d bytes for %d files", len(text), files)
+        raise CheckSkipped("tool_output_unreadable")
+    try:
+        data = _json(text)
+    except CheckSkipped:
+        log.info("vnu output is not JSON: %d bytes for %d files", len(text), files)
+        raise
+    found = data.get("messages") if isinstance(data, dict) else None
+    if not isinstance(found, list):
+        log.info("vnu output has no message list: %d bytes for %d files", len(text), files)
+        raise CheckSkipped("tool_output_unreadable")
+    return found
+
+
 @check("HTM-VAL-001",
        title="HTML-Validierung (W3C Nu Html Checker) ## HTML validation (W3C Nu Html Checker)",
        why="Fehlerhaftes HTML (falsche Verschachtelung, ungültige Attribute, veraltete Elemente) wird von jedem "
@@ -38,10 +60,10 @@ def _json(text: str):
            "leads to inconsistent rendering, problems for screen readers and hard-to-find bugs. The Nu Html "
            "Checker is the W3C reference.",
        method="Schreibt die gecrawlten HTML-Seiten (höchstens 25) in einen Zwischenordner und startet vnu.jar "
-              "einmal für alle Dateien (java -jar vnu.jar --format json --stdout). Die Meldungen werden je Seite "
+              "in Gruppen zu je 10 Dateien (java -jar vnu.jar --format json --stdout). Die Meldungen werden je Seite "
               "gezählt, die erste erscheint im Beleg. Bei fehlenden Werkzeugen oder unlesbarer Ausgabe gilt die "
               "Prüfung als nicht ausgeführt. ## Writes the crawled HTML pages (at most 25) to a temporary folder "
-              "and starts vnu.jar once for all files (java -jar vnu.jar --format json --stdout). Messages are "
+              "and starts vnu.jar in groups of 10 files (java -jar vnu.jar --format json --stdout). Messages are "
               "counted per page, the first one appears in the evidence. With missing tools or unreadable output "
               "the check counts as not executed.",
        logic="Fehler laut Validator: Fehler. Warnungen: Hinweis. ## Validator error: error. Warnings: note.",
@@ -52,27 +74,30 @@ def _json(text: str):
              "https://html.spec.whatwg.org/multipage/"],
        profiles="sd", source="tool", needs=("java", "vnu"))
 def html_validation(snap):
-    docs = snap.docs()[: LIMITS.pages_level1]
+    docs = snap.docs()[: LIMITS.vnu_pages_max]
     if not docs:
         return []
     java, jar = _tools("java", "vnu")
+    names: dict[str, object] = {}
+    messages: list = []
+    size = max(1, LIMITS.vnu_batch)
     with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as tmp:
-        names: dict[str, object] = {}
-        for index, pg in enumerate(docs):
-            name = f"p{index}.html"
-            (Path(tmp) / name).write_text(pg.html, "utf-8")
-            names[name] = pg
-        try:
-            result = run_tool([java, "-Xss1024k", "-jar", jar, "--format", "json", "--stdout",
-                               "--skip-non-html", *names], cwd=tmp)
-        except ClaudiosError:
-            raise CheckSkipped("tool_failed") from None
-    data = _json(result.stdout)
-    messages = data.get("messages") if isinstance(data, dict) else None
-    if not isinstance(messages, list):
-        raise CheckSkipped("tool_output_unreadable")
-    if any(m.get("type") == "non-document-error" for m in messages if isinstance(m, dict)):
-        raise CheckSkipped("tool_failed")
+        for start in range(0, len(docs), size):
+            batch: dict[str, object] = {}
+            for index in range(start, min(start + size, len(docs))):
+                name = f"p{index}.html"
+                (Path(tmp) / name).write_text(docs[index].html, "utf-8")
+                batch[name] = docs[index]
+            try:
+                result = run_tool([java, "-Xss1024k", "-jar", jar, "--format", "json", "--stdout",
+                                   "--skip-non-html", *batch], cwd=tmp)
+            except ClaudiosError:
+                raise CheckSkipped("tool_failed") from None
+            part = _vnu_messages(result, len(batch))
+            if any(m.get("type") == "non-document-error" for m in part if isinstance(m, dict)):
+                raise CheckSkipped("tool_failed")
+            names.update(batch)
+            messages.extend(part)
     out = []
     for name, pg in names.items():
         mine = [m for m in messages if isinstance(m, dict) and str(m.get("url", "")).rsplit("/", 1)[-1] == name]

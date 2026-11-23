@@ -206,3 +206,5 @@ src/claudios/ui/activity.py
 src/claudios/ui/linktext.py
 src/claudios/ui/helppage.py
 tests/test_pack23.py
+# Paket 24: HTML-Validierung in Gruppen, Ausgabe-Diagnose
+tests/test_vnu_batches.py

@@ -48,6 +48,8 @@ class Limits:
     assets_css_max: int = 6
     assets_js_max: int = 10
     assets_bytes_max: int = 500_000
+    vnu_pages_max: int = 25                 # HTML-Seiten, die der Nu Html Checker je Scan prüft
+    vnu_batch: int = 10                     # Dateien je Lauf (die Ausgabe ist auf tool_output_max begrenzt)
     tool_timeout_seconds: float = 120.0
     tool_output_max: int = 2_000_000
     tool_total_seconds: float = 1800.0      # Gesamtzeit aller Läufe von Browser, ZAP und sslyze je Scan
