@@ -19,7 +19,7 @@ TEXTS["de"].update({
     "exp.focus.privacy": "Datenschutz", "exp.focus.accessibility": "Barrierefreiheit",
     "exp.focus.code": "Code-Qualität",
     "exp.hist.title": "Verlauf",
-    "exp.hist.switch": "Zusammenfassungen der Scans speichern (Standard: aus)",
+    "exp.hist.switch": "Zusammenfassungen der Scans speichern (Standard: an)",
     "exp.hist.info": "Gespeichert werden nur Prüfung, Schwere, Befundtext, Anzahl und Wertung, nie Adressen, Belege "
                      "oder Seiteninhalte, höchstens 20 je Domain, nur auf diesem Rechner.",
     "exp.hist.stored": "Gespeicherte Zusammenfassungen: {count}",
@@ -50,7 +50,7 @@ TEXTS["en"].update({
     "exp.focus.privacy": "Privacy", "exp.focus.accessibility": "Accessibility",
     "exp.focus.code": "Code quality",
     "exp.hist.title": "History",
-    "exp.hist.switch": "Save summaries of the scans (default: off)",
+    "exp.hist.switch": "Save summaries of the scans (default: on)",
     "exp.hist.info": "Only check, severity, finding text, count and score are stored, never addresses, evidence or "
                      "page content, at most 20 per domain, on this computer only.",
     "exp.hist.stored": "Stored summaries: {count}",

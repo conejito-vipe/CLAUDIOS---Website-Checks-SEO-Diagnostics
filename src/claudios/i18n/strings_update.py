@@ -32,3 +32,15 @@ TEXTS["en"].update({
     "settings.updates_note": "For this, the installed program asks GitHub for the latest version at startup. "
                              "When switched off, this request is not made. The change applies from the next start.",
 })
+
+
+TEXTS["de"].update({
+    "nav.help": "Hilfe",
+    "boot.firstrun": "Hinweis: Beim ersten Start werden die Prüfwerkzeuge geladen und eingerichtet. Das kann "
+                     "4 bis 5 Minuten dauern.",
+})
+TEXTS["en"].update({
+    "nav.help": "Help",
+    "boot.firstrun": "Note: on the first start the check tools are downloaded and set up. This can take "
+                     "4 to 5 minutes.",
+})

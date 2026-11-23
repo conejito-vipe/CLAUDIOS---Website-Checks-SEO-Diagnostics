@@ -17,7 +17,7 @@ ICON_SIZES = (16, 24, 32, 48, 64, 96, 128, 256)
 WIZARD_SIZE = (328, 628)   # doppelte Größe von 164x314; Inno Setup skaliert bei Bedarf herunter
 SMALL_SIZE = (110, 110)    # doppelte Größe von 55x55
 ICON_MARGIN = 0
-SMALL_MARGIN = 2
+SMALL_MARGIN = 14
 MARK_NAMES = ("logo-mark.png", "logo-icon.png", "logo-full.png")
 
 

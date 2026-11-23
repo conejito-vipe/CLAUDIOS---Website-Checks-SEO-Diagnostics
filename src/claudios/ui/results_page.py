@@ -13,6 +13,8 @@ from .pages import ResultsPage as _ResultsPage
 
 
 class ResultsPage(_ResultsPage):
+    _live_active = False
+
     def __init__(self) -> None:
         super().__init__()
         self.live_box = QWidget()
@@ -27,16 +29,23 @@ class ResultsPage(_ResultsPage):
         self.live_bar.setTextVisible(False)
         box.addWidget(self.live_text)
         box.addWidget(self.live_bar)
+        self.live_bar.setVisible(False)  # ein Balken für den ganzen Lauf: der in der Seitenleiste
         self.live_box.setVisible(False)
         self.layout().insertWidget(0, self.live_box)
 
     def show_live(self, message: str, percent: int) -> None:
         self.live_text.setText(t("res.live", message=message))
         self.live_bar.setValue(percent)
+        self._live_active = True
+        if self.result is None:
+            self.summary.setText("")
         self.live_box.setVisible(True)
 
     def hide_live(self) -> None:
+        self._live_active = False
         self.live_box.setVisible(False)
+        if self.result is None:
+            self.refresh()  # jetzt, nach dem Ende, darf der Hinweis „noch keine Ergebnisse“ erscheinen
 
     def _show_history(self) -> None:
         try:
@@ -59,6 +68,9 @@ class ResultsPage(_ResultsPage):
         super().refresh()
         result = self.result
         if result is None:
+            if self._live_active:
+                self.summary.setText("")
+                return
             self._show_history()
             return
         if result.snapshot.status != "aborted":

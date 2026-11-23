@@ -24,18 +24,20 @@ from PySide6.QtWidgets import (
 
 from ..i18n.strings import get_lang, set_lang, t
 from ..settings import save as save_settings
+from .activity import short_activity
 from .components_page import ComponentsPage
 from .dialogs import AboutDialog
 from .finding_detail import DetailLinker
 from .footer_link import LinkFooter
 from .heartbeat import Heartbeat
+from .helppage import HelpPage
 from .highlight import attach
-from .pages import DocPage, ScanPage, SettingsPage
+from .pages import ScanPage, SettingsPage
 from .results_page import ResultsPage
 from .uninstall import run_uninstall
 from .widgets import CardWindow
 
-BASE_KEYS = ("nav.scan", "nav.results", "nav.handbook", "nav.tech", "nav.components", "nav.settings")
+BASE_KEYS = ("nav.scan", "nav.results", "nav.help", "nav.components", "nav.settings")
 SCROLL_PAGES = frozenset({"ServicesPage", "ExportPage", "ComponentsPage", "SettingsPage"})
 H2_LABELS = ("url_lbl", "profile_lbl", "focus_lbl", "hist_title", "local_title")
 
@@ -82,11 +84,11 @@ class MainWindow(CardWindow):
 
         self.scan = ScanPage(lambda: self.settings)
         self.results = ResultsPage()
-        self.handbook = DocPage("handbook")
-        self.tech = DocPage("tech")
+        self.help = HelpPage()
+        self.handbook, self.tech = self.help.handbook, self.help.tech
         self.components = ComponentsPage()
         self.settings_page = SettingsPage(settings)
-        self.pages = [self.scan, self.results, self.handbook, self.tech, self.components, self.settings_page]
+        self.pages = [self.scan, self.results, self.help, self.components, self.settings_page]
         keys = list(BASE_KEYS)
         for key, page in _discover_pages(self):
             keys.append(key)
@@ -95,6 +97,7 @@ class MainWindow(CardWindow):
         self.nav_keys = tuple(keys)
         self.about_row = len(keys) - 1
         _style_headings(self.pages)
+        self.scan.bar.setVisible(False)  # ein Balken für den ganzen Lauf: der in der Seitenleiste
         attach(self.tech.view)  # Syntax-Hervorhebung der Technik-Doku (früher in der Seite „Einrichtung")
         self.detail = DetailLinker(self, lambda: self.last_result)  # Klick auf einen Befund: Erklärung
 
@@ -102,6 +105,7 @@ class MainWindow(CardWindow):
         self.nav.setObjectName("nav")
         for _key in self.nav_keys:
             self.nav.addItem(QListWidgetItem(""))
+        self.nav.item(self.nav_keys.index("nav.help")).setHidden(True)  # „Hilfe“ öffnet der Knopf in der Titelleiste
         self.uninstall_btn = QPushButton()
         self.uninstall_btn.setObjectName("danger")
         self.uninstall_btn.clicked.connect(self.uninstall_all)
@@ -129,7 +133,7 @@ class MainWindow(CardWindow):
             live_lay.addWidget(widget)
         self.live_box.setVisible(False)
         side_lay.addWidget(self.nav)
-        side_lay.addSpacing(18)
+        side_lay.addSpacing(14)
         side_lay.addWidget(self.live_box)
         side_lay.addStretch(1)
         side_lay.addWidget(self.uninstall_btn)
@@ -148,6 +152,7 @@ class MainWindow(CardWindow):
         self.body.addWidget(self.footer)
 
         self.titlebar.langChanged.connect(self.set_language)
+        self.titlebar.helpRequested.connect(self.show_help)
         self.footer.clicked.connect(self.show_about)
         self.nav.currentRowChanged.connect(self._on_nav)
         self.scan.scan_finished.connect(self._on_result)
@@ -165,6 +170,7 @@ class MainWindow(CardWindow):
 
     def retranslate(self) -> None:
         self.setWindowTitle(t("app.title"))
+        self.titlebar.set_help_text(t("nav.help"))
         for index, key in enumerate(self.nav_keys):
             self.nav.item(index).setText(t(key))
         self.uninstall_btn.setText(t("app.uninstall"))
@@ -180,6 +186,9 @@ class MainWindow(CardWindow):
         save_settings(self.settings)
         self.titlebar.set_lang(lang)
         self.retranslate()
+
+    def show_help(self) -> None:
+        self.nav.setCurrentRow(self.nav_keys.index("nav.help"))
 
     def show_about(self) -> None:
         AboutDialog(self).exec()
@@ -210,7 +219,7 @@ class MainWindow(CardWindow):
 
     def _on_activity(self, message: str, percent: int, kind: str) -> None:
         self.live_bar.setValue(percent)
-        self.live_text.setText(message.split("\n")[0][:80])
+        self.live_text.setText(short_activity(message))
         self.results.show_live(message, percent)
         if kind != "crawl" and not self._jumped:  # nach dem Laden der Seiten: in die Ergebnisse wechseln
             self._jumped = True

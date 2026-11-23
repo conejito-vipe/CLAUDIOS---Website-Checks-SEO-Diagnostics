@@ -10,8 +10,8 @@ from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QProgressBar, Q
 from ..i18n.strings import n, t
 from .widgets import CardWindow, load_logo
 
-WIDTH, HEIGHT = 658, 448
-LOGO_HEIGHT = 218
+WIDTH, HEIGHT = 658, 500
+LOGO_HEIGHT = 251
 LOGO_GAP = 14
 SKIP_DELAY_MS = 20000
 
@@ -67,6 +67,11 @@ class Splash(CardWindow):
         self.percent.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
         row.addWidget(self.status, 1)
         row.addWidget(self.percent, 0, Qt.AlignmentFlag.AlignTop)
+        self.hint = QLabel()
+        self.hint.setObjectName("muted")
+        self.hint.setTextFormat(Qt.TextFormat.PlainText)
+        self.hint.setWordWrap(True)
+        self.hint.setVisible(False)
         self.skip_btn = QPushButton()
         self.skip_btn.setVisible(False)
         self.skip_btn.clicked.connect(lambda _checked=False: self.skipped.emit())
@@ -75,6 +80,7 @@ class Splash(CardWindow):
         self._skip_timer.timeout.connect(lambda: self.skip_btn.setVisible(True))
         col.addWidget(self.bar)
         col.addLayout(row)
+        col.addWidget(self.hint)
         col.addWidget(self.skip_btn, 0, Qt.AlignmentFlag.AlignRight)
         self.body.addWidget(bottom)
         self._show(0, "")
@@ -93,6 +99,8 @@ class Splash(CardWindow):
     def show_skip(self, visible: bool, delay_ms: int = SKIP_DELAY_MS) -> None:
         """Zeigt „Später fortsetzen“ erst nach delay_ms (Standard 20 Sekunden)."""
         self.skip_btn.setText(t("boot.skip"))
+        self.hint.setText(t("boot.firstrun"))
+        self.hint.setVisible(visible)
         self._skip_timer.stop()
         if not visible:
             self.skip_btn.setVisible(False)

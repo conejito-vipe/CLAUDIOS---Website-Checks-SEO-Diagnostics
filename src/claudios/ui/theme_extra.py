@@ -8,7 +8,7 @@ from .theme import BG, INK
 EXTRA = """
 QWidget { font-size: 14px; }
 QLabel#muted { color: #3F4E59; }
-QLabel#pill { font-size: 11px; padding: 0px 10px; border-radius: 6px; min-height: 14px; max-height: 14px; }
+QLabel#pill { font-size: 11px; padding: 0px 8px; border-radius: 6px; min-height: 15px; max-height: 15px; }
 QLabel#logofallback { font-size: 38px; }
 QLabel#h1 { font-size: 22px; font-weight: 700; color: %INK%; }
 QLabel#h2 { font-size: 15px; font-weight: 600; color: %INK%; }

@@ -17,7 +17,7 @@ _app = QApplication.instance() or QApplication([])
 
 
 def test_splash_proportions():
-    assert splash_module.LOGO_HEIGHT == 218 and splash_module.LOGO_GAP == 14 and splash_module.SKIP_DELAY_MS == 20000
+    assert splash_module.LOGO_HEIGHT == 251 and splash_module.LOGO_GAP == 14 and splash_module.SKIP_DELAY_MS == 20000
 
 
 def test_skip_button_appears_only_after_the_delay():

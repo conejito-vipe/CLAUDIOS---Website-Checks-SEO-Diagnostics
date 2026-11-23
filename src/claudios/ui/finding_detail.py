@@ -187,20 +187,35 @@ def _link(url: str) -> str:
     return f'<a href="{escape(url, quote=True)}">{escape(url)}</a>'
 
 
+URL_RX = re.compile(r"""https://[^\s<>"']+""")
+
+
+def _linkify(value: str) -> str:
+    """Text mit anklickbaren https-Adressen (alles andere wird maskiert, ein Satzzeichen am Ende gehört nicht zur Adresse)."""
+    out, last = [], 0
+    for match in URL_RX.finditer(value):
+        url = match.group(0).rstrip(".,;:!?)")
+        out.append(escape(value[last:match.start()]))
+        out.append(_link(url))
+        last = match.start() + len(url)
+    out.append(escape(value[last:]))
+    return "".join(out)
+
+
 def _group_html(group: dict, lang: str) -> str:
     head = f"[{_severity(group.get('severity', 0), lang)}] {group.get('msg_' + lang, '')}"
     count = int(group.get("count") or 1)
     if count > 1:
         head += " (" + text(lang, "detail.times", count=count) + ")"
-    lines = [f"<b>{escape(head)}</b>"]
+    parts = [f"<p><b>{escape(head)}</b></p>"]
     evidence = str(group.get("evidence") or "").strip()
     if evidence:
-        lines.append(escape(f"{text(lang, 'detail.evidence')}: {evidence[:MAX_EVIDENCE]}"))
+        parts.append("<p>" + escape(f"{text(lang, 'detail.evidence')}: ") + _linkify(evidence[:MAX_EVIDENCE]) + "</p>")
     urls = [str(url) for url in group.get("example_urls") or []]
     if urls:
-        lines.append(escape(text(lang, "detail.where")) + ":")
-        lines += [_link(url) if url.startswith("https://") else escape(url) for url in urls]
-    return "<p>" + "<br>".join(lines) + "</p>"
+        items = "".join("<li>" + (_link(url) if url.startswith("https://") else escape(url)) + "</li>" for url in urls)
+        parts.append("<p><br>" + escape(text(lang, "detail.where")) + ":</p><ul>" + items + "</ul>")
+    return "".join(parts)
 
 
 def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=None, result=None) -> str:

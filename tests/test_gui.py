@@ -30,10 +30,10 @@ def test_main_window_builds_and_switches_language(qapp, tmp_path, monkeypatch):
         set_lang("de")
         window = MainWindow({"language": "de", "allow_localhost": False})
         assert window.nav.item(0).text() == "Scan"
-        assert window.nav.item(2).text() == "Handbuch"
+        assert window.nav.item(2).text() == "Hilfe"
         assert window.footer.after.text().endswith("Zeilen Python")
         window.set_language("en")
-        assert window.nav.item(2).text() == "Manual"
+        assert window.nav.item(2).text() == "Help"
         assert window.footer.after.text().endswith("lines of Python")
         assert not window.confirm_checked() if hasattr(window, "confirm_checked") else True
         assert window.scan.confirm.isChecked() is False

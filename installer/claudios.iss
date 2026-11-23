@@ -69,10 +69,18 @@ Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE.de.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\THIRD_PARTY_NOTICES.de.md"; DestDir: "{app}"; Flags: ignoreversion
+#ifdef HasIcon
+Source: "art\app.ico"; DestDir: "{app}"; Flags: ignoreversion
+#endif
 
 [Icons]
+#ifdef HasIcon
+Name: "{group}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\app.ico"
+Name: "{autodesktop}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\app.ico"; Tasks: desktopicon
+#else
 Name: "{group}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"
 Name: "{autodesktop}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
+#endif
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppShortName}}"; Flags: nowait postinstall skipifsilent

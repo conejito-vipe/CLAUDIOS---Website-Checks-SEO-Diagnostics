@@ -201,3 +201,8 @@ tests/test_crashlog.py
 # Paket 22: Status mit Einschraenkungen nur bei echten Problemen
 src/claudios/core/runstatus.py
 tests/test_runstatus.py
+# Paket 23: Oberflaeche, Hilfe, Flaggen, Befund-Links
+src/claudios/ui/activity.py
+src/claudios/ui/linktext.py
+src/claudios/ui/helppage.py
+tests/test_pack23.py

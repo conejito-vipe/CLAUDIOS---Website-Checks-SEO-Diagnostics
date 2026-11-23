@@ -42,6 +42,7 @@ from .cooldown import remaining as cooldown_remaining
 from .dialogs import error_info, show_error
 from .expert_box import ExpertBox
 from .levelinfo import KEYS as LEVEL_KEYS, level_info
+from .linktext import LinkText
 from .scanprogress import PhaseClock, format_duration, overall_percent
 from .urlinput import clean_input
 from .worker import ScanThread
@@ -240,6 +241,7 @@ class ScanPage(QWidget):
         self.log.clear()
         self._last_marker = None
         self._clock = PhaseClock()
+        self._check_now = None
         self._t0 = time.monotonic()
         self._last_marker = None
         self.bar.setValue(0)
@@ -281,9 +283,22 @@ class ScanPage(QWidget):
         cursor.movePosition(QTextCursor.MoveOperation.Start)
         cursor.insertText(text + "\n")
 
+    def _time_checks(self, kind: str, detail: str) -> None:
+        """Schreibt für jede Prüfung, die länger als 5 Sekunden brauchte, die Dauer ins Protokoll."""
+        now = time.monotonic()
+        previous = getattr(self, "_check_now", None)
+        if previous is not None and (kind != "check" or previous[0] != detail):
+            took = now - previous[1]
+            if took >= 5:
+                logging.getLogger("claudios").info("check %s took %.0f s", previous[0], took)
+            self._check_now = None
+        if kind == "check" and getattr(self, "_check_now", None) is None:
+            self._check_now = (detail, now)
+
     def _on_progress(self, stage: str, cur: int, total: int) -> None:
         kind, _sep, detail = stage.partition(":")
         total = max(total, 1)
+        self._time_checks(kind, detail)
         note = None
         if kind == "crawl":
             message, note = t("scan.crawl_count", cur=n(cur), total=n(total)), "scan.stage.crawl"
@@ -305,7 +320,7 @@ class ScanPage(QWidget):
         eta = self._clock.update(kind, cur, total)
         line = message
         if eta is not None:
-            line += "\n" + t("scan.eta", time=format_duration(eta, get_lang()))
+            line += "\n\n" + t("scan.eta", time=format_duration(eta, get_lang()))
         self.bar.setValue(percent)
         self.status.setText(line)  # eine Zeile, die hochzählt; das Protokoll bekommt nur eine Zeile je Abschnitt
         marker = (kind, detail) if kind == "probe" else (kind, "")
@@ -317,6 +332,7 @@ class ScanPage(QWidget):
         self.activity.emit(line, percent, kind)
 
     def _on_done(self, result) -> None:
+        self._time_checks("end", "")
         self.confirm.setChecked(False)  # Bestätigung gilt nur für einen Scan
         snap = result.snapshot
         self.bar.setValue(100)
@@ -425,7 +441,7 @@ class DocPage(QWidget):
         self.mode = mode
         self.search = QLineEdit()
         self.search.setClearButtonEnabled(True)
-        self.view = QPlainTextEdit()
+        self.view = LinkText()
         self.view.setReadOnly(True)
         if mode == "tech":
             self.view.setFont(QFont("Consolas", 10))
@@ -442,6 +458,7 @@ class DocPage(QWidget):
 
     def refresh(self, *_args) -> None:
         self.view.setPlainText(render_doc(self.mode, get_lang(), self.search.text()))
+        self.view.underline_links()
 
 
 class SettingsPage(QWidget):

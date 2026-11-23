@@ -88,6 +88,7 @@ def _setup_logging() -> None:
     root.addHandler(handler)
     root.setLevel(logging.INFO)
     logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpx2").setLevel(logging.WARNING)
 
 
 def main() -> int:
