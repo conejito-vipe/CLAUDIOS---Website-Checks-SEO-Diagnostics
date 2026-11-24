@@ -3,7 +3,6 @@
 </p>
 
 # CLAUDIOS – Website Checks, SEO & Diagnostics
-
 Deutsche Fassung: [README.de.md](README.de.md)
 
 Freeware Windows tool (Python) that checks a single website for clean HTML, CSS and JavaScript (W3C references), security, privacy, SEO and accessibility. Every check explains *why* it matters.
@@ -11,11 +10,9 @@ Freeware Windows tool (Python) that checks a single website for clean HTML, CSS 
 *vibecoded with Claude (Anthropic) by conejito-vipe with love ❤️*
 
 ## Status
-
 Early version. More than 400 automated tests run against **simulated** websites, DNS answers and tool outputs. The Windows build and installer are produced in CI and have had a first test on Windows 10. Real-world behaviour (live sites, the real tools, the Google sign-in) is still being verified. Treat results as technical indications, not as a certification and not as legal advice.
 
 ## License & Usage
-
 CLAUDIOS is made publicly available for testing and ongoing development. See the [LICENSE](./LICENSE) file for the full terms; the German version is binding.
 
 - **Free use:** individuals (non-commercial) and non-profit organizations and associations (for non-profit purposes), each on their own systems.
@@ -26,7 +23,6 @@ CLAUDIOS is made publicly available for testing and ongoing development. See the
 Without any warranty or guarantee of success.
 
 ## What it checks
-
 - **HTML / CSS / JS:** document structure, duplicate IDs, headings, landmarks, forms, W3C Nu Html Checker, W3C CSS Validator, ESLint (security plugin), Stylelint, retire.js, risky patterns, Subresource Integrity, inline handlers
 - **Security:** CSP, HSTS, clickjacking, referrer policy, permissions policy, COOP/COEP/CORP, cookies, CORS, cache control, mixed content, secrets in source, `security.txt`, TLS certificate, TLS protocols and ciphers (sslyze)
 - **DNS and mail:** SPF, DKIM, DMARC, CAA, MTA-STS (including the policy file), TLS-RPT, DNSSEC, subdomain takeover (DNS and error-page fingerprints)
@@ -41,8 +37,9 @@ Reports: ZIP with a prompt for Claude (general or focused on security, SEO, priv
 The manual inside the program lists every check with a "Why?" section; the technical documentation shows the exact rules and code.
 
 ## Windows SmartScreen
-
 The installer is not code-signed (certificates cost money). Windows SmartScreen therefore shows "Windows protected your PC" and lists the publisher as "Unknown publisher". To install anyway:
+
+![Windows SmartScreen: "Windows protected your PC", publisher "Unknown publisher" (German Windows)](assets/smartscreen.png)
 
 1. Compare the SHA256 checksum shown in the build log with the downloaded file.
 2. In the SmartScreen window click **More info**, then **Run anyway**.
@@ -50,7 +47,6 @@ The installer is not code-signed (certificates cost money). Windows SmartScreen 
 The publisher name in the installer and in the list of installed apps is **GitHub - conejito-vipe**. A name there does not remove the SmartScreen warning, only a code-signing certificate does.
 
 ## Safety by design
-
 - HTTPS only; certificate errors abort the scan with a clear reason
 - At most 6 crawl levels; up to 250 pages; throttled
 - One domain per scan; daily and hourly limits, a cool-down between scans and a tamper-evident scan log
@@ -62,16 +58,15 @@ The publisher name in the installer and in the list of installed apps is **GitHu
 These protections prevent accidental misuse. They cannot technically stop someone who changes the source code; the license forbids that. Use CLAUDIOS only on websites you own or are authorised to test. Details: [docs/ABUSE_PROTECTION.md](docs/ABUSE_PROTECTION.md).
 
 ## Building from source (for your own use, unmodified)
-
-    py -3.12 -m venv .venv
-    .venv\Scripts\activate
-    pip install -e ".[dev,gui]"
-    pytest
-
+```
+py -3.12 -m venv .venv
+.venv\Scripts\activate
+pip install -e ".[dev,gui]"
+pytest
+```
 Start the program: `python -m claudios`. A Windows installer is built by the GitHub workflow "Windows-Build und Installer" (installs for the current user, no admin rights). Passing on the installer or the source code is not allowed.
 
 ## More
-
 [FAQ](FAQ.md) · [Security policy](SECURITY.md) · [Threat model](THREAT_MODEL.md) · [Feedback](CONTRIBUTING.md) · [External services](docs/EXTERNAL_SERVICES.md) · [Google setup](docs/GOOGLE_SETUP.md) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Changelog](CHANGELOG.md) · [License](LICENSE)
 
 The logo is part of the work and may only be used together with CLAUDIOS (see `assets/ASSETS.md`). Freeware, no warranty or liability as far as legally permitted.
