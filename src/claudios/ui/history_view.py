@@ -25,8 +25,8 @@ def detail_text(host: str, day: str, clock: str, record: dict, lang: str) -> str
     for item in findings:
         times = f" ({n(item['count'])}x)" if item["count"] > 1 else ""
         message = localize_numbers(item["msg_" + lang], lang)
-        lines.append(f"[{t(f'sev.{item[chr(115)+chr(101)+chr(118)+chr(101)+chr(114)+chr(105)+chr(116)+chr(121)]}')}] "
-                     f"{item['check_id']}: {message}{times}")
+        severity = item["severity"]
+        lines.append(f"[{t(f'sev.{severity}')}] {item['check_id']}: {message}{times}")
     return "\n".join(lines)
 
 
