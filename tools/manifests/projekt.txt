@@ -213,3 +213,5 @@ src/claudios/core/numtext.py
 src/claudios/report/history_tree.py
 src/claudios/ui/history_view.py
 tests/test_pack25.py
+# Paket 26: HTML-Validierung zusammenfassen
+tests/test_pack26.py
