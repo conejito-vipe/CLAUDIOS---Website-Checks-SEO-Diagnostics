@@ -1,13 +1,14 @@
 """Erklärung zu einem Befund. Ein Klick auf eine Zeile der Ergebnisliste öffnet einen Dialog mit dem Befund (Meldung, Beleg,
-betroffene Adressen aus dem Scan), einem Codefenster (bei gespeicherten HTML-, CSS- und JavaScript-Dateien und Belegen mit „Line
-N“: gelb für Hinweis und Warnung, rot für Fehler und kritisch) und der Beschreibung der Prüfung aus der Registry (warum wichtig,
-wie beheben, wie geprüft, Quellen als Links). Gibt es kein Codefenster, obwohl der Beleg eine Zeile nennt, steht der Grund im
-Dialog.
+betroffene Adressen aus dem Scan), einem Codefenster (bei gespeicherten HTML-, CSS- und JavaScript-Dateien und Belegen mit
+„Line N“: gelb für Hinweis und Warnung, rot für Fehler und kritisch) und der Beschreibung der Prüfung aus der Registry
+(warum wichtig, wie beheben, wie geprüft, Quellen als Links). Gibt es kein Codefenster, obwohl der Beleg eine Zeile nennt,
+steht der Grund im Dialog, dazu eine Zeile „Technische Angaben“ (auch im Protokoll). Fehlt die Befund-Liste ganz, steht auch
+das da.
 
-Die Liste selbst kennt diese Datei nicht: DetailLinker hängt sich an jede Tabelle, jeden Baum und jede Liste, in deren Zeile eine
-Prüf-ID wie SEC-HDR-001 steht (Zeilen ohne ID machen nichts). Alles aus dem Scan wird maskiert; nur https-Adressen der Quellen und
-der betroffenen Seiten werden zu Links. Zahlen in den Meldungen bekommen den Tausendertrenner der Sprache (nicht im Beleg und nicht
-im Quelltext). Die Texte der Prüfung sind allgemein je Prüfung, nicht je Fundstelle."""
+Die Liste selbst kennt diese Datei nicht: DetailLinker hängt sich an jede Tabelle, jeden Baum und jede Liste, in deren Zeile
+eine Prüf-ID wie SEC-HDR-001 steht (Zeilen ohne ID machen nichts). Alles aus dem Scan wird maskiert; nur https-Adressen der
+Quellen und der betroffenen Seiten werden zu Links. Zahlen in den Meldungen bekommen den Tausendertrenner der Sprache (nicht
+im Beleg und nicht im Quelltext). Die Texte der Prüfung sind allgemein je Prüfung, nicht je Fundstelle."""
 from __future__ import annotations
 
 import logging
@@ -21,9 +22,11 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QLabel, QListWidget, QPushButton, QTableWidget, QTextBrowser, QTreeWidget, QWidget
 
 from ..checks import load_all
+from ..core.numfmt import format_number
 from ..core.numtext import localize_numbers
 from ..core.redact import redact_url
 from ..core.registry import REGISTRY
+from ..i18n import strings_detail2  # noqa: F401 (legt die Texte der technischen Angaben an)
 from ..i18n.strings import get_lang, t, text
 from .cardbox import MARGIN, CardDialog
 from .code_source import source_for
@@ -36,6 +39,7 @@ MAX_LINE = 240
 FLAG = "cl_detail"
 COLORS = {"red": "#F4B6BC", "yellow": "#FFE69C", "blue": "#D6E4F0"}
 _NOCODE = {"result": "detail.nocode_result", "source": "detail.nocode_source", "range": "detail.nocode_range"}
+_FACTS = {"result": "detail.facts_result", "source": "detail.facts_source", "range": "detail.facts_range"}
 
 
 def find_id(texts) -> str | None:
@@ -143,6 +147,43 @@ def excerpt_problem(result, urls, evidence: str, check_id: str = "") -> str | No
     return None
 
 
+def excerpt_facts(result, urls, evidence: str, check_id: str = "") -> dict | None:
+    """Der Grund aus excerpt_problem mit den Angaben, die zeigen, woran es liegt (Adresse, Zahl der gespeicherten Seiten und
+    Dateien, Zeilenzahl). None, wenn es ein Codefenster gibt oder der Beleg keine Zeile nennt. Adressen sind maskiert."""
+    reason = excerpt_problem(result, urls, evidence, check_id)
+    if reason is None:
+        return None
+    facts: dict = {"reason": reason, "line": line_of(evidence), "url": redact_url(str(urls[0])) if urls else "-"}
+    if reason == "source":
+        snapshot = getattr(result, "snapshot", None)
+        pages = [p for p in getattr(snapshot, "pages", None) or [] if getattr(p, "html", None)]
+        extra = getattr(snapshot, "extra", None)
+        assets = extra.get("assets") if isinstance(extra, dict) else None
+        facts["pages"] = len(pages)
+        facts["samples"] = [redact_url(str(p.url)) for p in pages[:3]]
+        facts["assets"] = sum(len(assets.get(kind) or []) for kind in ("css", "js")) if isinstance(assets, dict) else 0
+    elif reason == "range":
+        found = source_for(result, urls, check_id)
+        facts["lines"] = len(found[1].split("\n")) if found else 0
+    return facts
+
+
+def facts_text(facts: dict, lang: str) -> str:
+    """Die Zeile „Technische Angaben“ in der Sprache (Zahlen mit Tausendertrenner)."""
+    def num(value) -> str:
+        return format_number(value, lang)
+
+    line = facts.get("line")
+    common = {"url": facts.get("url") or "-", "line": num(line) if line is not None else "-"}
+    reason = facts.get("reason", "result")
+    if reason == "source":
+        return text(lang, _FACTS["source"], pages=num(facts.get("pages", 0)), assets=num(facts.get("assets", 0)),
+                    samples=", ".join(facts.get("samples") or []) or "-", **common)
+    if reason == "range":
+        return text(lang, _FACTS["range"], lines=num(facts.get("lines", 0)), **common)
+    return text(lang, _FACTS["result"], **common)
+
+
 def excerpt_html(excerpt: dict, lang: str) -> str:
     rows = []
     for number, line, marked in excerpt["lines"]:
@@ -244,6 +285,9 @@ def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=N
     ordered = _ordered(check_id, groups, row_texts, lang)
     parts = [f"<h3>{escape(text(lang, 'detail.found'))}</h3>"]
     parts += [_group_html(group, lang) for group in ordered] or [_para(text(lang, "detail.none"))]
+    if not ordered and result is not None:  # ein Scan liegt vor, aber die Befund-Liste fehlt: nicht stumm bleiben
+        parts.append(_para(text(lang, "detail.nogroups")))
+        log.info("no findings list for %s in the detail dialog", check_id)
     shown = False
     if result is not None:
         for group in ordered:
@@ -255,10 +299,11 @@ def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=N
                 break
     if not shown:
         for group in ordered:
-            problem = excerpt_problem(result, group.get("example_urls") or [], str(group.get("evidence") or ""),
-                                      check_id)
-            if problem:
-                parts.append(_para(text(lang, _NOCODE[problem])))
+            facts = excerpt_facts(result, group.get("example_urls") or [], str(group.get("evidence") or ""), check_id)
+            if facts:
+                parts.append(_para(text(lang, _NOCODE[facts["reason"]])))
+                parts.append(_para(facts_text(facts, lang)))
+                log.info("no code window for %s: %s", check_id, facts)
                 break
     if meta is None:
         parts.append(_para(text(lang, "detail.nometa")))
