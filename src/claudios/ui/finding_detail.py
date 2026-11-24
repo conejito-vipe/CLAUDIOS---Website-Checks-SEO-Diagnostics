@@ -1,11 +1,13 @@
 """Erklärung zu einem Befund. Ein Klick auf eine Zeile der Ergebnisliste öffnet einen Dialog mit dem Befund (Meldung, Beleg,
-betroffene Adressen aus dem Scan), einem Codefenster (bei gespeicherten HTML-, CSS- und JavaScript-Dateien und Belegen mit „Line N“: gelb für Hinweis und
-Warnung, rot für Fehler und kritisch) und der Beschreibung der Prüfung aus der Registry (warum wichtig, wie beheben, wie
-geprüft, Quellen als Links).
+betroffene Adressen aus dem Scan), einem Codefenster (bei gespeicherten HTML-, CSS- und JavaScript-Dateien und Belegen mit „Line
+N“: gelb für Hinweis und Warnung, rot für Fehler und kritisch) und der Beschreibung der Prüfung aus der Registry (warum wichtig,
+wie beheben, wie geprüft, Quellen als Links). Gibt es kein Codefenster, obwohl der Beleg eine Zeile nennt, steht der Grund im
+Dialog.
 
 Die Liste selbst kennt diese Datei nicht: DetailLinker hängt sich an jede Tabelle, jeden Baum und jede Liste, in deren Zeile eine
 Prüf-ID wie SEC-HDR-001 steht (Zeilen ohne ID machen nichts). Alles aus dem Scan wird maskiert; nur https-Adressen der Quellen und
-der betroffenen Seiten werden zu Links. Die Texte der Prüfung sind allgemein je Prüfung, nicht je Fundstelle."""
+der betroffenen Seiten werden zu Links. Zahlen in den Meldungen bekommen den Tausendertrenner der Sprache (nicht im Beleg und nicht
+im Quelltext). Die Texte der Prüfung sind allgemein je Prüfung, nicht je Fundstelle."""
 from __future__ import annotations
 
 import logging
@@ -19,6 +21,7 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QLabel, QListWidget, QPushButton, QTableWidget, QTextBrowser, QTreeWidget, QWidget
 
 from ..checks import load_all
+from ..core.numtext import localize_numbers
 from ..core.redact import redact_url
 from ..core.registry import REGISTRY
 from ..i18n.strings import get_lang, t, text
@@ -32,6 +35,7 @@ MAX_EVIDENCE = 400
 MAX_LINE = 240
 FLAG = "cl_detail"
 COLORS = {"red": "#F4B6BC", "yellow": "#FFE69C", "blue": "#D6E4F0"}
+_NOCODE = {"result": "detail.nocode_result", "source": "detail.nocode_source", "range": "detail.nocode_range"}
 
 
 def find_id(texts) -> str | None:
@@ -77,10 +81,12 @@ def _severity(value, lang: str) -> str:
 
 
 def _ordered(check_id: str, groups: list[dict], row_texts, lang: str) -> list[dict]:
-    """Der angeklickte Befund zuerst, danach die übrigen Befunde derselben Prüfung."""
+    """Der angeklickte Befund zuerst, danach die übrigen Befunde derselben Prüfung. Die Zeile der Liste zeigt die Zahlen mit
+    Tausendertrenner, deshalb wird auch die so geschriebene Meldung verglichen."""
     key = "msg_" + lang
     own = [g for g in groups if g.get("check_id") == check_id]
-    clicked = next((g for g in own if g.get(key) and any(g[key] in cell for cell in row_texts)), None)
+    clicked = next((g for g in own if g.get(key)
+                    and any(g[key] in cell or localize_numbers(g[key], lang) in cell for cell in row_texts)), None)
     return ([clicked] if clicked is not None else []) + [g for g in own if g is not clicked]
 
 
@@ -108,7 +114,7 @@ def _cut(line: str) -> str:
 
 def code_excerpt(result, urls, evidence: str, severity: int, context: int = 3,
                  check_id: str = "") -> dict | None:
-    """Zeilen um die im Beleg genannte Zeile einer gespeicherten HTML-Seite, sonst None."""
+    """Zeilen um die im Beleg genannte Zeile einer gespeicherten HTML-, CSS- oder JavaScript-Datei, sonst None."""
     number = line_of(evidence)
     found = source_for(result, urls, check_id)
     if number is None or found is None:
@@ -120,6 +126,21 @@ def code_excerpt(result, urls, evidence: str, severity: int, context: int = 3,
     color = "red" if severity >= 3 else "yellow" if severity >= 1 else "blue"
     return {"url": found[0], "line": number, "color": color,
             "lines": [(i, _cut(lines[i - 1]), i == number) for i in range(first, last + 1)]}
+
+
+def excerpt_problem(result, urls, evidence: str, check_id: str = "") -> str | None:
+    """Warum es kein Codefenster gibt, obwohl der Beleg eine Zeile nennt (result, source, range), sonst None."""
+    number = line_of(evidence)
+    if number is None:
+        return None
+    if result is None:
+        return "result"
+    found = source_for(result, urls, check_id)
+    if found is None:
+        return "source"
+    if not 1 <= number <= len(found[1].split("\n")):
+        return "range"
+    return None
 
 
 def excerpt_html(excerpt: dict, lang: str) -> str:
@@ -143,7 +164,7 @@ def _section(title: str, body: str) -> list[str]:
 def _found(groups: list[dict], lang: str) -> str:
     parts = []
     for group in groups:
-        head = f"[{_severity(group.get('severity', 0), lang)}] {group.get('msg_' + lang, '')}"
+        head = f"[{_severity(group.get('severity', 0), lang)}] {localize_numbers(group.get('msg_' + lang, ''), lang)}"
         count = int(group.get("count") or 1)
         if count > 1:
             head += " (" + text(lang, "detail.times", count=count) + ")"
@@ -203,11 +224,12 @@ def _linkify(value: str) -> str:
 
 
 def _group_html(group: dict, lang: str) -> str:
-    head = f"[{_severity(group.get('severity', 0), lang)}] {group.get('msg_' + lang, '')}"
+    message = localize_numbers(group.get("msg_" + lang, ""), lang)
+    head = f"[{_severity(group.get('severity', 0), lang)}] {message}"
     count = int(group.get("count") or 1)
     if count > 1:
         head += " (" + text(lang, "detail.times", count=count) + ")"
-    parts = [f"<p><b>{escape(head)}</b></p>"]
+    parts = ["<p>&nbsp;</p>", f"<p><b>{escape(head)}</b></p>"]  # vor jedem Befund eine Leerzeile
     evidence = str(group.get("evidence") or "").strip()
     if evidence:
         parts.append("<p>" + escape(f"{text(lang, 'detail.evidence')}: ") + _linkify(evidence[:MAX_EVIDENCE]) + "</p>")
@@ -222,12 +244,21 @@ def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=N
     ordered = _ordered(check_id, groups, row_texts, lang)
     parts = [f"<h3>{escape(text(lang, 'detail.found'))}</h3>"]
     parts += [_group_html(group, lang) for group in ordered] or [_para(text(lang, "detail.none"))]
+    shown = False
     if result is not None:
         for group in ordered:
             excerpt = code_excerpt(result, group.get("example_urls") or [], str(group.get("evidence") or ""),
                                    int(group.get("severity") or 0), check_id=check_id)
             if excerpt is not None:
                 parts.append(excerpt_html(excerpt, lang))
+                shown = True
+                break
+    if not shown:
+        for group in ordered:
+            problem = excerpt_problem(result, group.get("example_urls") or [], str(group.get("evidence") or ""),
+                                      check_id)
+            if problem:
+                parts.append(_para(text(lang, _NOCODE[problem])))
                 break
     if meta is None:
         parts.append(_para(text(lang, "detail.nometa")))
