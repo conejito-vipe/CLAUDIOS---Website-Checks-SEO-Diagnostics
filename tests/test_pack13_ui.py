@@ -1,4 +1,5 @@
-"""Paket 13, Oberfläche: Livebereich in den Ergebnissen, Navigationsbalken mit Sprung, Verlauf nach dem Neustart."""
+"""Paket 13, Oberfläche: Livebereich in den Ergebnissen, Navigationsbalken, Verlauf nach dem Neustart.
+Seit Paket 25 springt der Scan nicht mehr während des Laufs in die Ergebnisse."""
 import os
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -43,7 +44,7 @@ def test_the_last_saved_scan_is_shown_after_a_restart(env):
     assert page.table.rowCount() == 1 and "example.test" in page.summary.text() and "88" in page.summary.text()
 
 
-def test_the_navigation_box_follows_the_scan_and_jumps_to_the_results_after_the_crawl(env):
+def test_the_navigation_box_follows_the_scan_and_the_results_wait_for_the_end(env):
     window = MainWindow({"language": "de", "allow_localhost": False})
     assert window.live_box.isHidden()
     window.scan.running_changed.emit(True)
@@ -51,6 +52,6 @@ def test_the_navigation_box_follows_the_scan_and_jumps_to_the_results_after_the_
     window.scan.activity.emit("Seiten geladen: 12 / 250", 10, "crawl")
     assert window.nav.currentRow() == 0 and window.live_bar.value() == 10
     window.scan.activity.emit("Prüfung 3 / 90: SEC-HDR-001", 62, "check")
-    assert window.nav.currentRow() == 1 and not window.results.live_box.isHidden()
+    assert window.nav.currentRow() == 0 and window.results.live_box.isHidden()
     window.scan.running_changed.emit(False)
     assert window.live_box.isHidden() and window.results.live_box.isHidden()
