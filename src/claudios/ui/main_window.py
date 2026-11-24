@@ -1,5 +1,6 @@
-"""Hauptfenster im gleichen Look wie der Splash. Weitere Seiten kommen als neue Datei ui/page_*.py
-(Modul mit NAV_KEY und create(fenster), das ein Widget mit retranslate() liefert), ohne Änderung hier."""
+"""Hauptfenster im gleichen Look wie der Splash. Weitere Seiten kommen als neue Datei ui/page_*.py (Modul mit NAV_KEY und
+create(fenster), das ein Widget mit retranslate() liefert), ohne Änderung hier.
+Während eines Scans bleibt die Ansicht stehen (kein Sprung in die Ergebnisse) und die Sprache ist gesperrt."""
 from __future__ import annotations
 
 import importlib
@@ -80,6 +81,7 @@ class MainWindow(CardWindow):
         self.resize(1040, 700)
         self.setMinimumSize(760, 520)
         self._prev = 0
+        self._scan_running = False
         self.last_result = None
 
         self.scan = ScanPage(lambda: self.settings)
@@ -98,7 +100,7 @@ class MainWindow(CardWindow):
         self.about_row = len(keys) - 1
         _style_headings(self.pages)
         self.scan.bar.setVisible(False)  # ein Balken für den ganzen Lauf: der in der Seitenleiste
-        attach(self.tech.view)  # Syntax-Hervorhebung der Technik-Doku (früher in der Seite „Einrichtung")
+        attach(self.tech.view)  # Syntax-Hervorhebung der Technik-Doku (das Handbuch bekommt sie in der Hilfe-Seite)
         self.detail = DetailLinker(self, lambda: self.last_result)  # Klick auf einen Befund: Erklärung
 
         self.nav = QListWidget()
@@ -115,7 +117,6 @@ class MainWindow(CardWindow):
         side_lay.setContentsMargins(0, 0, 0, 0)
         side_lay.setSpacing(8)
         self.nav.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self._jumped = False
         self.live_box = QWidget()  # Anzeige eines laufenden Scans, auf jeder Seite sichtbar
         live_lay = QVBoxLayout(self.live_box)
         live_lay.setContentsMargins(8, 0, 8, 0)
@@ -181,6 +182,8 @@ class MainWindow(CardWindow):
         self._attach_details()
 
     def set_language(self, lang: str) -> None:
+        if self._scan_running:  # ein Wechsel mitten im Scan baut alle Seiten neu auf und lässt das Programm hängen
+            return
         set_lang(lang)
         self.settings["language"] = lang
         save_settings(self.settings)
@@ -209,28 +212,26 @@ class MainWindow(CardWindow):
             self._attach_details()  # Seiten bauen ihre Listen teils erst beim Anzeigen
 
     def _on_running(self, running: bool) -> None:
+        self._scan_running = running
         self.live_box.setVisible(running)
+        for button in self.titlebar._lang_buttons.values():  # noqa: SLF001 – Flaggen sind im Scan gesperrt
+            button.setEnabled(not running)
         if running:
-            self._jumped = False
             self.live_bar.setValue(0)
             self.live_text.setText("")
+            self.results.mark_running()
         else:
             self.results.hide_live()
 
-    def _on_activity(self, message: str, percent: int, kind: str) -> None:
+    def _on_activity(self, message: str, percent: int, _kind: str) -> None:
         self.live_bar.setValue(percent)
         self.live_text.setText(short_activity(message))
-        self.results.show_live(message, percent)
-        if kind != "crawl" and not self._jumped:  # nach dem Laden der Seiten: in die Ergebnisse wechseln
-            self._jumped = True
-            if self.nav.currentRow() == 0:
-                self.nav.setCurrentRow(1)
 
     def _on_result(self, result) -> None:
         self.last_result = result
         self.results.show_result(result)
         self._attach_details()
-        self.nav.setCurrentRow(1)
+        self.nav.setCurrentRow(1)  # erst nach dem Ende des Scans in die Ergebnisse wechseln
 
     def closeEvent(self, event) -> None:  # noqa: N802
         for page in self.pages:
