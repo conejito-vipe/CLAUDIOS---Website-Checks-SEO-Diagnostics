@@ -215,3 +215,6 @@ src/claudios/ui/history_view.py
 tests/test_pack25.py
 # Paket 26: HTML-Validierung zusammenfassen
 tests/test_pack26.py
+# Paket 27: Befund-Dialog nennt den Grund mit technischen Angaben
+src/claudios/i18n/strings_detail2.py
+tests/test_pack27.py
