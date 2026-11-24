@@ -1,11 +1,14 @@
-"""Ergebnisseite: Livebereich während eines Scans (Aktivität, Balken), kein Gesamtwert bei Abbruch (er wäre irreführend)
-und nach einem Neustart der zuletzt gespeicherte Scan aus dem Verlauf (nur Zusammenfassung)."""
+"""Ergebnisseite: Sie zeigt nur Ergebnisse. Während eines Scans bleibt sie leer (kein Hinweis „noch kein Ergebnis“, keine
+Fortschrittsanzeige, die steht in der Seitenleiste und auf der Scan-Seite). Kein Gesamtwert bei Abbruch (er wäre
+irreführend) und nach einem Neustart der zuletzt gespeicherte Scan aus dem Verlauf (nur Zusammenfassung). Zahlen in den
+Befundtexten bekommen den Tausendertrenner der Sprache."""
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QProgressBar, QTableWidgetItem, QVBoxLayout, QWidget
 
 from ..core.numfmt import format_bytes
+from ..core.numtext import localize_numbers
 from ..core.redact import redact_url
 from ..i18n.strings import get_lang, n, t
 from ..report.history_latest import latest_overall
@@ -32,6 +35,12 @@ class ResultsPage(_ResultsPage):
         self.live_bar.setVisible(False)  # ein Balken für den ganzen Lauf: der in der Seitenleiste
         self.live_box.setVisible(False)
         self.layout().insertWidget(0, self.live_box)
+
+    def mark_running(self) -> None:
+        """Ein Scan läuft: kein Hinweis „noch kein Ergebnis“, erst nach dem Ende wieder."""
+        self._live_active = True
+        if self.result is None:
+            self.summary.setText("")
 
     def show_live(self, message: str, percent: int) -> None:
         self.live_text.setText(t("res.live", message=message))
@@ -60,9 +69,17 @@ class ResultsPage(_ResultsPage):
         for item in sorted(record["findings"], key=lambda f: (-f["severity"], f["check_id"])):
             row = self.table.rowCount()
             self.table.insertRow(row)
-            cells = (t(f"sev.{item['severity']}"), item["check_id"], n(item["count"]), item["msg_" + lang])
+            cells = (t(f"sev.{item['severity']}"), item["check_id"], n(item["count"]),
+                     localize_numbers(item["msg_" + lang], lang))
             for col, value in enumerate(cells):
                 self.table.setItem(row, col, QTableWidgetItem(value))
+
+    def _localize_table(self) -> None:
+        lang = get_lang()
+        for row in range(self.table.rowCount()):
+            cell = self.table.item(row, 3)
+            if cell is not None:
+                cell.setText(localize_numbers(cell.text(), lang))
 
     def refresh(self) -> None:
         super().refresh()
@@ -73,6 +90,7 @@ class ResultsPage(_ResultsPage):
                 return
             self._show_history()
             return
+        self._localize_table()
         if result.snapshot.status != "aborted":
             return
         snap = result.snapshot
