@@ -1,6 +1,7 @@
 """Ergänzende Stilregeln, die nach theme.STYLE gelten (spätere Regeln gleicher Genauigkeit gewinnen): bessere Lesbarkeit,
-größere Überschriften, Chip (14 px hoch), Fensterknöpfe (Schließen rot, Minimieren orange beim Überfahren), Autor-Link,
-roter Deinstallieren-Knopf und der Stil des Splash für Dialoge."""
+größere Überschriften, Chip (15 px hoch), Fensterknöpfe (Schließen rot, Minimieren orange beim Überfahren), Sprachflaggen und
+Hilfe-Knopf (orange beim Überfahren, aktive Sprache orange umrandet), Autor-Link, roter Deinstallieren-Knopf und der Stil des
+Splash für Dialoge."""
 from __future__ import annotations
 
 from .theme import BG, INK
@@ -14,6 +15,11 @@ QLabel#h1 { font-size: 22px; font-weight: 700; color: %INK%; }
 QLabel#h2 { font-size: 15px; font-weight: 600; color: %INK%; }
 QPushButton#winbtn[role="close"]:hover { background: #C62828; color: white; border-radius: 6px; }
 QPushButton#winbtn[role="min"]:hover { background: #EE6A12; color: white; border-radius: 6px; }
+QPushButton#langbtn { border: 1px solid transparent; border-radius: 6px; }
+QPushButton#langbtn:hover { color: #EE6A12; background: rgba(238, 106, 18, 40); border: 1px solid rgba(238, 106, 18, 120); }
+QPushButton#langbtn:checked { color: #EE6A12; background: rgba(238, 106, 18, 70); border: 1px solid #EE6A12; }
+QPushButton#langbtn:disabled { color: #9AA7B1; background: transparent; }
+QPushButton#langbtn:checked:disabled { background: rgba(238, 106, 18, 40); border: 1px solid rgba(238, 106, 18, 120); }
 QPushButton#authorlink { background: transparent; border: none; padding: 0px 2px; color: #EE6A12; font-weight: 700; }
 QPushButton#authorlink:hover { color: #C4540A; }
 QPushButton#danger { background: #C62828; color: white; border: none; font-weight: 600; padding: 8px 14px; }
