@@ -66,7 +66,13 @@ def _vnu_messages(result, files: int) -> list:
               "and starts vnu.jar in groups of 10 files (java -jar vnu.jar --format json --stdout). Messages are "
               "counted per page, the first one appears in the evidence. With missing tools or unreadable output "
               "the check counts as not executed.",
-       logic="Fehler laut Validator: Fehler. Warnungen: Hinweis. ## Validator error: error. Warnings: note.",
+       logic="Der W3C-Prüfer meldet je Seite Fehler und Warnungen. Gibt es auf einer Seite mindestens einen Fehler, ist "
+             "der Befund ein „Fehler“. Gibt es dort nur Warnungen, ist er ein „Hinweis“. Die Zahl im Befund (zum "
+             "Beispiel „98 HTML-Fehler“) zählt die Meldungen dieser einen Seite; die Seite steht bei den betroffenen "
+             "Adressen. ## The W3C checker reports errors and warnings per page. If a page has at least one error, "
+             "the finding is an “error”. If it has only warnings, it is a “note”. The number in the finding (for "
+             "example “98 HTML errors”) counts the messages of that one page; the page is listed under the affected "
+             "addresses.",
        fix="Die im Beleg genannte Stelle korrigieren und die Seite erneut unter https://validator.w3.org/nu/ "
            "prüfen. ## Fix the place named in the evidence and check the page again at "
            "https://validator.w3.org/nu/.",
@@ -128,7 +134,13 @@ def html_validation(snap):
               "Checks up to 6 fetched stylesheets of the own domain one by one with the W3C CSS Validator "
               "(java -jar css-validator.jar --output=json <file>). Inline styles and third-party stylesheets are "
               "not checked. With missing tools or unreadable output the check counts as not executed.",
-       logic="Fehler laut Validator: Fehler. Warnungen: Hinweis. ## Validator error: error. Warnings: note.",
+       logic="Der W3C-Prüfer meldet je Stylesheet Fehler und Warnungen. Gibt es in einer Datei mindestens einen Fehler, "
+             "ist der Befund ein „Fehler“. Gibt es dort nur Warnungen, ist er ein „Hinweis“. Die Zahl im Befund (zum "
+             "Beispiel „2 CSS-Fehler“) zählt die Meldungen dieser einen Datei; die Datei steht bei den betroffenen "
+             "Adressen. ## The W3C checker reports errors and warnings per stylesheet. If a file has at least one "
+             "error, the finding is an “error”. If it has only warnings, it is a “note”. The number in the finding "
+             "(for example “2 CSS errors”) counts the messages of that one file; the file is listed under the "
+             "affected addresses.",
        fix="Die im Beleg genannte Regel korrigieren und unter https://jigsaw.w3.org/css-validator/ erneut prüfen. ## "
            "Fix the rule named in the evidence and check again at https://jigsaw.w3.org/css-validator/.",
        refs=["https://jigsaw.w3.org/css-validator/", "https://github.com/w3c/css-validator",
