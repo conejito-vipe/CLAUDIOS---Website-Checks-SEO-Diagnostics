@@ -208,3 +208,8 @@ src/claudios/ui/helppage.py
 tests/test_pack23.py
 # Paket 24: HTML-Validierung in Gruppen, Ausgabe-Diagnose
 tests/test_vnu_batches.py
+# Paket 25: Hover und Sprachsperre, Verlauf je Domain und Tag, Zahlen mit Trenner
+src/claudios/core/numtext.py
+src/claudios/report/history_tree.py
+src/claudios/ui/history_view.py
+tests/test_pack25.py
