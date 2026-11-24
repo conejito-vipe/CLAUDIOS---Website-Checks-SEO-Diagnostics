@@ -1,5 +1,7 @@
 """Prüfungen mit externen W3C-Werkzeugen (Java). Sie bekommen nur Dateien aus dem Snapshot, nie eine Adresse.
+
 Fehlt ein Werkzeug oder ist seine Ausgabe unlesbar, gilt die Prüfung als nicht ausgeführt, nie als bestanden."""
+
 from __future__ import annotations
 
 import json
@@ -51,6 +53,12 @@ def _vnu_messages(result, files: int) -> list:
     return found
 
 
+def _vnu_evidence(first: dict, total: int, unit: str) -> str:
+    """Beleg einer Seite: 'Line N' vorn (für das Codefenster), die Zahl der Meldungen dieser Seite hinten."""
+    message = str(first.get("message"))[:300]
+    return f"Line {first.get('lastLine')}: {message} ({total} {unit} on this page)"
+
+
 @check("HTM-VAL-001",
        title="HTML-Validierung (W3C Nu Html Checker) ## HTML validation (W3C Nu Html Checker)",
        why="Fehlerhaftes HTML (falsche Verschachtelung, ungültige Attribute, veraltete Elemente) wird von jedem "
@@ -67,12 +75,15 @@ def _vnu_messages(result, files: int) -> list:
               "counted per page, the first one appears in the evidence. With missing tools or unreadable output "
               "the check counts as not executed.",
        logic="Der W3C-Prüfer meldet je Seite Fehler und Warnungen. Gibt es auf einer Seite mindestens einen Fehler, ist "
-             "der Befund ein „Fehler“. Gibt es dort nur Warnungen, ist er ein „Hinweis“. Die Zahl im Befund (zum "
-             "Beispiel „98 HTML-Fehler“) zählt die Meldungen dieser einen Seite; die Seite steht bei den betroffenen "
-             "Adressen. ## The W3C checker reports errors and warnings per page. If a page has at least one error, "
-             "the finding is an “error”. If it has only warnings, it is a “note”. The number in the finding (for "
-             "example “98 HTML errors”) counts the messages of that one page; the page is listed under the affected "
-             "addresses.",
+             "der Befund ein „Fehler“. Gibt es dort nur Warnungen, ist er ein „Hinweis“. Alle Seiten mit demselben "
+             "Ergebnis stehen in einer Zeile; die Spalte „Anzahl“ nennt die Zahl dieser Seiten, die Seiten selbst "
+             "stehen bei den betroffenen Adressen (höchstens 5). Die Zahl der Meldungen einer Seite steht im Beleg "
+             "(zum Beispiel „94 error(s) on this page“), sichtbar ist der Beleg der ersten Seite. ## The W3C checker "
+             "reports errors and warnings per page. If a page has at least one error, the finding is an “error”. If "
+             "it has only warnings, it is a “note”. All pages with the same result share one line; the column "
+             "“Count” gives the number of these pages, the pages themselves are listed under the affected addresses "
+             "(at most 5). The number of messages of one page is in the evidence (for example “94 error(s) on this "
+             "page”); the evidence of the first page is shown.",
        fix="Die im Beleg genannte Stelle korrigieren und die Seite erneut unter https://validator.w3.org/nu/ "
            "prüfen. ## Fix the place named in the evidence and check the page again at "
            "https://validator.w3.org/nu/.",
@@ -109,16 +120,15 @@ def html_validation(snap):
         mine = [m for m in messages if isinstance(m, dict) and str(m.get("url", "")).rsplit("/", 1)[-1] == name]
         errors = [m for m in mine if m.get("type") == "error"]
         warnings = [m for m in mine if m.get("type") == "info" and m.get("subType") == "warning"]
+        # Je Seite ein Befund, aber mit gleichem Text: die Liste fasst sie zu einer Zeile zusammen (Anzahl = Seiten)
         if errors:
-            first = errors[0]
-            out.append(F("HTM-VAL-001", S.ERROR, pg.url, f"{len(errors)} HTML-Fehler laut W3C Nu Html Checker",
-                         f"{len(errors)} HTML error(s) reported by the W3C Nu Html Checker",
-                         f"Line {first.get('lastLine')}: {first.get('message')}"))
+            out.append(F("HTM-VAL-001", S.ERROR, pg.url, "Seiten mit HTML-Fehlern laut W3C Nu Html Checker",
+                         "Pages with HTML errors reported by the W3C Nu Html Checker",
+                         _vnu_evidence(errors[0], len(errors), "error(s)")))
         if warnings:
-            first = warnings[0]
-            out.append(F("HTM-VAL-001", S.NOTE, pg.url, f"{len(warnings)} HTML-Warnung(en) laut W3C Nu Html Checker",
-                         f"{len(warnings)} HTML warning(s) reported by the W3C Nu Html Checker",
-                         f"Line {first.get('lastLine')}: {first.get('message')}"))
+            out.append(F("HTM-VAL-001", S.NOTE, pg.url, "Seiten mit HTML-Warnungen laut W3C Nu Html Checker",
+                         "Pages with HTML warnings reported by the W3C Nu Html Checker",
+                         _vnu_evidence(warnings[0], len(warnings), "warning(s)")))
     return out
 
 
