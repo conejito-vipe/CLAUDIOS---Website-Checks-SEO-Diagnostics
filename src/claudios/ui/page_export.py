@@ -1,5 +1,6 @@
-"""Seite 'Export & Verlauf': CSV, Excel, PDF, ZIP mit Schwerpunkt und der Vergleich mit dem letzten gespeicherten Scan.
-Wird vom Hauptfenster automatisch gefunden und füllt sich bei jedem fertigen Scan (window.scan.scan_finished)."""
+"""Seite 'Export & Verlauf': CSV, Excel, PDF, ZIP mit Schwerpunkt, der Vergleich mit dem letzten gespeicherten Scan und der
+Verlauf aller gescannten Websites nach Domain und Tag. Wird vom Hauptfenster automatisch gefunden und füllt sich bei jedem
+fertigen Scan (window.scan.scan_finished)."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -28,6 +29,7 @@ from ..report.focus_zip import build_focus_zip, focus_zip_preview
 from ..report.prompts import FOCI
 from ..report.report import default_zip_name
 from .dialogs import error_info, show_error
+from .history_view import HistoryView
 
 NAV_KEY = "nav.export"
 MAX_LINES = 30
@@ -95,6 +97,7 @@ class ExportPage(QWidget):
         self.hist_delete = QPushButton()
         self.cmp = QPlainTextEdit()
         self.cmp.setReadOnly(True)
+        self.hist_view = HistoryView()
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(6)
@@ -103,6 +106,7 @@ class ExportPage(QWidget):
                        self.hist_delete):
             lay.addWidget(widget)
         lay.addWidget(self.cmp, 1)
+        lay.addWidget(self.hist_view, 2)
         self.csv_btn.clicked.connect(lambda: self.export_file("csv"))
         self.xlsx_btn.clicked.connect(lambda: self.export_file("xlsx"))
         self.pdf_btn.clicked.connect(lambda: self.export_file("pdf"))
@@ -123,6 +127,7 @@ class ExportPage(QWidget):
         self.hist_title.setText(t("exp.hist.title"))
         self.hist_box.setText(t("exp.hist.switch"))
         self.hist_delete.setText(t("exp.hist.delete"))
+        self.hist_view.retranslate()
         self._refresh()
 
     def show_result(self, result) -> None:
@@ -149,6 +154,7 @@ class ExportPage(QWidget):
         stored = history.count()
         self.hist_info.setText(f"{t('exp.hist.info')}\n{t('exp.hist.stored', count=n(stored))}")
         self.hist_delete.setEnabled(stored > 0)
+        self.hist_view.refresh()
         if result is None:
             self.current.setText("")
             self.cmp.setPlainText(t("exp.none"))
