@@ -36,6 +36,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
@@ -48,7 +49,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxkbcommon0 libdbus-1-3 libfontconfig1 libglib2.0-0
       - run: pip install -e ".[dev,gui]"
       - run: ruff check src tests tools
-      - run: pytest -q
+      - run: pytest -v -o faulthandler_timeout=90
 
   mac:
     needs: tests
