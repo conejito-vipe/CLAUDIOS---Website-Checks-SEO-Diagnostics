@@ -11,5 +11,11 @@
     "url": "https://files.pythonhosted.org/packages/07/25/ee8c38ae72d66b844ce8eb9711ba905dba21ca1a8a0c960057c41cd23337/pip-26.3-py3-none-any.whl",
     "sha256": "f3b60b20ffaadd4415ed7957212a38ac63fa4c5fa375bd0f4a797777940fad13",
     "size": 1950951
+  },
+  "python_macos": {
+    "version": "3.12.16",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261124/cpython-3.12.16%2B20261124-aarch64-apple-darwin-install_only.tar.gz",
+    "sha256": "431b99a9c2cdd37ad9b06e425be0e520d2dbce0552abe454257abef592fe3634",
+    "size": 25399370
   }
 }
