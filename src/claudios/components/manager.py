@@ -149,7 +149,7 @@ def download(comp: Component, dest: Path, *, client: httpx.Client | None = None,
 def _clean_parts(name: str) -> tuple[str, ...]:
     norm = name.replace("\\", "/")
     parts = PurePosixPath(norm).parts
-    if norm.startswith("/") or (parts and ":" in parts[0]) or ".." in parts:
+    if "\x00" in norm or norm.startswith("/") or (parts and ":" in parts[0]) or ".." in parts:
         raise ClaudiosError(E.UNSAFE_ARCHIVE, reason=name[:80])
     return tuple(p for p in parts if p not in ("", "."))
 
@@ -175,7 +175,7 @@ def extract(archive: Path, dest: Path, strip_top: bool) -> None:
             _extract_tar(archive, dest, strip_top)
         else:
             _extract_zip(archive, dest, strip_top)
-    except (FileExistsError, NotADirectoryError, IsADirectoryError):  # widersprüchliche Einträge (Datei und Ordner gleichen Namens)
+    except (FileExistsError, NotADirectoryError, IsADirectoryError, ValueError):  # widersprüchliche Einträge (Datei und Ordner gleichen Namens)
         raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="conflicting entries") from None
 
 
@@ -221,7 +221,7 @@ def _extract_tar(archive: Path, dest: Path, strip_top: bool) -> None:
                     _set_mode(target, member.mode)
             for member, target in links:  # erst nach den Dateien: Ziel muss relativ sein und im Zielordner bleiben
                 link = member.linkname
-                if not link or link.startswith(("/", "\\")) or ":" in link.split("/")[0]:
+                if not link or "\x00" in link or link.startswith(("/", "\\")) or ":" in link.split("/")[0]:
                     raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="symlink")
                 resolved = (target.parent / link).resolve()
                 if resolved != dest and dest not in resolved.parents:

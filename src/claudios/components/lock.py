@@ -66,7 +66,9 @@ def _for_platform(item: dict, platform: str) -> dict:
     merged = dict(item)
     if platform in variants:
         extra = variants[platform]
-        if not isinstance(extra, dict) or any(k not in _VARIANT_KEYS for k in extra) or not extra.get("sha256"):
+        types = {"version": str, "url": str, "sha256": str, "size": int, "exe": str, "strip_top": bool}
+        if (not isinstance(extra, dict) or any(k not in _VARIANT_KEYS for k in extra) or not extra.get("sha256")
+                or any(not isinstance(v, types[k]) or (k == "size" and isinstance(v, bool)) for k, v in extra.items())):
             raise ValueError(f"{item.get('name')}: invalid variant")
         merged.update(extra)
     merged["platforms"] = list(dict.fromkeys([*item.get("platforms", ["windows"]), *variants]))
