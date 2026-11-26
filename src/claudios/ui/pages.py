@@ -48,6 +48,7 @@ from .expert_box import ExpertBox
 from .levelinfo import KEYS as LEVEL_KEYS, level_info
 from .linktext import LinkText
 from .scanprogress import PhaseClock, format_duration, overall_percent
+from .scorecards import CategoryRow, ScoreRing
 from .urlinput import clean_input
 from .worker import ScanThread
 
@@ -418,8 +419,18 @@ class ResultsPage(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         self.export_btn = QPushButton()
         self.export_btn.clicked.connect(self.export)
+        self.ring = ScoreRing()
+        self.categories = CategoryRow()
+        self.head = QWidget()
+        head = QHBoxLayout(self.head)
+        head.setContentsMargins(0, 0, 0, 0)
+        head.setSpacing(16)
+        head.addWidget(self.ring)
+        head.addWidget(self.categories, 1)
+        self.head.setVisible(False)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
+        lay.addWidget(self.head)
         lay.addWidget(self.summary)
         lay.addWidget(self.notrun)
         lay.addWidget(self.table, 1)
@@ -442,7 +453,12 @@ class ResultsPage(QWidget):
         if result is None:
             self.summary.setText(t("res.empty"))
             self.notrun.setText("")
+            self.head.setVisible(False)
             return
+        aborted = result.snapshot.status == "aborted"  # ohne Gesamtwert: er wäre irreführend
+        self.ring.set_value(None if aborted else result.scores["overall"])
+        self.categories.set_scores({} if aborted else result.scores["categories"])
+        self.head.setVisible(not aborted)
         snap, lang = result.snapshot, get_lang()
         self.summary.setText(t(
             "res.summary", target=redact_url(snap.target.url), status=t(f"status.{snap.status}"),

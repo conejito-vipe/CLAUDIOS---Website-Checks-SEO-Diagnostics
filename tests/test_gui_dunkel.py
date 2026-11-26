@@ -122,3 +122,32 @@ def test_help_title_names_the_version_and_the_search_box_is_in_the_header():
     assert __version__ in page.title.text()
     assert page.search.placeholderText() == t("doc.search")
     assert page.handbook.search.isHidden() and page.tech.search.isHidden()
+
+
+def test_score_colors_are_readable_and_graded():
+    from claudios.ui.scorecards import BAD, GOOD, WARN, score_color
+    assert [score_color(v) for v in (100, 80, 79, 50, 49, 0)] == [GOOD, GOOD, WARN, WARN, BAD, BAD]
+    for color in (GOOD, WARN, BAD):
+        assert contrast(color, theme.SURFACE) >= 4.5 and contrast(color, theme.BG) >= 4.5
+
+
+def test_results_head_shows_ring_and_one_card_per_category_but_nothing_for_an_aborted_scan():
+    from types import SimpleNamespace
+
+    from claudios.ui.pages import ResultsPage
+
+    def result(status, overall, cats):
+        snap = SimpleNamespace(status=status, pages=[], target=SimpleNamespace(url="https://example.com/"))
+        return SimpleNamespace(snapshot=snap, scores={"overall": overall, "categories": cats}, requests=1,
+                               bytes_total=10, executed={}, findings=[])
+
+    page = ResultsPage()
+    page.retranslate()
+    assert page.head.isHidden()  # ohne Ergebnis keine Wertung
+    page.show_result(result("complete", 72, {"seo": 90, "security": 54}))
+    assert not page.head.isHidden() and page.ring.value == 72
+    assert [(c.name, c.score) for c in page.categories.cards] == [("seo", 90), ("security", 54)]
+    page.show_result(result("aborted", 0, {}))
+    assert page.head.isHidden() and page.ring.value is None and not page.categories.cards
+    image = page.ring.grab().toImage()  # der Ring lässt sich zeichnen, auch ohne Wert
+    assert image.width() == page.ring.width()
