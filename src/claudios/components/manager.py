@@ -9,6 +9,7 @@ import json
 import os
 import shutil
 import stat
+import tarfile
 import tempfile
 import threading
 import zipfile
@@ -153,7 +154,82 @@ def _clean_parts(name: str) -> tuple[str, ...]:
     return tuple(p for p in parts if p not in ("", "."))
 
 
+def _strip_count(entries: list[tuple[object, tuple[str, ...]]], is_dir: Callable, strip_top: bool) -> int:
+    if strip_top and entries and all(len(p) > 1 or is_dir(i) for i, p in entries):
+        if len({p[0] for _i, p in entries}) == 1:
+            return 1
+    return 0
+
+
+def _set_mode(target: Path, mode: int) -> None:
+    """Nur das Ausführrecht übernehmen (Mac: java, node, zap.sh); sonst gewöhnliche Rechte, nie setuid oder schreibbar für alle."""
+    target.chmod(0o755 if mode & 0o111 else 0o644)
+
+
 def extract(archive: Path, dest: Path, strip_top: bool) -> None:
+    """Entpackt ein Archiv sicher (ZIP oder tar.gz, nach Inhalt erkannt)."""
+    with archive.open("rb") as fh:
+        magic = fh.read(2)
+    if magic == b"\x1f\x8b":
+        _extract_tar(archive, dest, strip_top)
+    else:
+        _extract_zip(archive, dest, strip_top)
+
+
+def _extract_tar(archive: Path, dest: Path, strip_top: bool) -> None:
+    """tar.gz: kein Pfad nach außen, Symlinks nur relativ und innerhalb des Ziels, keine Hardlinks oder Geräte."""
+    dest = dest.resolve()
+    try:
+        with tarfile.open(archive, "r:gz") as tf:
+            members = tf.getmembers()
+            if len(members) > MAX_FILES or sum(m.size for m in members if m.isfile()) > MAX_UNPACKED:
+                raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="archive too large")
+            entries = []
+            for member in members:
+                if not (member.isfile() or member.isdir() or member.issym()):
+                    raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="special file")
+                parts = _clean_parts(member.name)
+                if parts:
+                    entries.append((member, parts))
+            strip = _strip_count(entries, lambda m: m.isdir(), strip_top)
+            written = 0
+            links = []
+            for member, parts in entries:
+                parts = parts[strip:]
+                if not parts:
+                    continue
+                target = dest.joinpath(*parts)
+                real = target.parent.resolve() / target.name
+                if real != dest and dest not in real.parents:
+                    raise ClaudiosError(E.UNSAFE_ARCHIVE, reason=member.name[:80])
+                if member.isdir():
+                    target.mkdir(parents=True, exist_ok=True)
+                elif member.issym():
+                    links.append((member, target))
+                else:
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    src = tf.extractfile(member)
+                    with src as fh, target.open("wb") as out:  # type: ignore[union-attr]
+                        while chunk := fh.read(65536):
+                            written += len(chunk)
+                            if written > MAX_UNPACKED:
+                                raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="archive too large")
+                            out.write(chunk)
+                    _set_mode(target, member.mode)
+            for member, target in links:  # erst nach den Dateien: Ziel muss relativ sein und im Zielordner bleiben
+                link = member.linkname
+                if not link or link.startswith(("/", "\\")) or ":" in link.split("/")[0]:
+                    raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="symlink")
+                resolved = (target.parent / link).resolve()
+                if resolved != dest and dest not in resolved.parents:
+                    raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="symlink")
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(link)
+    except (tarfile.TarError, EOFError):
+        raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="corrupt archive") from None
+
+
+def _extract_zip(archive: Path, dest: Path, strip_top: bool) -> None:
     """Entpackt ein ZIP sicher: kein Zip-Slip, keine Symlinks, Größen- und Dateilimit."""
     dest = dest.resolve()
     try:
@@ -168,10 +244,7 @@ def extract(archive: Path, dest: Path, strip_top: bool) -> None:
                 parts = _clean_parts(info.filename)
                 if parts:
                     entries.append((info, parts))
-            strip = 0
-            if strip_top and entries and all(len(p) > 1 or i.is_dir() for i, p in entries):
-                if len({p[0] for _i, p in entries}) == 1:
-                    strip = 1
+            strip = _strip_count(entries, lambda i: i.is_dir(), strip_top)
             written = 0
             for info, parts in entries:
                 parts = parts[strip:]
@@ -190,6 +263,7 @@ def extract(archive: Path, dest: Path, strip_top: bool) -> None:
                         if written > MAX_UNPACKED:
                             raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="archive too large")
                         out.write(chunk)
+                _set_mode(target, info.external_attr >> 16)
     except zipfile.BadZipFile:
         raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="corrupt archive") from None
 

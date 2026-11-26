@@ -50,6 +50,12 @@ def main() -> int:
         return 0
     rows = ["| Komponente | Ergebnis | erwartet | erhalten | Größe (Sperrdatei / Download) | Endadresse |", "|---|---|---|---|---|---|"]
     bad = 0
+    flat = []
+    for item in items:
+        flat.append(item)
+        for system, extra in (item.get("variants") or {}).items():
+            flat.append({**item, **extra, "name": f"{item.get('name')} ({system})"})
+    items = flat
     for item in items:
         name, url = str(item.get("name")), str(item.get("url", ""))
         if not item.get("sha256") or not url.startswith("https://"):

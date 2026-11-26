@@ -1,6 +1,11 @@
 name: Werkzeug-Prüfsummen eintragen
 on:
   workflow_dispatch:
+    inputs:
+      mac_only:
+        description: Nur die Mac-Dateien (java, node) eintragen, Windows unverändert
+        type: boolean
+        default: false
 permissions:
   contents: write
 jobs:
@@ -17,7 +22,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python tools/update_lock.py 2>&1 | tee /tmp/lock.txt
+          python tools/update_lock.py ${{ inputs.mac_only && '--mac-only' || '' }} 2>&1 | tee /tmp/lock.txt
           exit ${PIPESTATUS[0]}
       - name: Ergebnis als Meldungen anzeigen
         if: always()

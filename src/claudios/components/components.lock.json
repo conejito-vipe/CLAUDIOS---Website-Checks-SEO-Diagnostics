@@ -56,7 +56,11 @@
       "strip_top": false,
       "resolver": {
         "type": "pinned"
-      }
+      },
+      "platforms": [
+        "windows",
+        "macos"
+      ]
     },
     {
       "name": "css-validator",
@@ -78,7 +82,11 @@
         "type": "github",
         "repo": "w3c/css-validator",
         "asset": "^css-validator\\.jar$"
-      }
+      },
+      "platforms": [
+        "windows",
+        "macos"
+      ]
     },
     {
       "name": "zap",
@@ -100,7 +108,11 @@
         "type": "github",
         "repo": "zaproxy/zaproxy",
         "asset": "^ZAP_.*_Core\\.zip$"
-      }
+      },
+      "platforms": [
+        "windows",
+        "macos"
+      ]
     }
   ]
 }

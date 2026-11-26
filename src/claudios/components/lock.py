@@ -52,15 +52,33 @@ def supported_here(comps: list[Component]) -> list[Component]:
 NPM_TOOLS = Component(
     name="npm-tools", title="ESLint, Stylelint, retire.js (npm)", kind="npm", version="", url="", sha256="",
     size=0, license="MIT / Apache-2.0 (bitte prüfen)", source="https://www.npmjs.com/", depends=("node",),
-    exe="node_modules/eslint/bin/eslint.js", filename="", strip_top=False)
+    exe="node_modules/eslint/bin/eslint.js", filename="", strip_top=False, platforms=("windows", "macos"))
 
 
-def parse_lock(raw: dict) -> list[Component]:
+_VARIANT_KEYS = ("version", "url", "sha256", "size", "exe", "strip_top")
+
+
+def _for_platform(item: dict, platform: str) -> dict:
+    """Eintrag für das System: 'variants' enthält abweichende Adresse, Prüfsumme und Programmpfad je System (macos)."""
+    variants = item.get("variants") or {}
+    if not isinstance(variants, dict) or any(k not in ("macos",) for k in variants):
+        raise ValueError(f"{item.get('name')}: invalid variants")
+    merged = dict(item)
+    if platform in variants:
+        extra = variants[platform]
+        if not isinstance(extra, dict) or any(k not in _VARIANT_KEYS for k in extra) or not extra.get("sha256"):
+            raise ValueError(f"{item.get('name')}: invalid variant")
+        merged.update(extra)
+    merged["platforms"] = list(dict.fromkeys([*item.get("platforms", ["windows"]), *variants]))
+    return merged
+
+
+def parse_lock(raw: dict, platform: str | None = None) -> list[Component]:
     if raw.get("schema") != 1:
         raise ValueError("unsupported lock schema")
     out: list[Component] = []
     seen: set[str] = set()
-    for item in raw.get("components", []):
+    for item in (_for_platform(i, platform or host_platform()) for i in raw.get("components", [])):
         comp = Component(
             name=item["name"], title=item["title"], kind=item["kind"], version=item.get("version", ""),
             url=item.get("url", ""), sha256=item.get("sha256", "").lower(), size=int(item.get("size", 0)),

@@ -44,7 +44,10 @@ def require_npm(node: Path | None) -> Path:
     """Prüft Node.js und npm und gibt den Pfad zu npm-cli.js zurück."""
     if node is None:
         raise ClaudiosError(E.COMPONENT_MISSING, reason="node")
-    npm_cli = node.parent / "node_modules" / "npm" / "bin" / "npm-cli.js"
+    # Windows: npm liegt neben node.exe; Mac/Linux: bin/node und lib/node_modules/npm
+    candidates = (node.parent / "node_modules" / "npm" / "bin" / "npm-cli.js",
+                  node.parent.parent / "lib" / "node_modules" / "npm" / "bin" / "npm-cli.js")
+    npm_cli = next((c for c in candidates if c.is_file()), candidates[0])
     if not npm_cli.is_file():
         raise ClaudiosError(E.TOOL_FAILED, reason="npm-cli.js not found")
     return npm_cli

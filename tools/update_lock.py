@@ -59,7 +59,34 @@ def node(client: httpx.Client, _spec: dict) -> dict:
             "size": 0, "expected": expected}
 
 
+def adoptium_mac(client: httpx.Client, spec: dict) -> dict:
+    resp = client.get(f"https://api.adoptium.net/v3/assets/latest/{spec['major']}/hotspot",
+                      params={"architecture": "aarch64", "image_type": "jre", "os": "mac", "vendor": "eclipse"})
+    resp.raise_for_status()
+    data = resp.json()
+    if not data:
+        raise ValueError("Adoptium lieferte keine Treffer für den Mac")
+    package = data[0]["binary"]["package"]
+    return {"version": data[0].get("release_name") or str(spec["major"]), "url": package["link"],
+            "size": package.get("size", 0), "expected": package.get("checksum"),
+            "exe": "Contents/Home/bin/java", "strip_top": True}
+
+
+def node_mac(client: httpx.Client, _spec: dict) -> dict:
+    resp = client.get("https://nodejs.org/dist/index.json")
+    resp.raise_for_status()
+    entry = next(e for e in resp.json() if e.get("lts") and "osx-arm64-tar" in e.get("files", []))
+    version = entry["version"]
+    filename = f"node-{version}-darwin-arm64.tar.gz"
+    sums = client.get(f"https://nodejs.org/dist/{version}/SHASUMS256.txt")
+    sums.raise_for_status()
+    expected = next((ln.split()[0] for ln in sums.text.splitlines() if ln.strip().endswith(filename)), None)
+    return {"version": version.lstrip("v"), "url": f"https://nodejs.org/dist/{version}/{filename}",
+            "size": 0, "expected": expected, "exe": "bin/node", "strip_top": True}
+
+
 RESOLVERS = {"github": github, "adoptium": adoptium, "node": node}
+MAC_RESOLVERS = {"adoptium": adoptium_mac, "node": node_mac}  # Komponenten mit eigener Mac-Datei
 
 
 def is_pinned(entry: dict) -> bool:
@@ -79,8 +106,35 @@ def sha256_of(client: httpx.Client, url: str) -> tuple[str, int]:
     return digest.hexdigest(), size
 
 
+def resolve_windows(client: httpx.Client, entry: dict, spec: dict) -> None:
+    info = RESOLVERS[spec["type"]](client, spec)
+    if not info["url"].startswith("https://"):
+        raise ValueError("Adresse ist nicht HTTPS")
+    print(f"{entry['name']}: lade {info['url']}", flush=True)
+    digest, size = sha256_of(client, info["url"])
+    expected = (info.get("expected") or "").lower()
+    if expected and expected != digest:
+        raise ValueError("Prüfsumme der Quelle weicht von der eigenen ab")
+    entry.update(version=info["version"], url=info["url"], sha256=digest, size=size)
+    print(f"OK      {entry['name']} {info['version']} {size} Bytes sha256={digest}")
+
+
+def resolve_mac(client: httpx.Client, entry: dict, spec: dict) -> None:
+    mac = MAC_RESOLVERS[spec["type"]](client, spec)
+    if not mac["url"].startswith("https://"):
+        raise ValueError("Adresse ist nicht HTTPS (macOS)")
+    print(f"{entry['name']} (macOS): lade {mac['url']}", flush=True)
+    digest, size = sha256_of(client, mac["url"])
+    if mac.get("expected") and mac["expected"].lower() != digest:
+        raise ValueError("Prüfsumme der Quelle weicht von der eigenen ab (macOS)")
+    entry["variants"] = {"macos": {"version": mac["version"], "url": mac["url"], "sha256": digest, "size": size,
+                                   "exe": mac["exe"], "strip_top": mac["strip_top"]}}
+    print(f"OK      {entry['name']} macOS {mac['version']} {size} Bytes sha256={digest}")
+
+
 def main() -> int:
-    only = set(sys.argv[1:])
+    mac_only = "--mac-only" in sys.argv  # nur die Mac-Dateien eintragen, die Windows-Einträge bleiben unverändert
+    only = {a for a in sys.argv[1:] if not a.startswith("--")}
     raw = json.loads(LOCK.read_text("utf-8"))
     failures = 0
     with httpx.Client(follow_redirects=True, timeout=httpx.Timeout(60.0, read=300.0), trust_env=False) as client:
@@ -93,16 +147,10 @@ def main() -> int:
                 continue
             try:
                 spec = entry["resolver"]
-                info = RESOLVERS[spec["type"]](client, spec)
-                if not info["url"].startswith("https://"):
-                    raise ValueError("Adresse ist nicht HTTPS")
-                print(f"{name}: lade {info['url']}", flush=True)
-                digest, size = sha256_of(client, info["url"])
-                expected = (info.get("expected") or "").lower()
-                if expected and expected != digest:
-                    raise ValueError("Prüfsumme der Quelle weicht von der eigenen ab")
-                entry.update(version=info["version"], url=info["url"], sha256=digest, size=size)
-                print(f"OK      {name} {info['version']} {size} Bytes sha256={digest}")
+                if not mac_only:
+                    resolve_windows(client, entry, spec)
+                if spec["type"] in MAC_RESOLVERS:
+                    resolve_mac(client, entry, spec)
             except Exception as exc:  # noqa: BLE001 – ein Fehler darf die anderen Komponenten nicht stoppen
                 failures += 1
                 print(f"FEHLER  {name}: {type(exc).__name__}: {exc}")
