@@ -31,13 +31,32 @@ class LinkText(QPlainTextEdit):
     def __init__(self, *args) -> None:
         super().__init__(*args)
         self.viewport().setMouseTracking(True)
+        self._marks: list[str] = []
+
+    def set_marks(self, terms: list[str]) -> None:
+        """Suchbegriffe, die im Text farbig hinterlegt werden (zusammen mit den Links in den Zusatzauswahlen)."""
+        self._marks = [term for term in terms if len(term.strip()) > 1]
+        self.underline_links()
 
     def underline_links(self) -> None:
         fmt = QTextCharFormat()
         fmt.setForeground(QColor("#8EC0FF"))
         fmt.setFontUnderline(True)
         selections = []
-        for start, end in url_spans(self.toPlainText()):
+        text = self.toPlainText()
+        mark = QTextCharFormat()
+        mark.setBackground(QColor("#6B4310"))
+        mark.setForeground(QColor("#FFFFFF"))
+        for term in self._marks:
+            for match in re.finditer(re.escape(term.strip()), text, re.IGNORECASE):
+                cursor = QTextCursor(self.document())
+                cursor.setPosition(match.start())
+                cursor.setPosition(match.end(), QTextCursor.MoveMode.KeepAnchor)
+                selection = QTextEdit.ExtraSelection()
+                selection.cursor = cursor
+                selection.format = mark
+                selections.append(selection)
+        for start, end in url_spans(text):
             cursor = QTextCursor(self.document())
             cursor.setPosition(start)
             cursor.setPosition(end, QTextCursor.MoveMode.KeepAnchor)

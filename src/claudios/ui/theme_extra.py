@@ -27,6 +27,11 @@ QPushButton#authorlink:hover { color: #FF8A3D; }
 QPushButton#danger { background: #C62828; color: white; border: none; font-weight: 600; padding: 8px 14px; }
 QPushButton#danger:hover { background: #A81E1E; }
 QPushButton#danger:disabled { background: #4A2A2A; color: #9AA7B5; }
+QListWidget#toc { background: transparent; border: none; border-right: 1px solid #243040; border-radius: 0px;
+    padding: 0px 8px 0px 0px; outline: none; }
+QListWidget#toc::item { padding: 7px 10px; border-radius: 6px; color: %MUTED%; }
+QListWidget#toc::item:hover { background: #1E2833; color: %INK%; }
+QListWidget#toc::item:selected { background: #2A2017; color: #FF8A3D; }
 QPushButton#railbtn { background: transparent; border: none; border-radius: 10px; padding: 0px; }
 QPushButton#railbtn:hover { background: #3A1F1F; }
 QDialog, QMessageBox { background: %BG%; }

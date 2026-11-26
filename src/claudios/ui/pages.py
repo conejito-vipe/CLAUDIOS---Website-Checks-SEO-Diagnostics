@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from pathlib import Path
 
@@ -17,6 +18,8 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMessageBox,
     QPlainTextEdit,
     QProgressBar,
@@ -481,30 +484,83 @@ class ResultsPage(QWidget):
         QMessageBox.information(self, t("export.title"), t("export.saved", path=path))
 
 
+HEADING = re.compile(r"^\[([A-Z]{2,4}-[A-Z]{2,4}-\d{3})\] (.+)$")
+
+
 class DocPage(QWidget):
+    """Ein Dokument (Handbuch oder Technik-Doku): links das Inhaltsverzeichnis (eine Zeile je Prüfung), rechts der Text
+    mit farbig hinterlegten Suchtreffern. Die Suche kann im Seitenkopf der Hilfe liegen (dann ist das eigene Feld aus)."""
+
     def __init__(self, mode: str) -> None:
         super().__init__()
         self.mode = mode
+        self._rendered: str | None = None
         self.search = QLineEdit()
         self.search.setClearButtonEnabled(True)
+        self.toc = QListWidget()
+        self.toc.setObjectName("toc")
+        self.toc.setFixedWidth(290)
+        self.toc.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.toc.setTextElideMode(Qt.TextElideMode.ElideRight)
         self.view = LinkText()
         self.view.setReadOnly(True)
         if mode == "tech":
             self.view.setFont(QFont("Consolas", 10))
             self.view.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
+        columns = QHBoxLayout()
+        columns.setSpacing(12)
+        columns.addWidget(self.toc)
+        columns.addWidget(self.view, 1)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.addWidget(self.search)
-        lay.addWidget(self.view, 1)
+        lay.addLayout(columns, 1)
         self.search.textChanged.connect(self.refresh)
+        self.toc.currentRowChanged.connect(self._goto_row)
 
     def retranslate(self) -> None:
         self.search.setPlaceholderText(t("doc.search"))
+        self.toc.setAccessibleName(t("doc.toc"))
         self.refresh()
 
     def refresh(self, *_args) -> None:
-        self.view.setPlainText(render_doc(self.mode, get_lang(), self.search.text()))
-        self.view.underline_links()
+        query = self.search.text()
+        self.view.setPlainText(render_doc(self.mode, get_lang(), query))
+        self.view.set_marks([query.strip()] if query.strip() else [])
+        self._rendered = query
+        self._fill_toc()
+
+    def refresh_if_stale(self) -> None:
+        """Nach einem Wechsel des Reiters: neu zeichnen, wenn sich die Suche seit dem letzten Zeichnen geändert hat."""
+        if self._rendered != self.search.text():
+            self.refresh()
+
+    def _fill_toc(self) -> None:
+        self.toc.blockSignals(True)
+        self.toc.clear()
+        block = self.view.document().begin()
+        while block.isValid():
+            match = HEADING.match(block.text())
+            if match:
+                item = QListWidgetItem(f"{match.group(1)}  {match.group(2)}")
+                item.setToolTip(f"{match.group(1)}  {match.group(2)}")
+                item.setData(Qt.ItemDataRole.UserRole, block.position())
+                self.toc.addItem(item)
+            block = block.next()
+        self.toc.blockSignals(False)
+
+    def _goto_row(self, row: int) -> None:
+        item = self.toc.item(row)
+        if item is None:
+            return
+        position = int(item.data(Qt.ItemDataRole.UserRole))
+        cursor = QTextCursor(self.view.document())
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        self.view.setTextCursor(cursor)  # erst ans Ende, dann zum Ziel: so steht der Eintrag oben im Fenster
+        self.view.ensureCursorVisible()
+        cursor.setPosition(position)
+        self.view.setTextCursor(cursor)
+        self.view.ensureCursorVisible()
 
 
 class SettingsPage(QWidget):

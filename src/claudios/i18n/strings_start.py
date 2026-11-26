@@ -1,9 +1,11 @@
-"""UI-Texte des Startscreens (Scan-Seite): Titel, Untertext und die Infokarte „So arbeitet CLAUDIOS“."""
+"""UI-Texte des Startscreens (Scan-Seite: Titel, Untertext, Infokarte „So arbeitet CLAUDIOS“) und des Hilfe-Kopfs."""
 from __future__ import annotations
 
 from .strings import TEXTS
 
 TEXTS["de"].update({
+    "doc.title": "Dokumentation – CLAUDIOS {version}",
+    "doc.toc": "Inhaltsverzeichnis",
     "scan.title": "Website prüfen",
     "scan.subtitle": "Gib eine Adresse ein. CLAUDIOS prüft HTML, Sicherheit, Datenschutz, SEO und Barrierefreiheit und "
                      "erklärt zu jedem Befund, warum er wichtig ist.",
@@ -22,6 +24,8 @@ TEXTS["de"].update({
                      "nur, wenn du ihn einschaltest.",
 })
 TEXTS["en"].update({
+    "doc.title": "Documentation – CLAUDIOS {version}",
+    "doc.toc": "Table of contents",
     "scan.title": "Check a website",
     "scan.subtitle": "Enter an address. CLAUDIOS checks HTML, security, privacy, SEO and accessibility and explains why "
                      "each finding matters.",
