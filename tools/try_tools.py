@@ -43,6 +43,17 @@ def smoke(name: str) -> str:
     if name == "zap":
         res = run_tool([java, "-jar", exe, "-version"], cwd=tmp, timeout=180)
         return (res.stdout or res.stderr).strip().splitlines()[-1]
+    if name == "python-runtime":
+        return run_tool([exe, "--version"], cwd=tmp, timeout=60).stdout.strip()
+    if name == "sslyze":
+        out = tmp / "scan.json"
+        res = run_tool([exe, "-m", "sslyze", "--tlsv1_3", "--certinfo", "--json_out", str(out), "example.com:443"],
+                       cwd=tmp, timeout=180, extra_env={"PYTHONNOUSERSITE": "1"})
+        data = json.loads(out.read_text("utf-8"))
+        status = data["server_scan_results"][0].get("scan_status")
+        if status != "COMPLETED":
+            raise RuntimeError(f"sslyze Status {status}: {res.stderr[:200]}")
+        return "sslyze Handshake mit example.com abgeschlossen"
     if name == "npm-tools":
         node = manager.tool_path("node")
         res = run_tool([node, exe, "--version"], cwd=tmp, timeout=120)

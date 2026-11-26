@@ -122,3 +122,48 @@ def test_npm_is_found_in_the_mac_layout(tmp_path):
     node.parent.mkdir()
     node.write_text("x")
     assert _shared.require_npm(node) == cli
+
+
+def test_sslyze_on_the_mac_uses_a_copy_of_the_full_python_without_the_windows_pip_wheel(monkeypatch):
+    from claudios.components import extra_pythonruntime, extra_sslyze
+
+    monkeypatch.setenv("CLAUDIOS_PLATFORM", "macos")
+    sslyze = extra_sslyze.build(True)
+    assert (sslyze.kind, sslyze.exe, sslyze.depends) == ("pipembed", "bin/python3", ("python-runtime",))
+    runtime = extra_pythonruntime.build(True)
+    assert runtime.exe == "bin/python3" and runtime.strip_top and runtime.platforms == ("macos",)
+    assert runtime.url.endswith("-aarch64-apple-darwin-install_only.tar.gz") and len(runtime.sha256) == 64
+    monkeypatch.setenv("CLAUDIOS_PLATFORM", "windows")
+    win = extra_sslyze.build(True)
+    assert (win.exe, win.depends) == ("python.exe", ("python-runtime", "pip-wheel"))
+    assert extra_pythonruntime.build(True).exe == "python.exe"
+
+
+def test_the_mac_runtime_is_copied_with_its_relative_links(tmp_path, monkeypatch):
+    from claudios.components import pipembedtools
+
+    monkeypatch.setenv("CLAUDIOS_PLATFORM", "macos")
+    src = tmp_path / "rt"
+    (src / "bin").mkdir(parents=True)
+    (src / "lib" / "python3.12" / "site-packages").mkdir(parents=True)
+    real = src / "bin" / "python3.12"
+    real.write_text("#!/bin/sh\n")
+    real.chmod(0o755)
+    (src / "bin" / "python3").symlink_to("python3.12")
+    target = tmp_path / "sslyze"
+    python = pipembedtools.prepare_runtime(src, target, None)
+    assert python == target / "bin" / "python3" and python.is_symlink() and os.access(python, os.X_OK)
+    assert pipembedtools.site_dir(target) == target / "lib" / "python3.12" / "site-packages"
+    assert pipembedtools.runtime_root(src / "bin" / "python3") == src
+    with pytest.raises(ClaudiosError):
+        pipembedtools.prepare_runtime(tmp_path / "empty", tmp_path / "t2", None)
+
+
+def test_the_lock_parser_accepts_the_mac_runtime_entry():
+    from claudios.components import _runtimelock
+
+    pin = _runtimelock.parse_entry({"python_macos": {"version": "3.12.1", "url": "https://x.example/a.tar.gz",
+                                                     "sha256": "a" * 64, "size": 5}}, "python_macos")
+    assert pin["version"] == "3.12.1"
+    assert _runtimelock.parse_entry({"python_macos": {"url": "http://x", "sha256": "a" * 64, "size": 5, "version": "1"}},
+                                    "python_macos") == {}

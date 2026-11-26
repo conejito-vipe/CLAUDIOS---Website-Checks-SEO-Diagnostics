@@ -24,7 +24,7 @@ from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.toolrunner import run_tool
 from . import piptools, sslyzewheel
 from ._shared import write_marker
-from .lock import Component
+from .lock import Component, host_platform
 
 WHEEL_NAME = "pip.whl"
 SITE_LINE = "Lib\\site-packages"
@@ -66,9 +66,32 @@ def _diagnose(python: Path, tmp: str, base: Path) -> None:
         log.error("diagnostic failed: %r", exc)
 
 
-def prepare_runtime(source: Path, target: Path, wheel: Path) -> Path:
-    """Kopiert die Laufzeit nach target und schaltet pip.whl und site-packages in der ._pth-Datei ein."""
-    if not (source / "python.exe").is_file():
+def runtime_root(exe: Path) -> Path:
+    """Der Ordner der Laufzeit: Windows neben python.exe, Mac zwei Ebenen über bin/python3."""
+    return exe.parent.parent if host_platform() == "macos" else exe.parent
+
+
+def site_dir(target: Path) -> Path:
+    if host_platform() == "macos":
+        return next(iter(sorted(target.glob("lib/python3.*/site-packages"))), target / "lib" / "python3" / "site-packages")
+    return target / "Lib" / "site-packages"
+
+
+def prepare_mac_runtime(source: Path, target: Path) -> Path:
+    """Mac: vollständiges Python mit pip (python-build-standalone). Kopie mit relativen Links, keine Änderung nötig."""
+    if not (source / "bin" / "python3").exists():
+        raise ClaudiosError(E.COMPONENT_MISSING, reason="python-runtime")
+    shutil.copytree(source, target, symlinks=True)
+    site = site_dir(target)
+    site.mkdir(parents=True, exist_ok=True)
+    return target / "bin" / "python3"
+
+
+def prepare_runtime(source: Path, target: Path, wheel: Path | None) -> Path:
+    """Kopiert die Laufzeit nach target und schaltet pip.whl und site-packages in der ._pth-Datei ein (Windows)."""
+    if host_platform() == "macos":
+        return prepare_mac_runtime(source, target)
+    if wheel is None or not (source / "python.exe").is_file():
         raise ClaudiosError(E.COMPONENT_MISSING, reason="python-runtime")
     shutil.copytree(source, target)
     pth = next(iter(target.glob("python*._pth")), None)
@@ -141,8 +164,9 @@ def install(comp: Component, *, root: Path | None = None,
     digest = piptools.lock_hash()
     if not digest:
         raise ClaudiosError(E.COMPONENT_NOT_PINNED, reason=comp.name)
+    mac = host_platform() == "macos"
     runtime, wheel = _tool("python-runtime"), _tool("pip-wheel")
-    if runtime is None or wheel is None:
+    if runtime is None or (wheel is None and not mac):
         raise ClaudiosError(E.COMPONENT_MISSING, reason="python-runtime")
     if cancel is not None and cancel.is_set():
         raise ClaudiosError(E.INSTALL_CANCELLED)
@@ -152,9 +176,10 @@ def install(comp: Component, *, root: Path | None = None,
         if target.exists():
             shutil.rmtree(target)
         report(comp.name, "download", 0, 1)
-        python = prepare_runtime(runtime.parent, target, wheel)
-        site = target / "Lib" / "site-packages"
-        _unpack_pip(target, site)
+        python = prepare_runtime(runtime_root(runtime), target, wheel)
+        site = site_dir(target)
+        if not mac:
+            _unpack_pip(target, site)
         text = piptools._requirements()
         pin = sslyzewheel.load_pin()
         with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as tmp:

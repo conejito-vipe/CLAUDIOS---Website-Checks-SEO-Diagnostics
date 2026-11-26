@@ -84,8 +84,10 @@ jobs:
         run: |
           CLAUDIOS_SELFTEST_OUT="$PWD/selftest-mac.json" dist/CLAUDIOS.app/Contents/MacOS/CLAUDIOS --selftest || { cat selftest-mac.json || true; exit 1; }
           cat selftest-mac.json
-      - name: Werkzeuge auf dem Mac einrichten und starten (java, node, vnu, zap, npm, playwright)
+      - name: Werkzeuge auf dem Mac einrichten und starten (java, node, vnu, zap, npm, playwright, sslyze)
         timeout-minutes: 15
+        env:
+          CLAUDIOS_FORCE_EMBED: "1"  # sslyze wie im gebauten Programm: Kopie der Python-Laufzeit statt venv
         run: python tools/try_tools.py
       - name: Zip und Prüfsumme
         run: |

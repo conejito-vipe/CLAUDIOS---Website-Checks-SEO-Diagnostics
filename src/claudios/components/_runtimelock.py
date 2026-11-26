@@ -4,6 +4,7 @@ der Komponenten-Lader nicht."""
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from importlib import resources
@@ -12,7 +13,8 @@ _HEX = re.compile(r"^[0-9a-f]{64}$")
 
 
 def frozen() -> bool:
-    return bool(getattr(sys, "frozen", False))
+    """Im gebauten Programm (ohne eigenes Python). CLAUDIOS_FORCE_EMBED=1 nutzt denselben Weg ohne Bau (nur für CI und Tests)."""
+    return bool(getattr(sys, "frozen", False)) or os.environ.get("CLAUDIOS_FORCE_EMBED") == "1"
 
 
 def parse_entry(data: object, key: str) -> dict:
