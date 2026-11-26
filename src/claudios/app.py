@@ -92,6 +92,10 @@ def _setup_logging() -> None:
 
 
 def main() -> int:
+    if "--selftest" in sys.argv:  # Prüfung des gebauten Programms, ohne Splash und ohne Einzelinstanz-Sperre
+        from .selftest import run as run_selftest
+
+        return run_selftest()
     app = QApplication(sys.argv)
     app.setApplicationName("CLAUDIOS")
     brand_all(TEXTS)  # im Programm immer CLAUDIOS (nach dem Laden aller Textdateien)

@@ -80,10 +80,33 @@ jobs:
           $opts += @("--collect-data", "certifi", "--hidden-import", "dns.query")
           $opts += @("--add-data", "assets;claudios/assets", "installer/launcher.py")
           pyinstaller @opts
+      - name: Selbsttest der gebauten Programmdatei (Statusbericht)
+        run: |
+          $env:CLAUDIOS_SELFTEST_OUT = "$PWD\selftest-exe.json"
+          $p = Start-Process -FilePath "dist\CLAUDIOS\CLAUDIOS.exe" -ArgumentList "--selftest" -Wait -PassThru
+          if (Test-Path selftest-exe.json) { Get-Content selftest-exe.json } else { Write-Host "::error::Kein Statusbericht erzeugt" }
+          if ($p.ExitCode -ne 0) { throw "Selbsttest der Programmdatei fehlgeschlagen (Code $($p.ExitCode))" }
       - name: Installer bauen (Inno Setup)
         run: |
           choco install innosetup -y --no-progress
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=${{ steps.ver.outputs.version }}" installer\claudios.iss
+      - name: Installer ausprobieren (still installieren, Selbsttest, deinstallieren)
+        run: |
+          $exe = Get-ChildItem installer\Output\CLAUDIOS-Setup-*.exe | Select-Object -First 1
+          $dir = Join-Path $env:RUNNER_TEMP "claudios-installiert"
+          $p = Start-Process -FilePath $exe.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=$dir", "/LOG=$PWD\setup-log.txt" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Installation fehlgeschlagen (Code $($p.ExitCode))" }
+          Start-Sleep -Seconds 3
+          Get-Process -Name CLAUDIOS -ErrorAction SilentlyContinue | Stop-Process -Force
+          if (-not (Test-Path "$dir\CLAUDIOS.exe")) { throw "CLAUDIOS.exe fehlt nach der Installation" }
+          $env:CLAUDIOS_SELFTEST_OUT = "$PWD\selftest-installiert.json"
+          $t = Start-Process -FilePath "$dir\CLAUDIOS.exe" -ArgumentList "--selftest" -Wait -PassThru
+          if (Test-Path selftest-installiert.json) { Get-Content selftest-installiert.json } else { Write-Host "::error::Kein Statusbericht erzeugt" }
+          if ($t.ExitCode -ne 0) { throw "Selbsttest des installierten Programms fehlgeschlagen (Code $($t.ExitCode))" }
+          $u = Start-Process -FilePath "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          Start-Sleep -Seconds 3
+          if ($u.ExitCode -ne 0) { throw "Deinstallation fehlgeschlagen (Code $($u.ExitCode))" }
+          if (Test-Path "$dir\CLAUDIOS.exe") { throw "CLAUDIOS.exe blieb nach der Deinstallation übrig" }
       - name: Prüfsumme berechnen und als Datei ablegen
         run: |
           $exe = Get-ChildItem installer\Output\CLAUDIOS-Setup-*.exe | Select-Object -First 1
@@ -91,6 +114,14 @@ jobs:
           Write-Host "SHA256: $hash  $($exe.Name)"
           "$hash  $($exe.Name)" | Set-Content -Path "$($exe.FullName).sha256" -Encoding ascii
           "$hash  $($exe.Name)" | Set-Content -Path "installer\Output\SHA256SUMS.txt" -Encoding ascii
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7
+        if: always()
+        with:
+          name: Statusberichte
+          path: |
+            selftest-*.json
+            setup-log.txt
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7
         with:
           name: CLAUDIOS-Setup
