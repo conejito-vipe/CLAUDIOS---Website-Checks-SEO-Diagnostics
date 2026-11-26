@@ -33,11 +33,11 @@ from .footer_link import LinkFooter
 from .heartbeat import Heartbeat
 from .helppage import HelpPage
 from .highlight import attach
-from .navicons import RAIL_ITEM, SIZE, RailDelegate, nav_icon
+from .navicons import RAIL_ITEM, RAIL_W, SIZE, RailDelegate, nav_icon
 from .pages import ScanPage, SettingsPage
 from .results_page import ResultsPage
 from .uninstall import run_uninstall
-from .widgets import CardWindow
+from .widgets import CardWindow, load_logo
 
 BASE_KEYS = ("nav.scan", "nav.results", "nav.help", "nav.components", "nav.settings")
 SCROLL_PAGES = frozenset({"ServicesPage", "ExportPage", "ComponentsPage", "SettingsPage"})
@@ -108,7 +108,7 @@ class MainWindow(CardWindow):
         self.nav.setObjectName("nav")
         self.nav.setItemDelegate(RailDelegate(self.nav))
         self.nav.setIconSize(QSize(SIZE, SIZE))
-        self.nav.setSpacing(2)
+        self.nav.setSpacing(0)
         self.nav.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.nav.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.nav.setMouseTracking(True)
@@ -124,7 +124,7 @@ class MainWindow(CardWindow):
         self.uninstall_btn.setFixedSize(RAIL_ITEM, RAIL_ITEM)
         self.uninstall_btn.clicked.connect(self.uninstall_all)
         side = QWidget()
-        side.setFixedWidth(RAIL_ITEM + 8)
+        side.setFixedWidth(RAIL_W + 8)
         side_lay = QVBoxLayout(side)
         side_lay.setContentsMargins(0, 0, 0, 0)
         side_lay.setSpacing(8)
@@ -146,6 +146,16 @@ class MainWindow(CardWindow):
             live_lay.addWidget(widget)
         live_lay.addWidget(self.live_text, 1)
         self.live_box.setVisible(False)
+        self.logo = QLabel()
+        self.logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.logo.setAccessibleName("CLAUDIOS")
+        pix = load_logo()
+        if pix is not None:
+            self.logo.setPixmap(pix.scaledToWidth(RAIL_W, Qt.TransformationMode.SmoothTransformation))
+        else:
+            self.logo.setText("CLAUDIOS")
+            self.logo.setObjectName("logofallback")
+        side_lay.addWidget(self.logo)
         side_lay.addWidget(self.nav)
         side_lay.addStretch(1)
         side_lay.addWidget(self.uninstall_btn, 0, Qt.AlignmentFlag.AlignHCenter)

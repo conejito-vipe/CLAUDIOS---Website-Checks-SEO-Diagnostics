@@ -4,7 +4,7 @@ der Delegate zeichnet nur das Symbol."""
 from __future__ import annotations
 
 from PySide6.QtCore import QRectF, QSize, Qt
-from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QStyle, QStyledItemDelegate
 
@@ -12,6 +12,8 @@ from .theme import MUTED, ORANGE_HI, ORANGE_SOFT, SURFACE2
 
 SIZE = 22
 RAIL_ITEM = 48
+RAIL_W = 116  # Breite der Leiste: Symbol mit Beschriftung darunter
+RAIL_H = 52
 PATHS = {
     "nav.scan": "M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z",
     "nav.results": "M4 20V10M10 20V4M16 20v-7M22 20H2",
@@ -53,7 +55,7 @@ class RailDelegate(QStyledItemDelegate):
     """Zeichnet je Eintrag nur ein Symbol auf einer abgerundeten Fläche (gewählt: Akzent, darüber: Hover)."""
 
     def sizeHint(self, option, index) -> QSize:  # noqa: N802 (Qt-Name)
-        return QSize(RAIL_ITEM, RAIL_ITEM)
+        return QSize(RAIL_W - 8, RAIL_H)
 
     def paint(self, painter, option, index) -> None:  # noqa: N802 (Qt-Name)
         selected = bool(option.state & QStyle.StateFlag.State_Selected)
@@ -69,6 +71,14 @@ class RailDelegate(QStyledItemDelegate):
             mode = QIcon.Mode.Selected if selected else QIcon.Mode.Normal
             side = SIZE
             left = option.rect.x() + (option.rect.width() - side) // 2
-            top = option.rect.y() + (option.rect.height() - side) // 2
+            top = option.rect.y() + 8
             icon.paint(painter, left, top, side, side, Qt.AlignmentFlag.AlignCenter, mode)
+        font = QFont(option.font)
+        font.setPixelSize(11)
+        painter.setFont(font)
+        painter.setPen(QColor(ORANGE_HI if selected else MUTED))
+        label = painter.fontMetrics().elidedText(str(index.data(Qt.ItemDataRole.DisplayRole) or ""),
+                                                 Qt.TextElideMode.ElideRight, option.rect.width() - 6)
+        text_rect = QRectF(option.rect.x() + 3, option.rect.y() + 8 + SIZE + 4, option.rect.width() - 6, 16)
+        painter.drawText(text_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, label)
         painter.restore()

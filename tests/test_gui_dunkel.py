@@ -174,3 +174,18 @@ def test_severity_colors_are_readable_and_applied_to_the_table():
     finally:
         pages.group_findings = original
     assert page.table.item(0, 0).foreground().color().name().lower() == SEVERITY[4].lower()
+
+
+def test_navigation_shows_the_logo_on_top_and_a_label_under_every_icon():
+    from claudios.ui.navicons import RAIL_W, RailDelegate
+    window = MainWindow({"language": "de", "allow_localhost": False})
+    assert window.logo.pixmap() is not None or window.logo.text() == "CLAUDIOS"
+    assert window.nav.itemDelegate().sizeHint(None, None).width() == RAIL_W - 8
+    assert isinstance(window.nav.itemDelegate(), RailDelegate)
+    window.show()
+    _APP.processEvents()
+    shot = window.nav.grab().toImage()
+    # unter dem Symbol des ersten Eintrags liegen gezeichnete Textpixel (Beschriftung)
+    row = window.nav.visualItemRect(window.nav.item(0))
+    band = [shot.pixelColor(x, y) for x in range(row.x(), row.right()) for y in range(row.y() + 34, row.y() + 48)]
+    assert len({c.name() for c in band}) > 2
