@@ -66,7 +66,7 @@ def load(base: Path) -> dict[str, Any] | None:
     try:
         with open(_path(base), encoding="utf-8") as fh:
             return parse(fh.read(MAX_LEN + 10))
-    except OSError:
+    except (OSError, ValueError):  # auch ungültiges UTF-8 in der Datei: wie „keine Datei“
         return None
 
 

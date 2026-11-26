@@ -180,3 +180,22 @@ def test_no_licence_material_is_part_of_the_repository():
 
     from claudios.core import lizenz as live
     assert "PUBLIC_KEYS: dict[str, str] = {}" in inspect.getsource(live)  # im Quelltext bleibt die Liste leer
+
+
+def test_the_switch_file_fetch_never_follows_a_redirect_and_caps_the_size(admin, monkeypatch):
+    import httpx
+    seen = []
+
+    def handler(request):
+        seen.append(str(request.url))
+        if request.url.path == "/s.txt":
+            return httpx.Response(302, headers={"location": "https://evil.example/s.txt"})
+        return httpx.Response(200, text=admin.switch(serial=9))  # gültig, würde bei Weiterleitung angenommen
+
+    real = httpx.Client
+    monkeypatch.setattr(schalt.httpx, "Client", lambda **kw: real(transport=httpx.MockTransport(handler), **kw))
+    assert schalt.refresh(admin.base, "https://admin.example/s.txt")["reason"] == "nicht erreichbar"
+    assert seen == ["https://admin.example/s.txt"] and schalt.load(admin.base) is None
+    huge = httpx.Response(200, content=b"A" * (schalt.MAX_LEN * 3))
+    monkeypatch.setattr(schalt.httpx, "Client", lambda **kw: real(transport=httpx.MockTransport(lambda _r: huge), **kw))
+    assert schalt.refresh(admin.base, "https://admin.example/s.txt")["ok"] is False  # zu groß: verworfen, nichts gespeichert

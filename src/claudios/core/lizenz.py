@@ -119,7 +119,7 @@ def load(base: Path) -> str:
     try:
         with open(path(base), encoding="utf-8") as fh:
             return fh.read(MAX_KEY_LEN + 10).strip()
-    except OSError:
+    except (OSError, ValueError):  # auch ungültiges UTF-8 in der Datei: wie „keine Datei“
         return ""
 
 

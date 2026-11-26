@@ -84,3 +84,13 @@ def test_null_bytes_control_characters_and_invalid_utf8_are_harmless(tmp_path):
     assert lizenz.state(tmp_path)["has_key"] is False and lizenz.load(tmp_path) == ""  # unlesbar = kein Schlüssel
     (tmp_path / schalt.FILE).write_bytes(b"\xff\xfe\x00SW1")
     assert schalt.load(tmp_path) is None and schalt.apply(tmp_path) is None and not lizenz.SCHALT_AKTIV
+
+
+def test_an_at_sign_in_the_address_is_refused_even_without_a_user_name():
+    for raw in ("https://@example.com/", "https://example.com@evil.example/", "https://:@example.com/"):
+        try:
+            normalize_input(raw)
+        except ClaudiosError as err:
+            assert err.code.name == "INPUT_CREDENTIALS", raw
+        else:
+            raise AssertionError(raw)
