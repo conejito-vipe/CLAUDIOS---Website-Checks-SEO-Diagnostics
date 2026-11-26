@@ -5,6 +5,7 @@ English version: [ASSETS.md](ASSETS.md)
 |---|---|---|---|---|
 | CLAUDIOS-Logo (Eichhörnchen mit Stift, Schriftzug CLAUDIOS) | conejito-vipe, mit KI-Unterstützung erstellt | eigenes Werk | © conejito-vipe, Nutzung nur zusammen mit CLAUDIOS | Startbild, README, Symbol |
 | HTML5-/CSS3-/JS-Zeichen im Logo | KI-generierte Darstellung, angelehnt an die offiziellen Logos | W3C-HTML5-Logo: https://www.w3.org/html/logo/ (CC BY 3.0); CSS3-/JS-Zeichen: NOCH ZU KLÄREN | siehe Quelle | Logo |
+| `logo-rail.png` (das Logo ohne den hellen Aufkleberrand, zugeschnitten) | abgeleitet vom Logo durch conejito-vipe / Claude | abgeleitetes Werk | wie das Logo | Navigationsleiste |
 | Programmsymbol `app.ico` | beim Windows-Build von `tools/make_installer_art.py` aus dem Logo erzeugt (`installer/art/app.ico`) | abgeleitetes Werk | wie das Logo | Programm, Installer, Desktop |
 | `smartscreen.png` (Bildschirmfoto der SmartScreen-Meldung) | conejito-vipe (eigenes Bildschirmfoto) | Windows-Oberfläche von Microsoft, zeigt nur die Systemmeldung zum unsignierten Installer | Rechte an der Windows-Oberfläche bei Microsoft; das Foto dient nur der Erklärung in der README (rechtliche Prüfung offen) | README |
 

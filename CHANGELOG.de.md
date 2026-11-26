@@ -2,6 +2,11 @@
 
 English version: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.2.0 (unveröffentlicht)
+
+- **Oberfläche:** dunkles Design (Entwurf B): Symbolleiste mit Beschriftung und Logo, neuer Startscreen, Hilfe mit Inhaltsverzeichnis und gemeinsamer Suche, Wertungsring und Kategorie-Karten auf der Ergebnisseite, Erklärspalte neben der Befundliste.
+- **Verwaltung:** Schnittstelle von CONEJITO (Admin): signierte Lizenzschlüssel (`CL1`) und signierte Schaltdatei (`SW1`, Ed25519, Prüfung offline, HTTPS-GET nur auf Knopfdruck). Neue Seite „Pro und Lizenz“, ausgeliefert inaktiv (kein Navigationseintrag, keine Sperren, keine Preise), bis die Verwaltung sie einschaltet. Öffentlicher Schlüssel und Adresse der Schaltdatei müssen noch eingetragen werden.
+
 ## 0.1.0 (unveröffentlicht)
 
 - **Kern:** HTTPS-Gatekeeper mit DoH und IP-Bindung, Crawler (6 Ebenen), feste Grenzen, manipulationssicheres Scan-Protokoll mit Kontrollwert, Berichte.

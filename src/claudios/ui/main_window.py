@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..core import angebot
 from ..i18n.strings import get_lang, set_lang, t
 from ..settings import save as save_settings
 from .activity import short_activity
@@ -37,7 +38,7 @@ from .navicons import RAIL_ITEM, RAIL_W, SIZE, RailDelegate, nav_icon
 from .pages import ScanPage, SettingsPage
 from .results_page import ResultsPage
 from .uninstall import run_uninstall
-from .widgets import CardWindow, load_logo, trimmed
+from .widgets import CardWindow, load_rail_logo
 
 BASE_KEYS = ("nav.scan", "nav.results", "nav.help", "nav.components", "nav.settings")
 SCROLL_PAGES = frozenset({"ServicesPage", "ExportPage", "ComponentsPage", "SettingsPage"})
@@ -116,6 +117,8 @@ class MainWindow(CardWindow):
             _item = QListWidgetItem("")
             _item.setIcon(nav_icon(_key))
             self.nav.addItem(_item)
+        if "nav.pro" in self.nav_keys:  # ausgeliefert inaktiv: erst die Verwaltung schaltet die Seite frei
+            self.nav.item(self.nav_keys.index("nav.pro")).setHidden(not angebot.AKTIV)
         self.nav.item(self.nav_keys.index("nav.help")).setHidden(True)  # „Hilfe“ öffnet der Knopf in der Titelleiste
         self.uninstall_btn = QPushButton()
         self.uninstall_btn.setObjectName("railbtn")
@@ -149,9 +152,8 @@ class MainWindow(CardWindow):
         self.logo = QLabel()
         self.logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.logo.setAccessibleName("CLAUDIOS")
-        pix = load_logo()
+        pix = load_rail_logo()
         if pix is not None:
-            pix = trimmed(pix)
             self.logo.setPixmap(pix.scaledToWidth(RAIL_W - 8, Qt.TransformationMode.SmoothTransformation))
         else:
             self.logo.setText("CLAUDIOS")

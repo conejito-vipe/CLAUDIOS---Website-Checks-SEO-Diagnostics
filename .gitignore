@@ -13,3 +13,6 @@ client_secret*.json
 token*.json
 tools_cache/
 src/claudios/build_info.json
+
+# lokale Bildschirmfotos der Oberflächenprüfung
+scan-*.png

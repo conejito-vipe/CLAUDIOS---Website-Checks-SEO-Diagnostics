@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claudios"
-version = "0.1.0"
+version = "0.2.0"
 description = "Website checks, SEO & diagnostics (HTML, CSS, JS, security)"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
@@ -13,6 +13,7 @@ dependencies = [
     "beautifulsoup4>=4.12",
     "dnspython[doh]>=2.6",
     "publicsuffix2>=2.20190000",
+    "cryptography>=42",
 ]
 
 [project.optional-dependencies]

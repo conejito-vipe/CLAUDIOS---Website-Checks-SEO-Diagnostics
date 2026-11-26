@@ -35,6 +35,18 @@ def load_logo() -> QPixmap | None:
     return None
 
 
+def load_rail_logo() -> QPixmap | None:
+    """Logo für die Navigationsleiste: ohne hellen Rand und zugeschnitten (Rückfall: zugeschnittenes Hauptlogo)."""
+    folder = assets_dir()
+    path = folder / "logo-rail.png" if folder is not None else None
+    if path is not None and path.is_file():
+        pix = QPixmap(str(path))
+        if not pix.isNull():
+            return pix
+    pix = load_logo()
+    return None if pix is None else trimmed(pix)
+
+
 def trimmed(pix: QPixmap, threshold: int = 24) -> QPixmap:
     """Schneidet den leeren (durchsichtigen) Rand ab, damit das Logo in jeder Größe den Platz ausfüllt."""
     image = pix.toImage().convertToFormat(QImage.Format.Format_ARGB32)

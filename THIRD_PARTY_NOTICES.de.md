@@ -11,6 +11,7 @@ CLAUDIOS ist nicht mit Google, dem W3C, dem OWASP-ZAP-Projekt, Microsoft oder ei
 | Komponente | Lizenz | Quelle |
 |---|---|---|
 | httpx | BSD-3-Clause | https://github.com/encode/httpx |
+| cryptography | Apache-2.0 OR BSD-3-Clause | https://github.com/pyca/cryptography |
 | Beautiful Soup 4 | MIT | https://www.crummy.com/software/BeautifulSoup/ |
 | dnspython | ISC | https://github.com/rthalley/dnspython |
 | publicsuffix2 | MIT; die Liste selbst MPL-2.0 | https://github.com/nexB/python-publicsuffix2 |

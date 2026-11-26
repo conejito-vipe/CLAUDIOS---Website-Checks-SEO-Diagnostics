@@ -2,6 +2,11 @@
 
 Deutsche Fassung: [CHANGELOG.de.md](CHANGELOG.de.md)
 
+## 0.2.0 (unreleased)
+
+- **GUI:** dark design (draft B): icon rail with labels and logo, new start screen, help with table of contents and shared search, score ring and category cards on the results page, explanation column next to the findings list.
+- **Administration:** interface of CONEJITO (Admin): signed licence keys (`CL1`) and signed switch file (`SW1`, Ed25519, offline check, HTTPS GET only on button press). New page "Pro and licence", shipped inactive (no navigation entry, no locks, no prices) until the administration enables it. The public key and the address of the switch file still have to be entered.
+
 ## 0.1.0 (unreleased)
 
 - **Core:** HTTPS-only gatekeeper with DoH and IP pinning, crawler (6 levels), fixed limits, tamper-evident scan log with a control value, reports.
