@@ -11,6 +11,17 @@ from . import theme
 GOOD, WARN, BAD = "#4CC38A", "#E8B93C", "#F0616D"
 
 
+SEVERITY = {0: "#9AA7B5", 1: "#6FB1FF", 2: WARN, 3: "#FF8A3D", 4: BAD}
+
+
+def style_severity(item, severity: int) -> None:
+    """Schwere als farbige, fette Zelle (Chip-Ersatz in der Tabelle); der Text bleibt für Screenreader erhalten."""
+    item.setForeground(QColor(SEVERITY[severity]))
+    font = item.font()
+    font.setBold(True)
+    item.setFont(font)
+
+
 def score_color(score: int) -> str:
     """Grün ab 80, Gelb ab 50, sonst Rot. Alle drei sind auf dem dunklen Grund lesbar (siehe Kontrasttest)."""
     return GOOD if score >= 80 else WARN if score >= 50 else BAD

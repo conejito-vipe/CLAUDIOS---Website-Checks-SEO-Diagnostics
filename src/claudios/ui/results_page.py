@@ -13,6 +13,7 @@ from ..core.redact import redact_url
 from ..i18n.strings import get_lang, n, t
 from ..report.history_latest import latest_overall
 from .pages import ResultsPage as _ResultsPage
+from .scorecards import style_severity
 
 
 class ResultsPage(_ResultsPage):
@@ -72,7 +73,10 @@ class ResultsPage(_ResultsPage):
             cells = (t(f"sev.{item['severity']}"), item["check_id"], n(item["count"]),
                      localize_numbers(item["msg_" + lang], lang))
             for col, value in enumerate(cells):
-                self.table.setItem(row, col, QTableWidgetItem(value))
+                cell = QTableWidgetItem(value)
+                if col == 0:
+                    style_severity(cell, item["severity"])
+                self.table.setItem(row, col, cell)
 
     def _localize_table(self) -> None:
         lang = get_lang()

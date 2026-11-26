@@ -48,7 +48,7 @@ from .expert_box import ExpertBox
 from .levelinfo import KEYS as LEVEL_KEYS, level_info
 from .linktext import LinkText
 from .scanprogress import PhaseClock, format_duration, overall_percent
-from .scorecards import CategoryRow, ScoreRing
+from .scorecards import CategoryRow, ScoreRing, style_severity
 from .urlinput import clean_input
 from .worker import ScanThread
 
@@ -473,6 +473,8 @@ class ResultsPage(QWidget):
             for col, value in enumerate(cells):
                 item = QTableWidgetItem(value)
                 item.setToolTip("\n".join([group["evidence"], *group["example_urls"]]))
+                if col == 0:
+                    style_severity(item, group["severity"])
                 self.table.setItem(row, col, item)
 
     def export(self) -> None:

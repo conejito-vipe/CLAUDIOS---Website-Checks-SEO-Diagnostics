@@ -151,3 +151,26 @@ def test_results_head_shows_ring_and_one_card_per_category_but_nothing_for_an_ab
     assert page.head.isHidden() and page.ring.value is None and not page.categories.cards
     image = page.ring.grab().toImage()  # der Ring lässt sich zeichnen, auch ohne Wert
     assert image.width() == page.ring.width()
+
+
+def test_severity_colors_are_readable_and_applied_to_the_table():
+    from types import SimpleNamespace
+
+    from claudios.ui.pages import ResultsPage
+    from claudios.ui.scorecards import SEVERITY
+    for color in SEVERITY.values():
+        assert contrast(color, theme.BG_DEEP) >= 4.5
+    finding = {"severity": 4, "check_id": "SEC-HDR-001", "count": 1, "msg_de": "x", "msg_en": "x", "evidence": "",
+               "example_urls": []}
+    import claudios.ui.pages as pages
+    original = pages.group_findings
+    pages.group_findings = lambda _f: [finding]
+    try:
+        page = ResultsPage()
+        page.retranslate()
+        snap = SimpleNamespace(status="complete", pages=[], target=SimpleNamespace(url="https://example.com/"))
+        page.show_result(SimpleNamespace(snapshot=snap, scores={"overall": 50, "categories": {}}, requests=1,
+                                         bytes_total=1, executed={}, findings=[]))
+    finally:
+        pages.group_findings = original
+    assert page.table.item(0, 0).foreground().color().name().lower() == SEVERITY[4].lower()
