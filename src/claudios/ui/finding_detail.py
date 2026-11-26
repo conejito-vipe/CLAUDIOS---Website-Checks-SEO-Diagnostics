@@ -400,6 +400,14 @@ class DetailLinker(QObject):
     def _list_click(self, item) -> None:
         self.open_for([item.text()])
 
+    def attach_panel(self, table: QTableWidget, panel) -> None:
+        """Die Ergebnistabelle füllt die Erklärspalte; der Dialog öffnet nur über deren Knopf."""
+        self._decorate(table)
+        table.setProperty(FLAG, True)
+        panel.groups, panel.result, panel.open_dialog = self._groups, self._get_result, self.open_for
+        table.cellClicked.connect(lambda row, _c: panel.show_for(
+            [cell.text() if cell is not None else "" for cell in (table.item(row, c) for c in range(table.columnCount()))]))
+
     def _groups(self) -> list[dict]:
         result, lang = self._get_result(), get_lang()
         if result is None:

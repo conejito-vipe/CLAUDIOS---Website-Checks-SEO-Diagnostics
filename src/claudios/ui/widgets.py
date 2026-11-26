@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QPointF, QRectF, QSize, Qt, Signal
-from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPixmap
+from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPainterPath, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
@@ -33,6 +33,20 @@ def load_logo() -> QPixmap | None:
             if not pix.isNull():
                 return pix
     return None
+
+
+def trimmed(pix: QPixmap, threshold: int = 24) -> QPixmap:
+    """Schneidet den leeren (durchsichtigen) Rand ab, damit das Logo in jeder Größe den Platz ausfüllt."""
+    image = pix.toImage().convertToFormat(QImage.Format.Format_ARGB32)
+    left, top, right, bottom = image.width(), image.height(), -1, -1
+    for y in range(image.height()):
+        for x in range(image.width()):
+            if (image.pixel(x, y) >> 24) > threshold:
+                left, right = min(left, x), max(right, x)
+                top, bottom = min(top, y), max(bottom, y)
+    if right < left:
+        return pix
+    return pix.copy(left, top, right - left + 1, bottom - top + 1)
 
 
 def load_icon() -> QIcon | None:

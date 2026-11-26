@@ -20,6 +20,9 @@ TEXTS["de"].update({
     "scan.info.3.b": "Domainablauf, Safe Browsing und PageSpeed sind standardmäßig ausgeschaltet. Jedes Einschalten "
                      "fragt nach.",
     "scan.info.4.h": "Indizien, keine Zertifizierung",
+    "explain.title": "Befund erklärt",
+    "explain.hint": "Wähle links einen Befund. Hier stehen dann Erklärung, Behebung und die betroffene Stelle im Code.",
+    "explain.open": "Im Codefenster öffnen",
     "scan.info.4.b": "Die Ergebnisse sind technische Hinweise und keine Rechtsberatung. Gespeichert wird ein Verlauf "
                      "nur, wenn du ihn einschaltest.",
 })
@@ -40,5 +43,8 @@ TEXTS["en"].update({
     "scan.info.3.b": "Domain expiry, Safe Browsing and PageSpeed are switched off by default. Switching one on asks "
                      "first.",
     "scan.info.4.h": "Indications, not certification",
+    "explain.title": "Finding explained",
+    "explain.hint": "Select a finding on the left. The explanation, the fix and the affected spot in the code appear here.",
+    "explain.open": "Open in code window",
     "scan.info.4.b": "Results are technical hints, not legal advice. A history is only stored if you switch it on.",
 })

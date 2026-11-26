@@ -37,7 +37,7 @@ from .navicons import RAIL_ITEM, RAIL_W, SIZE, RailDelegate, nav_icon
 from .pages import ScanPage, SettingsPage
 from .results_page import ResultsPage
 from .uninstall import run_uninstall
-from .widgets import CardWindow, load_logo
+from .widgets import CardWindow, load_logo, trimmed
 
 BASE_KEYS = ("nav.scan", "nav.results", "nav.help", "nav.components", "nav.settings")
 SCROLL_PAGES = frozenset({"ServicesPage", "ExportPage", "ComponentsPage", "SettingsPage"})
@@ -151,7 +151,8 @@ class MainWindow(CardWindow):
         self.logo.setAccessibleName("CLAUDIOS")
         pix = load_logo()
         if pix is not None:
-            self.logo.setPixmap(pix.scaledToWidth(RAIL_W, Qt.TransformationMode.SmoothTransformation))
+            pix = trimmed(pix)
+            self.logo.setPixmap(pix.scaledToWidth(RAIL_W - 8, Qt.TransformationMode.SmoothTransformation))
         else:
             self.logo.setText("CLAUDIOS")
             self.logo.setObjectName("logofallback")
@@ -187,6 +188,7 @@ class MainWindow(CardWindow):
         self.nav.setCurrentRow(0)
 
     def _attach_details(self) -> None:
+        self.detail.attach_panel(self.results.table, self.results.explain)  # Spalte rechts statt Dialog
         for page in self.pages:
             if type(page).__name__ != "ComponentsPage":
                 self.detail.attach(page)

@@ -13,7 +13,7 @@ from .theme import MUTED, ORANGE_HI, ORANGE_SOFT, SURFACE2
 SIZE = 22
 RAIL_ITEM = 48
 RAIL_W = 116  # Breite der Leiste: Symbol mit Beschriftung darunter
-RAIL_H = 52
+RAIL_H = 48
 PATHS = {
     "nav.scan": "M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z",
     "nav.results": "M4 20V10M10 20V4M16 20v-7M22 20H2",

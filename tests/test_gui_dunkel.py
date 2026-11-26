@@ -189,3 +189,24 @@ def test_navigation_shows_the_logo_on_top_and_a_label_under_every_icon():
     row = window.nav.visualItemRect(window.nav.item(0))
     band = [shot.pixelColor(x, y) for x in range(row.x(), row.right()) for y in range(row.y() + 34, row.y() + 48)]
     assert len({c.name() for c in band}) > 2
+
+
+def test_clicking_a_result_row_fills_the_explanation_column_and_the_button_opens_the_dialog():
+    from PySide6.QtWidgets import QTableWidgetItem
+    window = MainWindow({"language": "de", "allow_localhost": False})
+    page = window.results
+    cid = next(iter(REGISTRY))
+    assert page.explain.title.text() == t("explain.title") and not page.explain.open_btn.isEnabled()
+    page.table.setRowCount(1)
+    for col, value in enumerate(("Fehler", cid, "1", "Beispiel")):
+        page.table.setItem(0, col, QTableWidgetItem(value))
+    page.table.cellClicked.emit(0, 0)
+    assert cid in page.explain.title.text() and page.explain.open_btn.isEnabled()
+    assert page.explain.view.toPlainText() != t("explain.hint")
+    opened = []
+    page.explain.open_dialog = lambda texts: opened.append(texts) or True
+    page.explain.open_btn.click()
+    assert opened and opened[0][1] == cid
+    page.table.setRowCount(0)
+    page.refresh()
+    assert page.explain.title.text() == t("explain.title")  # neue Anzeige: keine veraltete Erklärung
