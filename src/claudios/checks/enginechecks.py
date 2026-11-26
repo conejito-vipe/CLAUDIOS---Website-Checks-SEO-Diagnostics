@@ -18,6 +18,29 @@ def _baseline(snap) -> dict[str, dict]:
     return {str(p.get("url")): p for p in data.get("pages") or [] if isinstance(p, dict)}
 
 
+def _page_findings(page: dict, url: str, ref: dict, label: str) -> list:
+    """Befunde einer Seite in einer Engine, verglichen mit dem Chromium-Lauf (ref, leer = kein Vergleich)."""
+    ref_ok = bool(ref) and not ref.get("error")
+    error = page.get("error")
+    if error:  # ein Ladefehler schließt die weiteren Vergleiche aus; Weiterleitung auf fremden Host ist kein Befund
+        if error == "offsite_redirect":
+            return []
+        return [F("BRW-ENG-001", S.WARNING if ref_ok else S.NOTE, url,
+                  f"Die Seite konnte in {label} nicht geladen werden" + (" (in Chromium schon)" if ref_ok else ""),
+                  f"The page could not be loaded in {label}" + (" (it loads in Chromium)" if ref_ok else ""),
+                  str(error)[:80])]
+    out = []
+    errors = page.get("page_errors") or []
+    if errors and ref and not ref.get("page_errors"):
+        out.append(F("BRW-ENG-001", S.NOTE, url, f"{len(errors)} JavaScript-Ausnahme(n) nur in {label}",
+                     f"{len(errors)} JavaScript exception(s) only in {label}", str(errors[0])[:100]))
+    overflow = page.get("overflow") or {}
+    if overflow.get("360") is True and ref and not (ref.get("overflow") or {}).get("360"):
+        out.append(F("BRW-ENG-001", S.NOTE, url, f"Horizontales Scrollen bei 360 px nur in {label}",
+                     f"Horizontal scrolling at 360 px only in {label}"))
+    return out
+
+
 @check("BRW-ENG-001",
        title="Browser-Unterschiede (Firefox und WebKit) ## Browser differences (Firefox and WebKit)",
        why="Eine Website, die nur in Chromium getestet wurde, kann in Firefox oder Safari (WebKit) kaputt aussehen oder "
@@ -61,26 +84,7 @@ def engine_differences(snap):
                          f"{label} could not be started", str(eng["error"])[:80]))
             continue
         for page in eng.get("pages") or []:
-            if not isinstance(page, dict):
-                continue
-            url = str(page.get("url", snap.target.url))
-            ref = base.get(url, {})
-            ref_ok = bool(ref) and not ref.get("error")
-            error = page.get("error")
-            if error:
-                if error != "offsite_redirect":
-                    out.append(F("BRW-ENG-001", S.WARNING if ref_ok else S.NOTE, url,
-                                 f"Die Seite konnte in {label} nicht geladen werden"
-                                 + (" (in Chromium schon)" if ref_ok else ""),
-                                 f"The page could not be loaded in {label}" + (" (it loads in Chromium)" if ref_ok else ""),
-                                 str(error)[:80]))
-                continue
-            errors = page.get("page_errors") or []
-            if errors and ref and not ref.get("page_errors"):
-                out.append(F("BRW-ENG-001", S.NOTE, url, f"{len(errors)} JavaScript-Ausnahme(n) nur in {label}",
-                             f"{len(errors)} JavaScript exception(s) only in {label}", str(errors[0])[:100]))
-            overflow = page.get("overflow") or {}
-            if overflow.get("360") is True and ref and not (ref.get("overflow") or {}).get("360"):
-                out.append(F("BRW-ENG-001", S.NOTE, url, f"Horizontales Scrollen bei 360 px nur in {label}",
-                             f"Horizontal scrolling at 360 px only in {label}"))
+            if isinstance(page, dict):
+                url = str(page.get("url", snap.target.url))
+                out += _page_findings(page, url, base.get(url, {}), label)
     return out

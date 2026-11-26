@@ -197,6 +197,69 @@ def structured(snap):
     return out
 
 
+def _sitemap_address_findings(snap, urls: list[str], url: str) -> list:
+    """Adressen in der Sitemap ohne HTTPS oder von einer anderen Domain."""
+    out = []
+    insecure = [u for u in urls if u.lower().startswith("http:")]
+    if insecure:
+        out.append(F("SEO-SMP-001", S.WARNING, url, f"{len(insecure)} Sitemap-Adresse(n) ohne HTTPS",
+                     f"{len(insecure)} sitemap address(es) without HTTPS", insecure[0][:100]))
+    foreign = [u for u in urls if (get_sld((re.sub(r"^[a-z]+:/*", "", u.lower()).split("/")[0].split(":")[0]))
+                                   or "") != snap.target.registrable]
+    if foreign:
+        out.append(F("SEO-SMP-001", S.NOTE, url, f"{len(foreign)} Sitemap-Adresse(n) einer anderen Domain",
+                     f"{len(foreign)} sitemap address(es) of another domain", foreign[0][:100]))
+    return out
+
+
+def _sitemap_page_findings(snap, listed: set) -> list:
+    """Gecrawlte Seiten, die in der Sitemap stehen: Fehlerstatus, Weiterleitung oder noindex."""
+    out = []
+    for pg in snap.pages:
+        keys = {norm(pg.url), *(norm(u) for u in pg.chain)}
+        if not listed & keys:
+            continue
+        if pg.status is not None and pg.status >= 400:
+            out.append(F("SEO-SMP-001", S.ERROR, pg.url, f"Sitemap-Adresse liefert HTTP {pg.status}",
+                         f"Sitemap address returns HTTP {pg.status}"))
+        elif norm(pg.url) not in listed:
+            out.append(F("SEO-SMP-001", S.NOTE, pg.url, "Sitemap-Adresse leitet weiter",
+                         "Sitemap address redirects"))
+        elif pg.html is not None and _noindex(pg):
+            out.append(F("SEO-SMP-001", S.WARNING, pg.url, "Sitemap enthält eine noindex-Seite",
+                         "Sitemap contains a noindex page"))
+    return out
+
+
+def _sitemap_probe_findings(checked: list[dict]) -> list:
+    """Stichprobe: Adressen aus der Sitemap, die nicht gecrawlt wurden, aber einzeln abgefragt wurden."""
+    out = []
+    for rec in checked:
+        if rec["error"]:
+            out.append(F("SEO-SMP-001", S.WARNING, rec["url"], "Sitemap-Adresse nicht erreichbar",
+                         "Sitemap address unreachable"))
+        elif rec["status"] is not None and rec["status"] >= 400:
+            out.append(F("SEO-SMP-001", S.ERROR, rec["url"], f"Sitemap-Adresse liefert HTTP {rec['status']}",
+                         f"Sitemap address returns HTTP {rec['status']}"))
+        elif rec["redirects"]:
+            out.append(F("SEO-SMP-001", S.NOTE, rec["url"], "Sitemap-Adresse leitet weiter",
+                         "Sitemap address redirects"))
+    return out
+
+
+def _sitemap_missing_findings(snap, listed: set) -> list:
+    """Gecrawlte, indexierbare Seiten, die in der Sitemap fehlen."""
+    missing = []
+    for pg in snap.docs():
+        keys = {norm(pg.url), *(norm(u) for u in pg.chain)}
+        if pg.status == 200 and "?" not in pg.url and not listed & keys and not _noindex(pg):
+            missing.append(pg.url)
+    if not missing:
+        return []
+    return [F("SEO-SMP-001", S.INFO, missing[0], f"{len(missing)} gecrawlte Seite(n) fehlen in der Sitemap",
+              f"{len(missing)} crawled page(s) missing from the sitemap")]
+
+
 @check("SEO-SMP-001",
        title="Sitemap ## Sitemap",
        why="Die Sitemap hilft Suchmaschinen, alle wichtigen Seiten zu finden. Enthält sie Fehlerseiten, "
@@ -243,48 +306,12 @@ def sitemap(snap):
             out.append(F("SEO-SMP-001", S.WARNING, url, "Die Sitemap enthält keine Adressen",
                          "The sitemap contains no addresses"))
         return out
-    insecure = [u for u in urls if u.lower().startswith("http:")]
-    if insecure:
-        out.append(F("SEO-SMP-001", S.WARNING, url, f"{len(insecure)} Sitemap-Adresse(n) ohne HTTPS",
-                     f"{len(insecure)} sitemap address(es) without HTTPS", insecure[0][:100]))
-    foreign = [u for u in urls if (get_sld((re.sub(r"^[a-z]+:/*", "", u.lower()).split("/")[0].split(":")[0]))
-                                   or "") != snap.target.registrable]
-    if foreign:
-        out.append(F("SEO-SMP-001", S.NOTE, url, f"{len(foreign)} Sitemap-Adresse(n) einer anderen Domain",
-                     f"{len(foreign)} sitemap address(es) of another domain", foreign[0][:100]))
+    out += _sitemap_address_findings(snap, urls, url)
     listed = {norm(u) for u in urls}
-    for pg in snap.pages:
-        keys = {norm(pg.url), *(norm(u) for u in pg.chain)}
-        if not listed & keys:
-            continue
-        if pg.status is not None and pg.status >= 400:
-            out.append(F("SEO-SMP-001", S.ERROR, pg.url, f"Sitemap-Adresse liefert HTTP {pg.status}",
-                         f"Sitemap address returns HTTP {pg.status}"))
-        elif norm(pg.url) not in listed:
-            out.append(F("SEO-SMP-001", S.NOTE, pg.url, "Sitemap-Adresse leitet weiter",
-                         "Sitemap address redirects"))
-        elif pg.html is not None and _noindex(pg):
-            out.append(F("SEO-SMP-001", S.WARNING, pg.url, "Sitemap enthält eine noindex-Seite",
-                         "Sitemap contains a noindex page"))
-    for rec in data["checked"]:
-        if rec["error"]:
-            out.append(F("SEO-SMP-001", S.WARNING, rec["url"], "Sitemap-Adresse nicht erreichbar",
-                         "Sitemap address unreachable"))
-        elif rec["status"] is not None and rec["status"] >= 400:
-            out.append(F("SEO-SMP-001", S.ERROR, rec["url"], f"Sitemap-Adresse liefert HTTP {rec['status']}",
-                         f"Sitemap address returns HTTP {rec['status']}"))
-        elif rec["redirects"]:
-            out.append(F("SEO-SMP-001", S.NOTE, rec["url"], "Sitemap-Adresse leitet weiter",
-                         "Sitemap address redirects"))
+    out += _sitemap_page_findings(snap, listed)
+    out += _sitemap_probe_findings(data["checked"])
     if not data["index"] and not data["truncated"]:
-        missing = []
-        for pg in snap.docs():
-            keys = {norm(pg.url), *(norm(u) for u in pg.chain)}
-            if pg.status == 200 and "?" not in pg.url and not listed & keys and not _noindex(pg):
-                missing.append(pg.url)
-        if missing:
-            out.append(F("SEO-SMP-001", S.INFO, missing[0], f"{len(missing)} gecrawlte Seite(n) fehlen in der Sitemap",
-                         f"{len(missing)} crawled page(s) missing from the sitemap"))
+        out += _sitemap_missing_findings(snap, listed)
     return out
 
 
