@@ -124,6 +124,7 @@ def test_fetch_is_https_only_needs_an_address_and_keeps_the_old_state_on_errors(
 
 
 def test_pro_page_is_hidden_and_disabled_until_the_administration_switches_it_on(admin, monkeypatch):
+    monkeypatch.setattr(page_pro.verwaltung, "apply", lambda _base: {})  # der echte Datenordner soll nichts überschreiben
     window = MainWindow({"language": "de", "allow_localhost": False})
     row = window.nav_keys.index("nav.pro")
     assert window.nav.item(row).isHidden()
@@ -140,3 +141,42 @@ def test_pro_page_is_hidden_and_disabled_until_the_administration_switches_it_on
     page.remove_btn.click()
     assert page.lic_status.text() == "Kein Schlüssel hinterlegt."
     assert page.table.rowCount() == len(angebot.FEATURES)
+
+
+def test_local_admin_config_switches_the_page_on_and_ignores_anything_invalid(monkeypatch, tmp_path):
+    from claudios.core import verwaltung
+    key = base64.b64encode(bytes(32)).decode()
+    (tmp_path / verwaltung.FILE).write_text(json.dumps({"keys": {"k1": key, "bad": "AAAA", "x y": key},
+                                                       "schalt_url": "https://admin.example/s.txt", "pro": True}))
+    monkeypatch.setattr(lizenz, "PUBLIC_KEYS", {})
+    monkeypatch.setattr(angebot, "AKTIV", False)
+    monkeypatch.setattr(schalt, "SCHALT_URL", "")
+    verwaltung.apply(tmp_path)
+    assert lizenz.PUBLIC_KEYS == {"k1": key} and schalt.SCHALT_URL == "https://admin.example/s.txt" and angebot.AKTIV
+    (tmp_path / verwaltung.FILE).write_text(json.dumps({"keys": {}, "schalt_url": "ftp://x", "pro": True}))
+    verwaltung.apply(tmp_path)
+    assert lizenz.PUBLIC_KEYS == {} and schalt.SCHALT_URL == "" and not angebot.AKTIV  # ohne Schlüssel bleibt Pro aus
+    (tmp_path / verwaltung.FILE).write_text("[kaputt")
+    assert verwaltung.load(tmp_path) == {"keys": {}, "schalt_url": "", "pro": False}
+    (tmp_path / verwaltung.FILE).unlink()
+    assert verwaltung.load(tmp_path)["pro"] is False
+
+
+def test_no_licence_material_is_part_of_the_repository():
+    """Schlüssel, Schaltdateien und Verwaltungs-Einstellungen dürfen nie im Repository stehen (es ist öffentlich)."""
+    import re
+    import subprocess
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    names = subprocess.run(["git", "ls-files"], cwd=root, capture_output=True, text=True, check=True).stdout.split()
+    assert not [n for n in names if Path(n).name in {"lizenz.txt", "schaltdatei.txt", "verwaltung.json"}
+                or n.endswith(".lizenz")]
+    token = re.compile(r"\b(CL1|SW1|RB1)\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}")
+    leaks = [n for n in names if n.endswith((".py", ".md", ".txt", ".json", ".toml", ".iss", ".yml"))
+             and token.search((root / n).read_text("utf-8", errors="ignore"))]
+    assert leaks == []
+    assert "lizenz.txt" in (root / ".gitignore").read_text() and "verwaltung.json" in (root / ".gitignore").read_text()
+    import inspect
+
+    from claudios.core import lizenz as live
+    assert "PUBLIC_KEYS: dict[str, str] = {}" in inspect.getsource(live)  # im Quelltext bleibt die Liste leer

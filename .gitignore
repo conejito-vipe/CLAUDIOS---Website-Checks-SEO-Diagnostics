@@ -16,3 +16,9 @@ src/claudios/build_info.json
 
 # lokale Bildschirmfotos der Oberflächenprüfung
 scan-*.png
+
+# Lizenz- und Verwaltungsdaten gehören nie ins Repository
+lizenz.txt
+schaltdatei.txt
+verwaltung.json
+*.lizenz

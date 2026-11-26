@@ -1,6 +1,6 @@
 """Daten der Pro-Seite (Vergleich Normal und Pro): vorbereitet, aber AUS, bis der Autor es einschaltet.
 
-AKTIV ist im Auslieferungszustand falsch: die Seite erscheint nirgends in der Navigation, es gibt keinen Kauf und keine Preise.
+AKTIV ist im Auslieferungszustand falsch und wird nur lokal über verwaltung.json eingeschaltet: die Seite erscheint nirgends in der Navigation, es gibt keinen Kauf und keine Preise.
 Das Programm prüft nichts online und speichert keine Zahlungsdaten; Lizenzschlüssel und Schaltdatei kommen von der Verwaltung."""
 from __future__ import annotations
 

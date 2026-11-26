@@ -23,7 +23,7 @@ PURPOSE = b"CONEJITO-SCHALT1\n"
 FILE = "schaltdatei.txt"
 MAX_LEN = 60000
 MAX_IDS = 5000
-SCHALT_URL = ""  # Adresse der Schaltdatei der Verwaltung; leer = kein Abruf (nur Datei einlesen)
+SCHALT_URL = ""  # kommt zur Laufzeit aus verwaltung.json (nie aus dem Quelltext); leer = kein Abruf
 _ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,40}\Z")
 
 

@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..core import angebot, lizenz, schalt
+from ..core import angebot, lizenz, schalt, verwaltung
 from ..i18n.strings import n, t
 from ..paths import data_dir
 
@@ -161,5 +161,6 @@ class ProPage(QWidget):
 
 
 def create(window) -> ProPage:
+    verwaltung.apply(data_dir())  # lokale Einstellungen der Verwaltung (nie im Repository)
     schalt.apply(data_dir())  # gespeicherte Sperrliste und Lizenzpflicht beim Start übernehmen
     return ProPage()

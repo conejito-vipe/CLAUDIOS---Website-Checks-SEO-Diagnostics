@@ -19,7 +19,7 @@ MAX_KEY_LEN = 4000
 FILE = "lizenz.txt"
 WARN_DAYS = 30
 
-# Öffentliche Schlüssel der Verwaltung (Schlüssel-ID -> 32 Byte, base64). Der Autor trägt den Wert aus der Verwaltung hier ein.
+# Öffentliche Schlüssel der Verwaltung: kommen nur zur Laufzeit aus der lokalen Datei verwaltung.json (verwaltung.py), nie aus dem Quelltext.
 PUBLIC_KEYS: dict[str, str] = {}
 
 # Gesperrte Lizenz-IDs: fest im Programm, plus die aus der signierten Schaltdatei (schalt.py).
