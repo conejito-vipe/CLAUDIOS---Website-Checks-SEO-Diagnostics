@@ -84,6 +84,9 @@ jobs:
         run: |
           CLAUDIOS_SELFTEST_OUT="$PWD/selftest-mac.json" dist/CLAUDIOS.app/Contents/MacOS/CLAUDIOS --selftest || { cat selftest-mac.json || true; exit 1; }
           cat selftest-mac.json
+      - name: Werkzeuge auf dem Mac einrichten und starten (java, node, vnu, zap, npm, playwright)
+        timeout-minutes: 15
+        run: python tools/try_tools.py
       - name: Zip und Prüfsumme
         run: |
           zip="CLAUDIOS_v${{ steps.ver.outputs.version }}_Mac.zip"
@@ -101,7 +104,9 @@ jobs:
         if: always()
         with:
           name: Statusbericht-Mac
-          path: selftest-mac.json
+          path: |
+            selftest-mac.json
+            tools-report.json
           if-no-files-found: ignore
 
   build:
