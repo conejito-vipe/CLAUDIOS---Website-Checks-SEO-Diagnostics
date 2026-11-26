@@ -18,6 +18,16 @@
       "resolver": {
         "type": "adoptium",
         "major": 21
+      },
+      "variants": {
+        "macos": {
+          "version": "jdk-21.0.13.1+2",
+          "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13.1%2B2/OpenJDK21U-jre_aarch64_mac_hotspot_21.0.13.1_2.tar.gz",
+          "sha256": "848feb1906c7de79de4f8391636042193fbd46eff86e26299506c4656f62c260",
+          "size": 47946379,
+          "exe": "Contents/Home/bin/java",
+          "strip_top": true
+        }
       }
     },
     {
@@ -36,6 +46,16 @@
       "strip_top": true,
       "resolver": {
         "type": "node"
+      },
+      "variants": {
+        "macos": {
+          "version": "26.13.1",
+          "url": "https://nodejs.org/dist/v26.13.1/node-v26.13.1-darwin-arm64.tar.gz",
+          "sha256": "aec2514ea1ceb2ba52455e9ec65986f6749a06dd759e5db2a72e6889668c9735",
+          "size": 58340590,
+          "exe": "bin/node",
+          "strip_top": true
+        }
       }
     },
     {
