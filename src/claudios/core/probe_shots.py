@@ -126,6 +126,8 @@ async def collect(gk, snap, resolver) -> dict:
     if not await _unchanged(gk):
         return {"enabled": True, "skip": "dns_changed"}
     result = await asyncio.to_thread(_run, snap)
-    if not await _unchanged(gk):
-        return {"enabled": True, "skip": "dns_changed"}  # die Bilder stammen eventuell von einem fremden Server
+    if not await _unchanged(gk):  # die Bilder stammen eventuell von einem fremden Server: verwerfen, auch auf der Platte
+        if result.get("dir"):
+            shutil.rmtree(result["dir"], ignore_errors=True)
+        return {"enabled": True, "skip": "dns_changed"}
     return result

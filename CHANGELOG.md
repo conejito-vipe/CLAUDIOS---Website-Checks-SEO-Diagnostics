@@ -6,6 +6,8 @@ Deutsche Fassung: [CHANGELOG.de.md](CHANGELOG.de.md)
 
 - **GUI:** dark design (draft B): icon rail with labels and logo, new start screen, help with table of contents and shared search, score ring and category cards on the results page, explanation column next to the findings list.
 - **Administration:** interface of CONEJITO (Admin): signed licence keys (`CL1`) and signed switch file (`SW1`, Ed25519, offline check, HTTPS GET only on button press). New page "Pro and licence", shipped inactive (no navigation entry, no locks, no prices) until the administration enables it. Public key, switch file address and the Pro switch are read only from a local file `verwaltung.json` in the data folder; licence data never belongs in the repository (`.gitignore`, repository test).
+- **Security:** browser scripts now block local and internal names (`localhost.`, `*.localhost`, `*.lan`, `*.home.arpa`, single-label hosts) and any host whose DNS answer is private (router, NAS, cloud metadata address) in all four scripts alike; the ZAP API key is passed in a private file instead of on the command line; screenshots are deleted from disk when the DNS answer changed during the run.
+- **Installer and CI:** update, repair and downgrade dialog like CLAUDIA (never in silent updates), old program files removed on update; actions pinned to commit hashes; release workflow runs the tests first and publishes checksums; CI on Linux and Windows; weekly security check with Gitleaks over the whole history.
 
 ## 0.1.0 (unreleased)
 

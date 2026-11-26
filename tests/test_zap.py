@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import httpx
@@ -176,10 +177,16 @@ async def test_unfinished_passive_evaluation_is_reported(env, monkeypatch):
     assert executed["ZAP-PAS-001"] == "ran"
 
 
-def test_zap_is_started_locally_only_with_a_random_key():
-    cmd = probe_zap.command(Path("/t/java.exe"), Path("/t/zap.jar"), Path("/h"), 8090, "k" * 32)
-    assert "-daemon" in cmd and "-silent" in cmd and "127.0.0.1" in cmd and f"api.key={'k' * 32}" in cmd
+def test_zap_is_started_locally_only_and_the_key_never_appears_on_the_command_line(tmp_path):
+    key = "k" * 32
+    cmd = probe_zap.command(Path("/t/java.exe"), Path("/t/zap.jar"), tmp_path / "h", 8090, key)
+    assert "-daemon" in cmd and "-silent" in cmd and "127.0.0.1" in cmd
     assert "0.0.0.0" not in " ".join(cmd) and cmd[0].endswith("java.exe")
+    assert key not in " ".join(cmd) and "api.key" not in " ".join(cmd)  # Prozessliste zeigt den Schlüssel nie
+    config = Path(cmd[cmd.index("-configfile") + 1])
+    assert config.read_text("utf-8") == f"api.key={key}\n"
+    if os.name != "nt":
+        assert config.stat().st_mode & 0o077 == 0  # nur der Nutzer darf lesen
 
 
 def test_browser_script_pins_the_zap_certificate_and_keeps_the_safety_rules():

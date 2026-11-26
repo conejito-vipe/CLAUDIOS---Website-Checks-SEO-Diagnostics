@@ -59,11 +59,18 @@ def _pause(seconds: float) -> None:
 
 
 def command(java, jar, home, port: int, key: str) -> list[str]:
-    """Startkommando für ZAP. Muss mit dem Workflow zap-try.yml übereinstimmen (er ruft diese Funktion auf)."""
+    """Startkommando für ZAP. Muss mit dem Workflow zap-try.yml übereinstimmen (er ruft diese Funktion auf).
+    Der API-Schlüssel steht NICHT auf der Kommandozeile (die sehen andere Prozesse des Rechners), sondern in einer Datei
+    im privaten Arbeitsordner (nur für den Nutzer lesbar), die ZAP mit -configfile liest."""
+    home = Path(home)
+    home.mkdir(parents=True, exist_ok=True)
+    config = home / "zap-api.properties"
+    fd = os.open(config, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(f"api.key={key}\n")
     return [str(java), "-Xmx768m", f"-Duser.home={home}", "-jar", str(jar), "-daemon", "-silent",
-            "-host", HOST, "-port", str(port), "-dir", str(Path(home) / "zap"),
-            "-config", f"api.key={key}", "-config", "start.checkForUpdates=false",
-            "-config", "telemetry.enabled=false"]
+            "-host", HOST, "-port", str(port), "-dir", str(home / "zap"), "-configfile", str(config),
+            "-config", "start.checkForUpdates=false", "-config", "telemetry.enabled=false"]
 
 
 def _tools():
