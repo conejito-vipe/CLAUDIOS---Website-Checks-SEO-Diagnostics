@@ -1,0 +1,8 @@
+# Gitleaks: Standardregeln plus eine Ausnahme.
+# Die Tests enthalten absichtlich Attrappen (Schlüssel-Marker, Test-JWT), um zu prüfen, dass Funde geschwärzt werden.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Attrappen in den Tests"
+paths = ['''tests/.*\.py''']

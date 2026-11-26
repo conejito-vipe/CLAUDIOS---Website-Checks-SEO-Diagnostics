@@ -1,6 +1,9 @@
 name: Sicherheitsprüfung
+# Auf Knopfdruck und jeden Montag (Abhängigkeiten und Geheimnisse regelmäßig prüfen, auch das Playwright-Lockfile).
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"
 permissions:
   contents: read
 jobs:
@@ -61,3 +64,17 @@ jobs:
             report "npm audit ($LOCK)" $? "/tmp/npm-$PKG.txt"
           done
           exit $FAIL
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          fetch-depth: 0
+      - name: Gitleaks laden (Prüfsumme fest eingetragen) und die ganze Historie prüfen
+        run: |
+          V=8.30.0
+          curl -sSL -o /tmp/gl.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${V}/gitleaks_${V}_linux_x64.tar.gz"
+          echo "79a3ab579b53f71efd634f3aaf7e04a0fa0cf206b7ed434638d1547a2470a66e  /tmp/gl.tgz" | sha256sum -c - || { echo "::error::Pruefsumme falsch, Abbruch"; exit 1; }
+          tar -xzf /tmp/gl.tgz -C /tmp gitleaks
+          /tmp/gitleaks detect --source . --redact --no-banner --verbose

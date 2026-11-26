@@ -86,6 +86,57 @@ Name: "{autodesktop}\{#AppShortName}"; Filename: "{app}\{#AppExeName}"; Tasks: d
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppShortName}}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\{#AppExeName}"; Check: WizardSilent; Flags: nowait
 
+[InstallDelete]
+; Programmdateien der alten Version entfernen (Reste verhindern); Einstellungen und Berichte liegen außerhalb und bleiben erhalten.
+Type: filesandordirs; Name: "{app}\_internal"
+
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\CLAUDIOS\tools"
 Type: filesandordirs; Name: "{localappdata}\CLAUDIOS\cache"
+
+[CustomMessages]
+german.UpdateAsk={#AppShortName} %1 ist bereits installiert. Die neue Version ist %2.%nSoll auf %2 aktualisiert werden? Deine Einstellungen und Berichte bleiben erhalten.
+english.UpdateAsk={#AppShortName} %1 is already installed. The new version is %2.%nUpdate to %2? Your settings and reports are kept.
+german.SameAsk={#AppShortName} %1 ist bereits installiert.%nSoll sie neu installiert (repariert) werden? Deine Daten bleiben erhalten.
+english.SameAsk={#AppShortName} %1 is already installed.%nReinstall (repair) it? Your data is kept.
+german.OlderAsk=Es ist bereits eine NEUERE Version (%1) installiert als diese (%2).%nTrotzdem auf %2 zurückstellen? Deine Daten bleiben erhalten.
+english.OlderAsk=A NEWER version (%1) is already installed than this one (%2).%nDowngrade to %2 anyway? Your data is kept.
+
+[Code]
+const
+  UninstKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{6E1D2B34-7C59-4C0A-9F3A-2D5B8E41A7C9}_is1';
+
+function VerPart(var S: String): Integer;
+var P: Integer;
+begin
+  P := Pos('.', S);
+  if P = 0 then begin Result := StrToIntDef(S, 0); S := ''; end
+  else begin Result := StrToIntDef(Copy(S, 1, P - 1), 0); Delete(S, 1, P); end;
+end;
+
+function CompareVer(A, B: String): Integer;
+var I, X, Y: Integer;
+begin
+  Result := 0;
+  for I := 1 to 4 do
+  begin
+    X := VerPart(A); Y := VerPart(B);
+    if X < Y then begin Result := -1; Exit; end;
+    if X > Y then begin Result := 1; Exit; end;
+  end;
+end;
+
+{ Stille Aktualisierung (Update im Programm: /SILENT) fragt nie nach. }
+function InitializeSetup(): Boolean;
+var Old, Msg: String; C: Integer;
+begin
+  Result := True;
+  if not (RegQueryStringValue(HKCU, UninstKey, 'DisplayVersion', Old) or
+          RegQueryStringValue(HKLM, UninstKey, 'DisplayVersion', Old)) then Exit;
+  if WizardSilent then Exit;
+  C := CompareVer(Old, '{#AppVersion}');
+  if C < 0 then Msg := FmtMessage(CustomMessage('UpdateAsk'), [Old, '{#AppVersion}'])
+  else if C = 0 then Msg := FmtMessage(CustomMessage('SameAsk'), [Old])
+  else Msg := FmtMessage(CustomMessage('OlderAsk'), [Old, '{#AppVersion}']);
+  Result := MsgBox(Msg, mbConfirmation, MB_YESNO) = IDYES;
+end;
