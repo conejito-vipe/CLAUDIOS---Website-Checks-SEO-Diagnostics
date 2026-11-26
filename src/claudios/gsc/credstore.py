@@ -7,7 +7,8 @@ import sys
 
 from ..core.errors import ClaudiosError, ErrorCode as E
 
-MAX_BLOB = 2560
+MAX_BLOB = 2560  # CRED_MAX_CREDENTIAL_BLOB_SIZE von Windows
+ERROR_NOT_FOUND = 1168
 
 
 class MemoryStore:
@@ -83,7 +84,10 @@ class WindowsStore:
         return raw.decode("utf-8", errors="replace")
 
     def delete(self, name: str) -> None:
-        self._adv.CredDeleteW(name, 1, 0)
+        """Löscht den Eintrag. „Nicht vorhanden“ ist in Ordnung; jeder andere Fehler wird gemeldet, damit ein Token nie
+        unbemerkt im Speicher bleibt, obwohl der Nutzer sich abgemeldet hat."""
+        if not self._adv.CredDeleteW(name, 1, 0) and self._ct.get_last_error() != ERROR_NOT_FOUND:
+            raise ClaudiosError(E.FS_ERROR, reason="credential delete")
 
 
 def get_store():

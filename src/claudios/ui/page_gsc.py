@@ -181,7 +181,10 @@ class GscPage(QWidget):
         self._run(lambda cancel: session.SESSION.list_sites())
 
     def sign_out(self) -> None:
-        session.SESSION.sign_out()
+        try:
+            session.SESSION.sign_out()
+        except ClaudiosError as exc:  # das gespeicherte Token ließ sich nicht löschen: dem Nutzer sagen
+            self._fail(exc)
         self.refresh()
 
     def _toggle_level2(self, checked: bool) -> None:

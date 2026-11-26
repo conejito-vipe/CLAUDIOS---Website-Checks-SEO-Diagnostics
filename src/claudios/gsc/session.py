@@ -82,7 +82,7 @@ class Session:
     def sign_out(self) -> None:
         self.access, self.refresh_token, self.expires = None, None, 0.0
         self.sites, self.level2, self.last_verified, self.remember = [], False, None, False
-        self.store.delete(REFRESH_KEY)
+        self.store.delete(REFRESH_KEY)  # schlägt das Löschen fehl, ist der Speicher im Programm trotzdem schon leer
 
     def access_token(self, http: httpx.Client | None = None) -> str:
         if self.access and time.time() < self.expires - 60:
