@@ -15,8 +15,8 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7
         with:
           python-version: "3.12"
       - run: pip install -e ".[gui]" pyinstaller pillow
@@ -57,7 +57,7 @@ jobs:
           $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
           Write-Host "SHA256: $hash  $($exe.Name)"
           "$hash  $($exe.Name)" | Set-Content -Path "$($exe.FullName).sha256" -Encoding ascii
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7
         with:
           name: CLAUDIOS-Setup
           path: installer/Output/*.exe
