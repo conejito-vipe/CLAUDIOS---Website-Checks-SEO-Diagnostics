@@ -1,10 +1,11 @@
-"""Paket 25: Tausendertrenner, Verlauf nach Domain und Tag, Sprachsperre im Scan, Hilfe, Hover, Befund-Dialog."""
+"""Tausendertrenner, Verlauf nach Domain und Tag, Sprachsperre im Scan, Hilfe, Hover, Befund-Dialog."""
 from __future__ import annotations
 
 from datetime import UTC, datetime
 from types import SimpleNamespace as NS
 
 import pytest
+from cssutil import rules
 from PySide6.QtWidgets import QApplication, QPlainTextEdit
 
 from claudios.core.numtext import localize_numbers
@@ -17,6 +18,7 @@ from claudios.ui.highlight import CodeHighlighter
 from claudios.ui.history_view import HistoryView
 from claudios.ui.main_window import MainWindow
 from claudios.ui.results_page import ResultsPage
+from claudios.ui.theme import STYLE
 from claudios.ui.theme_extra import EXTRA
 
 _APP = QApplication.instance() or QApplication([])
@@ -151,6 +153,8 @@ def test_the_help_page_wraps_the_technical_text_and_marks_up_the_manual():
 
 
 def test_flags_and_the_help_button_have_hover_and_active_styles():
-    for rule in ("QPushButton#langbtn:hover", "QPushButton#langbtn:checked", "QPushButton#langbtn:disabled"):
-        assert rule in EXTRA
-    assert "QLabel#pill { font-size: 11px;" in EXTRA and "max-height: 15px" in EXTRA
+    sheet = rules(STYLE + EXTRA)
+    for state in ("hover", "checked", "disabled"):
+        assert sheet[f"QPushButton#langbtn:{state}"], state  # jede Zustandsregel setzt mindestens eine Eigenschaft
+    assert sheet["QPushButton#langbtn:checked"]["color"] != sheet["QPushButton#langbtn"]["color"]
+    assert sheet["QLabel#pill"]["max-height"] == "15px"

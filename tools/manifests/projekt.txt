@@ -159,21 +159,21 @@ tests/test_audit_note.py
 src/claudios/ui/finding_detail.py
 src/claudios/i18n/strings_detail.py
 tests/test_finding_detail.py
-tests/test_pack11.py
+tests/test_chip_splash_startup.py
 # Paket 12: Splash, Fensterknöpfe, Fußzeile, Update-Funktion
 src/claudios/core/updater.py
 src/claudios/ui/update_check.py
 src/claudios/ui/footer_link.py
 src/claudios/i18n/strings_update.py
-tests/test_pack12.py
+tests/test_window_buttons_splash_footer.py
 tests/test_updater.py
 # Paket 13a: Scan-Anzeige, externe Links, Abbruch
 src/claudios/i18n/strings_scanprog.py
-tests/test_pack13a.py
+tests/test_external_links_cancel.py
 # Paket 13: Scan-Anzeige, Links, Abbruch, Navigationsbalken, Verlauf, Codefenster
 src/claudios/ui/scanprogress.py
 src/claudios/report/history_latest.py
-tests/test_pack13_ui.py
+tests/test_live_area_navigation_history.py
 tests/test_scanprogress.py
 tests/test_code_excerpt.py
 # Paket 14: Codefenster CSS/JS, Link-Hinweis, Update-Schalter, Karten-Dialog
@@ -205,16 +205,16 @@ tests/test_runstatus.py
 src/claudios/ui/activity.py
 src/claudios/ui/linktext.py
 src/claudios/ui/helppage.py
-tests/test_pack23.py
+tests/test_sidebar_help_flags_links.py
 # Paket 24: HTML-Validierung in Gruppen, Ausgabe-Diagnose
 tests/test_vnu_batches.py
 # Paket 25: Hover und Sprachsperre, Verlauf je Domain und Tag, Zahlen mit Trenner
 src/claudios/core/numtext.py
 src/claudios/report/history_tree.py
 src/claudios/ui/history_view.py
-tests/test_pack25.py
+tests/test_thousands_history_language_lock.py
 # Paket 26: HTML-Validierung zusammenfassen
-tests/test_pack26.py
+tests/test_html_validation_grouping.py
 # Paket 27: Befund-Dialog nennt den Grund mit technischen Angaben
 src/claudios/i18n/strings_detail2.py
-tests/test_pack27.py
+tests/test_detail_dialog_facts.py

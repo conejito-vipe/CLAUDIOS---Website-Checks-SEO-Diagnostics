@@ -1,4 +1,4 @@
-"""Paket 26: HTM-VAL-001 fasst Seiten mit gleichem Ergebnis in einer Zeile zusammen (Zahl je Seite im Beleg)."""
+"""HTM-VAL-001 fasst Seiten mit gleichem Ergebnis in einer Zeile zusammen (Zahl je Seite im Beleg)."""
 from __future__ import annotations
 
 import json

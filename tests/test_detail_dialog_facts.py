@@ -1,4 +1,4 @@
-"""Paket 27: Der Befund-Dialog nennt den Grund für ein fehlendes Codefenster mit technischen Angaben."""
+"""Der Befund-Dialog nennt den Grund für ein fehlendes Codefenster mit technischen Angaben."""
 from __future__ import annotations
 
 from types import SimpleNamespace as NS

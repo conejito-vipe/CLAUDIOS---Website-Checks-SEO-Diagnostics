@@ -34,5 +34,8 @@ def test_report_errors_do_not_break_the_watcher(tmp_path):
     def broken(*_):
         raise RuntimeError("x")
 
-    with SizeWatcher([tmp_path], 1000, broken, interval=60) as watcher:
-        watcher.tick()
+    with SizeWatcher([tmp_path], 1000, broken, base=0, span=100, interval=60) as watcher:
+        first = watcher.tick()  # der Melder wirft, der Wächter rechnet trotzdem weiter
+        (tmp_path / "new.bin").write_bytes(b"x" * 500)
+        second = watcher.tick()
+    assert first == 0 and 0 < second <= 100

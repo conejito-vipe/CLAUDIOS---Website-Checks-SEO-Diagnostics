@@ -1,4 +1,4 @@
-"""Paket 13: externe Links (Zeitlimit, träge Hosts, Fortschritt, Abbruch, keine Weiterleitungen), Abbruch der Prüfphase,
+"""externe Links (Zeitlimit, träge Hosts, Fortschritt, Abbruch, keine Weiterleitungen), Abbruch der Prüfphase,
 Verlauf standardmäßig an, Einstellungen."""
 import asyncio
 import json

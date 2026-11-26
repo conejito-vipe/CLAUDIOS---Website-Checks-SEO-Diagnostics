@@ -107,7 +107,10 @@ def test_without_an_anchor_nothing_changes(tmp_path):
     log = AuditLog(tmp_path / "audit.jsonl")
     fill(log)
     log.path.unlink()
-    log.guard()
+    assert log.anchor is None
+    log.guard()  # ohne Kontrollwert wird nichts geprüft und nichts blockiert
+    assert log.records() == [] and not log.path.exists()
+    check_quota(log, "example.com", 1, now=time.time() + 7200)  # gelöschtes Protokoll ohne Kontrollwert: kein Fehler
 
 
 def test_check_quota_refuses_scans_after_tampering(tmp_path):

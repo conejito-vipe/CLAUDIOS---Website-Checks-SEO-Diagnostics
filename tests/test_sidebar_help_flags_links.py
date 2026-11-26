@@ -1,4 +1,4 @@
-"""Paket 23: Seitenleiste, Hilfe, Flaggen, Links, Befundliste, Splash-Hinweis, Ergebnisse ohne Hinweis im Lauf."""
+"""Seitenleiste, Hilfe, Flaggen, Links, Befundliste, Splash-Hinweis, Ergebnisse ohne Hinweis im Lauf."""
 from __future__ import annotations
 
 import logging

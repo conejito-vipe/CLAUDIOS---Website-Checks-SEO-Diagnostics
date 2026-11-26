@@ -1,4 +1,4 @@
-"""Paket 13, Oberfläche: Livebereich in den Ergebnissen, Navigationsbalken, Verlauf nach dem Neustart.
+"""Oberfläche: Livebereich in den Ergebnissen, Navigationsbalken, Verlauf nach dem Neustart.
 Seit Paket 25 springt der Scan nicht mehr während des Laufs in die Ergebnisse."""
 import os
 
