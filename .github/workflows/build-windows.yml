@@ -49,6 +49,7 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7
@@ -96,16 +97,20 @@ jobs:
         run: |
           $exe = Get-ChildItem installer\Output\CLAUDIOS-Setup-*.exe | Select-Object -First 1
           $dir = Join-Path $env:RUNNER_TEMP "claudios-installiert"
-          $p = Start-Process -FilePath $exe.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=$dir", "/LOG=$PWD\setup-log.txt" -Wait -PassThru
+          # Nicht -Wait: das wartet auch auf die vom Installer gestartete App und hängt dann
+          $p = Start-Process -FilePath $exe.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=$dir", "/LOG=$PWD\setup-log.txt" -PassThru
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "Installation dauert zu lange" }
           if ($p.ExitCode -ne 0) { throw "Installation fehlgeschlagen (Code $($p.ExitCode))" }
           Start-Sleep -Seconds 3
           Get-Process -Name CLAUDIOS -ErrorAction SilentlyContinue | Stop-Process -Force
           if (-not (Test-Path "$dir\CLAUDIOS.exe")) { throw "CLAUDIOS.exe fehlt nach der Installation" }
           $env:CLAUDIOS_SELFTEST_OUT = "$PWD\selftest-installiert.json"
-          $t = Start-Process -FilePath "$dir\CLAUDIOS.exe" -ArgumentList "--selftest" -Wait -PassThru
+          $t = Start-Process -FilePath "$dir\CLAUDIOS.exe" -ArgumentList "--selftest" -PassThru
+          if (-not $t.WaitForExit(300000)) { $t.Kill(); throw "Selbsttest des installierten Programms hängt" }
           if (Test-Path selftest-installiert.json) { Get-Content selftest-installiert.json } else { Write-Host "::error::Kein Statusbericht erzeugt" }
           if ($t.ExitCode -ne 0) { throw "Selbsttest des installierten Programms fehlgeschlagen (Code $($t.ExitCode))" }
-          $u = Start-Process -FilePath "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          $u = Start-Process -FilePath "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -PassThru
+          if (-not $u.WaitForExit(300000)) { $u.Kill(); throw "Deinstallation dauert zu lange" }
           Start-Sleep -Seconds 3
           if ($u.ExitCode -ne 0) { throw "Deinstallation fehlgeschlagen (Code $($u.ExitCode))" }
           if (Test-Path "$dir\CLAUDIOS.exe") { throw "CLAUDIOS.exe blieb nach der Deinstallation übrig" }
