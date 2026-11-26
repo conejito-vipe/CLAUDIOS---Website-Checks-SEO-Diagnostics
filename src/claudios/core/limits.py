@@ -33,6 +33,7 @@ class Limits:
     passive_takeover_hosts: int = 5         # Subdomains mit Fremddienst, deren Fehlerseite geprüft wird
     passive_body_max: int = 20_000          # Bytes je Anfrage der Zusatzdateien (security.txt, MTA-STS, Favicon)
     llms_body_max: int = 200_000            # Bytes der llms.txt
+    ct_body_max: int = 4_000_000            # Bytes der Antwort aus den Zertifikats-Logs (crt.sh)
     rdap_body_max: int = 1_000_000          # Bytes je RDAP-Antwort (IANA-Liste und Domain-Abfrage)
     safebrowsing_urls_max: int = 5          # Adressen der eigenen Website je Safe-Browsing-Abfrage
     safebrowsing_body_max: int = 200_000    # Bytes der Safe-Browsing-Antwort

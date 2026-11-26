@@ -11,7 +11,7 @@ from ..i18n.strings import t
 from .dialogs import error_info, show_error
 
 SWITCHES = (("rdap", "rdap", "svc.rdap.ask", False), ("sb", "safebrowsing", "svc.sb.ask", False),
-            ("psi", "pagespeed", "svc.psi.ask", False), ("shots", "screenshots", "svc.shots.ask", True))
+            ("psi", "pagespeed", "svc.psi.ask", False), ("ct", "crtsh", "svc.ct.ask", False), ("shots", "screenshots", "svc.shots.ask", True))
 
 
 def _plain(label: QLabel) -> QLabel:
@@ -35,13 +35,14 @@ class ExpertBox(QWidget):
         self.body.setVisible(False)
         self.intro = _plain(QLabel())
         self.intro.setObjectName("muted")
-        self.rdap, self.sb, self.psi, self.shots = QCheckBox(), QCheckBox(), QCheckBox(), QCheckBox()
+        self.rdap, self.sb, self.psi, self.ct, self.shots = (QCheckBox(), QCheckBox(), QCheckBox(), QCheckBox(),
+                                                            QCheckBox())
         self.hint = _plain(QLabel())
         self.hint.setObjectName("muted")
         self.keys_btn = QPushButton()
         inner = QVBoxLayout(self.body)
         inner.setContentsMargins(12, 0, 0, 0)
-        for widget in (self.intro, self.rdap, self.sb, self.psi, self.shots, self.hint, self.keys_btn):
+        for widget in (self.intro, self.rdap, self.sb, self.psi, self.ct, self.shots, self.hint, self.keys_btn):
             inner.addWidget(widget)
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -70,6 +71,7 @@ class ExpertBox(QWidget):
         self.rdap.setText(t("svc.rdap.switch"))
         self.sb.setText(t("svc.sb.switch"))
         self.psi.setText(t("svc.psi.switch"))
+        self.ct.setText(t("svc.ct.switch"))
         self.shots.setText(t("svc.shots.switch"))
         self.keys_btn.setText(t("scan.expert.keys"))
         self.refresh()
@@ -121,6 +123,8 @@ class ExpertBox(QWidget):
                 names.append(t("probe.safebrowsing"))
             if services.enabled("pagespeed"):
                 names.append(t("probe.psi"))
+            if services.enabled("crtsh"):
+                names.append(t("probe.crtsh"))
         except Exception:  # noqa: BLE001
             return names
         return names

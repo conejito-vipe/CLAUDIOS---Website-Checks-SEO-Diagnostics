@@ -5,7 +5,13 @@ from .strings import TEXTS
 
 TEXTS["de"].update({
     "nav.services": "Externe Dienste",
-    "probe.ai": "KI-Hinweisdatei (llms.txt)", "probe.rdap": "Domainablauf (RDAP)",
+    "probe.ai": "KI-Hinweisdatei (llms.txt)", "probe.rdap": "Domainablauf (RDAP)", "probe.crtsh": "Zertifikats-Logs (crt.sh)",
+    "svc.ct.switch": "Zertifikats-Logs über crt.sh abfragen (Standard: aus)",
+    "svc.ct.info": "Die registrierbare Domain (zum Beispiel example.com), nie eine Unterseite, wird an crt.sh gesendet. "
+                   "Der Dienst sieht Ihre IP-Adresse und antwortet oft langsam. Das Ergebnis zeigt Subdomains mit "
+                   "internem Namen und neue Zertifikate verschiedener Aussteller.",
+    "svc.ct.ask": "Beim nächsten Scan wird die registrierbare Domain an crt.sh gesendet. Der Dienst sieht Ihre "
+                  "IP-Adresse. Einschalten?",
     "probe.safebrowsing": "Safe Browsing (Google)", "probe.psi": "PageSpeed Insights (Google)",
     "probe.shots": "Screenshots",
     "svc.title": "Externe Dienste",
@@ -55,7 +61,13 @@ TEXTS["de"].update({
 })
 TEXTS["en"].update({
     "nav.services": "External services",
-    "probe.ai": "AI hint file (llms.txt)", "probe.rdap": "Domain expiry (RDAP)",
+    "probe.ai": "AI hint file (llms.txt)", "probe.rdap": "Domain expiry (RDAP)", "probe.crtsh": "Certificate logs (crt.sh)",
+    "svc.ct.switch": "Query certificate logs via crt.sh (default: off)",
+    "svc.ct.info": "The registrable domain (for example example.com), never a subpage, is sent to crt.sh. The service "
+                   "sees your IP address and is often slow. The result shows subdomains with an internal-sounding name "
+                   "and new certificates from different issuers.",
+    "svc.ct.ask": "With the next scan the registrable domain will be sent to crt.sh. The service sees your IP "
+                  "address. Turn it on?",
     "probe.safebrowsing": "Safe Browsing (Google)", "probe.psi": "PageSpeed Insights (Google)",
     "probe.shots": "Screenshots",
     "svc.title": "External services",

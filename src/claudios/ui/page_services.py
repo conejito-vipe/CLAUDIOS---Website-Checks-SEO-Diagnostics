@@ -68,6 +68,9 @@ class ServicesPage(QWidget):
         self.rdap_info = _plain(QLabel())
         self.rdap_info.setObjectName("muted")
         self.state = _plain(QLabel())
+        self.ct = QCheckBox()
+        self.ct_info = _plain(QLabel())
+        self.ct_info.setObjectName("muted")
         self.sb = QCheckBox()
         self.sb_info = _plain(QLabel())
         self.sb_info.setObjectName("muted")
@@ -92,7 +95,7 @@ class ServicesPage(QWidget):
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(6)
-        for widget in (self.title, self.intro, self.rdap, self.rdap_info, self.state, self.sb, self.sb_info,
+        for widget in (self.title, self.intro, self.rdap, self.rdap_info, self.state, self.ct, self.ct_info, self.sb, self.sb_info,
                        self.sb_key, self.sb_save, self.sb_delete, self.sb_state, self.psi, self.psi_info,
                        self.psi_key, self.psi_save, self.psi_delete, self.psi_state,
                        self.local_title, self.shots, self.shots_info, self.shots_btn):
@@ -101,6 +104,7 @@ class ServicesPage(QWidget):
         self.rdap.toggled.connect(self._toggle_rdap)
         self.sb.toggled.connect(self._toggle_sb)
         self.psi.toggled.connect(self._toggle_psi)
+        self.ct.toggled.connect(self._toggle_ct)
         self.shots.toggled.connect(self._toggle_shots)
         self.sb_save.clicked.connect(self.save_key)
         self.sb_delete.clicked.connect(self.delete_key)
@@ -113,6 +117,8 @@ class ServicesPage(QWidget):
         self.intro.setText(t("svc.intro"))
         self.rdap.setText(t("svc.rdap.switch"))
         self.rdap_info.setText(t("svc.rdap.info"))
+        self.ct.setText(t("svc.ct.switch"))
+        self.ct_info.setText(t("svc.ct.info"))
         self.sb.setText(t("svc.sb.switch"))
         self.sb_info.setText(t("svc.sb.info"))
         self.sb_key.setPlaceholderText(t("svc.sb.key_ph"))
@@ -131,7 +137,7 @@ class ServicesPage(QWidget):
 
     def refresh(self) -> None:
         for box, on in ((self.rdap, services.enabled("rdap")), (self.sb, services.enabled("safebrowsing")),
-                        (self.psi, services.enabled("pagespeed")), (self.shots, options.enabled("screenshots"))):
+                        (self.psi, services.enabled("pagespeed")), (self.ct, services.enabled("crtsh")), (self.shots, options.enabled("screenshots"))):
             box.blockSignals(True)
             box.setChecked(on)
             box.blockSignals(False)
@@ -155,6 +161,9 @@ class ServicesPage(QWidget):
 
     def _toggle_rdap(self, checked: bool) -> None:
         self._switch("rdap", checked, "svc.rdap.ask")
+
+    def _toggle_ct(self, checked: bool) -> None:
+        self._switch("crtsh", checked, "svc.ct.ask")
 
     def _toggle_sb(self, checked: bool) -> None:
         self._switch("safebrowsing", checked, "svc.sb.ask")

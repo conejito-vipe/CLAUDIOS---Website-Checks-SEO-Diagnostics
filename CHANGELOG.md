@@ -5,6 +5,7 @@ Deutsche Fassung: [CHANGELOG.de.md](CHANGELOG.de.md)
 ## 1.1.0 (unreleased)
 
 - **New checks (passive):** address variants (http, www; `SEO-VAR-001`), sitemap compared with the crawl (`SEO-SMX-001`), images (`HTM-IMG-002`), caching and compression of CSS/JS (`SEO-ACH-001`), HTTP protocol and response time (`SEO-HTV-001`), HSTS preload and certificate names (`TLS-EXT-001`), keyboard operation and motion (`HTM-KEY-001`), page weight and blocking scripts (`SEO-WGT-001`), accessibility statement (`PRV-BFS-001`), Global Privacy Control (`PRV-GPC-001`), BIMI (`DNS-BIM-001`), DANE/TLSA (`DNS-DAN-001`), expiry of the domains of third-party scripts (`SEC-SUP-001`, only with the RDAP switch).
+- **New opt-in service:** certificate logs via crt.sh (`SEC-CTL-001`, switch on the External services page, default off, only the registrable domain is sent).
 - **New check (active, level 2):** CMS extra paths for WordPress and Joomla (`SEC-CMX-001`), in its own probe `probe_cms` and in the reviewed list of active checks.
 - **Gatekeeper:** one plain http request without following redirects (only for the own domain, to test the http variant) and the single request header `Sec-GPC`; everything else stays refused.
 - **Mac:** download-based tools run on the Mac (see 1.0.0).
