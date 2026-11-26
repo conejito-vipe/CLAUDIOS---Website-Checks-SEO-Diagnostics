@@ -36,7 +36,8 @@ def test_build_writes_icon_and_wizard_images(tmp_path):
     _logo(assets / "logo-full.png")
     _logo(assets / "logo-icon.png")
     files = module.build(assets, tmp_path / "art")
-    assert {f.name for f in files} == {"app.ico", "wizard.bmp", "wizard-small.bmp"}
+    assert {f.name for f in files} == {"app.ico", "app.icns", "wizard.bmp", "wizard-small.bmp"}
+    assert (tmp_path / "art" / "app.icns").read_bytes()[:4] == b"icns"  # Mac-Symbol
     sizes = set(Image.open(tmp_path / "art" / "app.ico").info["sizes"])
     assert {(16, 16), (32, 32), (48, 48), (256, 256)} <= sizes
     big = Image.open(tmp_path / "art" / "wizard.bmp")

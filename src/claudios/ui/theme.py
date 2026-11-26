@@ -16,7 +16,7 @@ TRACK = LINE
 
 _TEMPLATE = """
 QFrame#card { background: %BG%; border: 1px solid %LINE%; border-radius: 14px; }
-QWidget { font-family: 'Segoe UI', sans-serif; font-size: 13px; color: %INK%; }
+QWidget { font-family: 'Segoe UI', '.AppleSystemUIFont', 'Helvetica Neue', sans-serif; font-size: 13px; color: %INK%; }
 QToolTip { background: %SURFACE2%; color: %INK%; border: 1px solid %LINE2%; padding: 4px 8px; }
 QLabel#pill { background: %ORANGE%; color: %ON_ORANGE%; font-weight: 700; padding: 3px 12px; border-radius: 8px; }
 QLabel#muted { color: %MUTED%; }

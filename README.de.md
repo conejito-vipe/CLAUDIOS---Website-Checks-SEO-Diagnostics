@@ -5,7 +5,7 @@
 # CLAUDIOS – Website Checks, SEO & Diagnostics
 English version: [README.md](README.md)
 
-Freeware für Windows (Python): prüft eine einzelne Website auf sauberes HTML, CSS und JavaScript (W3C-Referenzen), Sicherheit, Datenschutz, SEO und Barrierefreiheit. Jede Prüfung erklärt, *warum* sie wichtig ist.
+Freeware für Windows und macOS (Python): prüft eine einzelne Website auf sauberes HTML, CSS und JavaScript (W3C-Referenzen), Sicherheit, Datenschutz, SEO und Barrierefreiheit. Jede Prüfung erklärt, *warum* sie wichtig ist.
 
 *vibecoded with Claude (Anthropic) by conejito-vipe with love ❤️*
 
@@ -35,6 +35,11 @@ Ohne jegliche Gewährleistung oder Erfolgsgarantie.
 Berichte: ZIP mit Prompt für Claude (allgemein oder mit Schwerpunkt Sicherheit, SEO, Datenschutz, Barrierefreiheit oder Code), CSV, Excel, PDF und ein optionaler Vergleich mit früheren Scans (wird nur gespeichert, wenn du es einschaltest).
 
 Das Handbuch im Programm nennt zu jeder Prüfung ein „Warum?“, die Technik-Doku zeigt die genauen Regeln und den Code.
+
+## macOS
+Lade `CLAUDIOS_v<Version>_Mac.zip` vom neuesten Release (Apple-Chip, macOS 12 oder neuer), entpacke die Datei und ziehe `CLAUDIOS.app` in den Ordner Programme. Die App ist nicht notarisiert (das braucht ein kostenpflichtiges Apple-Entwicklerkonto). Beim ersten Start sagt macOS, dass es die App nicht prüfen kann: Rechtsklick auf `CLAUDIOS.app`, **Öffnen** wählen und noch einmal **Öffnen** (oder unter Systemeinstellungen > Datenschutz & Sicherheit erlauben). Prüfe die Datei mit `shasum -a 256` gegen `SHA256SUMS.txt`.
+
+Was auf dem Mac funktioniert: alle eingebauten Prüfungen (HTML, Header, SEO, Datenschutz, DNS, Mail-Sicherheit, Links, Barrierefreiheit, Google Search Console mit dem Schlüsselbund), Berichte und Exporte. Die Zusatzwerkzeuge, die unter Windows heruntergeladen werden (Java-Validatoren, ESLint, Stylelint, retire.js, OWASP ZAP, sslyze, Playwright-Browser), gibt es **auf dem Mac noch nicht**; die zugehörigen Prüfungen gelten als nicht ausgeführt. Die Mac-App aktualisiert sich nicht selbst: Bei einer neuen Version öffnet sie die Release-Seite. Die Daten liegen in `~/Library/Application Support/CLAUDIOS`; zum Deinstallieren den Menüpunkt nutzen (entfernt Daten und Schlüssel) und danach die App in den Papierkorb legen.
 
 ## Windows SmartScreen
 Der Installer ist nicht signiert (Zertifikate kosten Geld). Windows SmartScreen zeigt deshalb „Der Computer wurde durch Windows geschützt“ und nennt den Herausgeber „Unbekannter Herausgeber“. So installierst du trotzdem:

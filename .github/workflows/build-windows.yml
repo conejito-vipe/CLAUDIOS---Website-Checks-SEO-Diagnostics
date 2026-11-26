@@ -3,6 +3,7 @@ name: Release
 # Ergebnis im Release v<Version> (Version aus src/claudios/__init__.py):
 #   - CLAUDIOS-Setup-<Version>.exe         Windows-Installer (die Aktualisierung im Programm lädt genau diese Datei)
 #   - CLAUDIOS-Setup-<Version>.exe.sha256  Prüfsumme dazu (der Installer wird nur nach erfolgreicher Prüfung gestartet)
+#   - CLAUDIOS_v<Version>_Mac.zip          Mac-Programm CLAUDIOS.app (nur Apple-Chip (arm64); ad-hoc signiert), mit .sha256
 #   - SHA256SUMS.txt                       Prüfsummen aller Dateien
 # Ohne Häkchen entsteht ein normales, sofort öffentliches Release. Ein Entwurf ist für die Update-Funktion unsichtbar.
 on:
@@ -44,8 +45,61 @@ jobs:
       - run: ruff check src tests tools
       - run: pytest -q
 
-  build:
+  mac:
     needs: tests
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[gui]" pyinstaller pillow
+      - name: Version bestimmen
+        id: ver
+        run: echo "version=$(python -c 'import claudios; print(claudios.__version__)')" >> "$GITHUB_OUTPUT"
+      - name: Symbol erzeugen
+        run: python tools/make_installer_art.py || echo "::warning title=Symbol::Symbol konnte nicht erzeugt werden, es gilt das Standardsymbol"
+      - name: Mac-Programm bauen (CLAUDIOS.app, ohne Python beim Nutzer)
+        run: |
+          opts=(--noconfirm --windowed --name CLAUDIOS --osx-bundle-identifier de.conejito.claudios)
+          if [ -f installer/art/app.icns ]; then opts+=(--icon installer/art/app.icns); fi
+          opts+=(--collect-submodules claudios --collect-data claudios)
+          for pkg in httpx httpcore h2 hpack hyperframe dns anyio h11 idna sniffio certifi; do opts+=(--collect-submodules "$pkg"); done
+          for pkg in httpx httpcore h2 dnspython; do opts+=(--copy-metadata "$pkg"); done
+          opts+=(--collect-data certifi --hidden-import dns.query --add-data "assets:claudios/assets" installer/launcher.py)
+          pyinstaller "${opts[@]}"
+          plutil -replace CFBundleShortVersionString -string "${{ steps.ver.outputs.version }}" dist/CLAUDIOS.app/Contents/Info.plist
+          plutil -replace CFBundleVersion -string "${{ steps.ver.outputs.version }}" dist/CLAUDIOS.app/Contents/Info.plist
+          # Ad-hoc-Signatur: Apple-Chips starten nur signierte Programme. Ohne Apple-Entwicklerkonto gibt es keine Notarisierung.
+          codesign --force --deep --sign - dist/CLAUDIOS.app
+          codesign --verify --deep --strict dist/CLAUDIOS.app
+      - name: Selbsttest der gebauten App (Statusbericht)
+        run: |
+          CLAUDIOS_SELFTEST_OUT="$PWD/selftest-mac.json" dist/CLAUDIOS.app/Contents/MacOS/CLAUDIOS --selftest || { cat selftest-mac.json || true; exit 1; }
+          cat selftest-mac.json
+      - name: Zip und Prüfsumme
+        run: |
+          zip="CLAUDIOS_v${{ steps.ver.outputs.version }}_Mac.zip"
+          ditto -c -k --keepParent dist/CLAUDIOS.app "$zip"
+          shasum -a 256 "$zip" | sed 's/ \*/  /' > "$zip.sha256"
+          cat "$zip.sha256"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7
+        with:
+          name: mac
+          path: |
+            CLAUDIOS_v*_Mac.zip
+            CLAUDIOS_v*_Mac.zip.sha256
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7
+        if: always()
+        with:
+          name: Statusbericht-Mac
+          path: selftest-mac.json
+          if-no-files-found: ignore
+
+  build:
+    needs: [tests, mac]
     runs-on: windows-latest
     permissions:
       contents: write
@@ -136,6 +190,10 @@ jobs:
             installer/Output/*.exe
             installer/Output/*.sha256
             installer/Output/SHA256SUMS.txt
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: mac
+          path: mac-dl
       - name: Release veröffentlichen
         if: ${{ inputs.publish }}
         env:
@@ -145,7 +203,11 @@ jobs:
           PRERELEASE: ${{ inputs.prerelease }}
         run: |
           $tag = "v$env:VERSION"
+          $macZip = Get-ChildItem mac-dl\CLAUDIOS_v*_Mac.zip | Select-Object -First 1
+          Add-Content -Path installer\Output\SHA256SUMS.txt -Value (Get-Content "$($macZip.FullName).sha256")
           $files = @(Get-ChildItem installer\Output\CLAUDIOS-Setup-*.exe, installer\Output\CLAUDIOS-Setup-*.exe.sha256, installer\Output\SHA256SUMS.txt | ForEach-Object { $_.FullName })
+          $files += $macZip.FullName
+          $files += "$($macZip.FullName).sha256"
           $notes = "Installer mit Prüfsumme (SHA256-Datei liegt dabei). Installer with checksum (SHA256 file attached)."
           $flags = @()
           if ($env:DRAFT -eq "true") { $flags += "--draft" }

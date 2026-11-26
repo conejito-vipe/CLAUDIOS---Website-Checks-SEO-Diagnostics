@@ -64,6 +64,9 @@ def build(assets: Path, out: Path) -> list[Path]:
     ico = out / "app.ico"
     on_canvas(mark, (256, 256), ICON_MARGIN, (0, 0, 0, 0)).save(ico, format="ICO", sizes=[(s, s) for s in ICON_SIZES])
     written.append(ico)
+    icns = out / "app.icns"  # Symbol für die Mac-App
+    on_canvas(mark, (1024, 1024), ICON_MARGIN, (0, 0, 0, 0)).save(icns, format="ICNS")
+    written.append(icns)
     big = out / "wizard.bmp"
     on_canvas(wizard_logo, WIZARD_SIZE, 24, (*BG, 255)).convert("RGB").save(big, format="BMP")
     written.append(big)

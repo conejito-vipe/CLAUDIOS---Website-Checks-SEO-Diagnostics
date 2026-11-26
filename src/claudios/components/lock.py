@@ -6,6 +6,7 @@ import importlib
 import json
 import pkgutil
 import re
+import sys
 from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
@@ -31,6 +32,16 @@ class Component:
     exe: str
     filename: str
     strip_top: bool
+    platforms: tuple[str, ...] = ("windows",)  # auf welchen Systemen die Komponente eingerichtet werden kann
+
+
+def host_platform() -> str:
+    """"macos" auf dem Mac, sonst "windows" (Linux dient nur der Entwicklung und den Tests und nutzt die Windows-Sperrdatei)."""
+    return "macos" if sys.platform == "darwin" else "windows"
+
+
+def supported_here(comps: list[Component]) -> list[Component]:
+    return [c for c in comps if host_platform() in c.platforms]
 
 
 # Fest im Code: Die Prüfsumme ist die der mitgelieferten package-lock.json (npm prüft damit jedes Paket).
@@ -51,7 +62,10 @@ def parse_lock(raw: dict) -> list[Component]:
             url=item.get("url", ""), sha256=item.get("sha256", "").lower(), size=int(item.get("size", 0)),
             license=item["license"], source=item["source"], depends=tuple(item.get("depends", [])),
             exe=item["exe"], filename=item.get("filename", ""), strip_top=bool(item.get("strip_top", False)),
+            platforms=tuple(item.get("platforms", ["windows"])),
         )
+        if not comp.platforms or any(p not in ("windows", "macos") for p in comp.platforms):
+            raise ValueError(f"{comp.name}: invalid platforms")
         if not _NAME.match(comp.name) or comp.name in seen:
             raise ValueError(f"invalid or duplicate component name: {comp.name}")
         if comp.kind not in _KINDS:
@@ -95,4 +109,4 @@ def load_lock(path: Path | str | None = None) -> list[Component]:
     comps.extend(_extras(seen))
     if NPM_TOOLS.name not in seen:
         comps.append(NPM_TOOLS)
-    return comps
+    return supported_here(comps)

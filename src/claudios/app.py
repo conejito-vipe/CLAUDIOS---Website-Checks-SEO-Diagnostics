@@ -101,7 +101,7 @@ def main() -> int:
     brand_all(TEXTS)  # im Programm immer CLAUDIOS (nach dem Laden aller Textdateien)
     app.setStyleSheet(STYLE + EXTRA)
     install_cards()  # alle Meldungen im Stil des Splash (statt Windows-Titelleiste)
-    app.setFont(QFont("Segoe UI", 10))
+    app.setFont(QFont("Helvetica Neue" if sys.platform == "darwin" else "Segoe UI", 10 if sys.platform != "darwin" else 13))
     icon = load_icon()
     if icon is not None:
         app.setWindowIcon(icon)

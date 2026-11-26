@@ -46,3 +46,11 @@ def test_linux_test_jobs_install_the_qt_system_libraries_first():
     for name in ("ci.yml", "build-windows.yml"):
         text = (ROOT / ".github" / "workflows" / name).read_text("utf-8")
         assert "libegl1" in text and text.index("libegl1") < text.index("pytest -q"), name
+
+
+def test_release_builds_a_signed_mac_app_tests_it_and_publishes_it_with_a_checksum():
+    text = (ROOT / ".github" / "workflows" / "build-windows.yml").read_text("utf-8")
+    assert "runs-on: macos-latest" in text and "codesign --force --deep --sign -" in text
+    assert "CLAUDIOS.app/Contents/MacOS/CLAUDIOS --selftest" in text and "_Mac.zip" in text
+    assert "needs: [tests, mac]" in text and "download-artifact" in text
+    assert "macos-latest" in (ROOT / ".github" / "workflows" / "ci.yml").read_text("utf-8")

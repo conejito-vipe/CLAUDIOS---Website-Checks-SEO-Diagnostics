@@ -193,7 +193,7 @@ def excerpt_html(excerpt: dict, lang: str) -> str:
         rows.append(row)
     title = text(lang, "detail.code", url=redact_url(excerpt["url"]), line=excerpt["line"])
     return (f"<h3>{escape(title)}</h3><p>{escape(text(lang, 'detail.legend'))}</p>"
-            '<pre style="font-family: Consolas, monospace; font-size: 12px;">' + "\n".join(rows) + "</pre>")
+            '<pre style="font-family: Consolas, Menlo, monospace; font-size: 12px;">' + "\n".join(rows) + "</pre>")
 
 
 # ------------------------------------------------------------------ Texte

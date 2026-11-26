@@ -5,7 +5,7 @@
 # CLAUDIOS – Website Checks, SEO & Diagnostics
 Deutsche Fassung: [README.de.md](README.de.md)
 
-Freeware Windows tool (Python) that checks a single website for clean HTML, CSS and JavaScript (W3C references), security, privacy, SEO and accessibility. Every check explains *why* it matters.
+Freeware tool for Windows and macOS (Python) that checks a single website for clean HTML, CSS and JavaScript (W3C references), security, privacy, SEO and accessibility. Every check explains *why* it matters.
 
 *vibecoded with Claude (Anthropic) by conejito-vipe with love ❤️*
 
@@ -35,6 +35,11 @@ Without any warranty or guarantee of success.
 Reports: ZIP with a prompt for Claude (general or focused on security, SEO, privacy, accessibility or code), CSV, Excel, PDF and an optional comparison with earlier scans (stored only if you switch it on).
 
 The manual inside the program lists every check with a "Why?" section; the technical documentation shows the exact rules and code.
+
+## macOS
+Download `CLAUDIOS_v<version>_Mac.zip` from the latest release (Apple silicon, macOS 12 or newer), unzip it and move `CLAUDIOS.app` to the Applications folder. The app is not notarized (that needs a paid Apple developer account). On first start macOS says it cannot verify the app: right-click `CLAUDIOS.app`, choose **Open**, then **Open** again (or allow it under System Settings > Privacy & Security). Check the file against `SHA256SUMS.txt` with `shasum -a 256`.
+
+What works on the Mac: all built-in checks (HTML, headers, SEO, privacy, DNS, mail security, links, accessibility, Google Search Console with the Keychain), reports and exports. The extra tools that are downloaded on Windows (Java validators, ESLint, Stylelint, retire.js, OWASP ZAP, sslyze, Playwright browsers) are **not yet available on the Mac**; the matching checks are reported as not executed. The Mac app does not update itself: when a new version exists it opens the release page. Data lives in `~/Library/Application Support/CLAUDIOS`; to uninstall use the menu entry (removes data and keys), then move the app to the Trash.
 
 ## Windows SmartScreen
 The installer is not code-signed (certificates cost money). Windows SmartScreen therefore shows "Windows protected your PC" and lists the publisher as "Unknown publisher". To install anyway:

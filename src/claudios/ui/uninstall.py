@@ -17,6 +17,11 @@ from ..i18n.strings import t
 from ..report import history
 
 
+def display_folder() -> str:
+    """Der Datenordner, wie ihn das System nennt (für die Meldung bei nicht entfernten Teilen)."""
+    return "~/Library/Application Support/CLAUDIOS" if sys.platform == "darwin" else "%LOCALAPPDATA%\\CLAUDIOS"
+
+
 def uninstaller_path(exe: Path | None = None, frozen: bool | None = None) -> Path | None:
     is_frozen = bool(getattr(sys, "frozen", False)) if frozen is None else frozen
     if not is_frozen:
@@ -67,10 +72,10 @@ def run_uninstall(window) -> None:
     _close_logging()
     failed = perform_removal()
     if failed:
-        QMessageBox.warning(window, t("app.uninstall"), t("app.uninstall.partial", items=", ".join(failed)))
+        QMessageBox.warning(window, t("app.uninstall"), t("app.uninstall.partial", items=", ".join(failed), folder=display_folder()))
     uninstaller = uninstaller_path()
     if uninstaller is None:
-        QMessageBox.information(window, t("app.uninstall"), t("app.uninstall.manual"))
+        QMessageBox.information(window, t("app.uninstall"), t("app.uninstall.manual.mac" if sys.platform == "darwin" else "app.uninstall.manual"))
         return
     QProcess.startDetached(str(uninstaller), [])
     QApplication.quit()

@@ -110,11 +110,11 @@ def check_data_dir() -> str:
 
 
 def check_credential_store() -> str:
-    if sys.platform != "win32":
-        return "übersprungen (nur Windows)"
-    from .gsc.credstore import WindowsStore
+    if sys.platform not in ("win32", "darwin"):
+        return "übersprungen (nur Windows und macOS)"
+    from .gsc.credstore import MacStore, WindowsStore
 
-    store = WindowsStore()
+    store = WindowsStore() if sys.platform == "win32" else MacStore()
     name = "CLAUDIOS-selftest-" + secrets.token_hex(4)
     text = "selftest-" + secrets.token_hex(8)
     try:
@@ -126,7 +126,7 @@ def check_credential_store() -> str:
     if store.read(name) is not None:
         raise RuntimeError("Eintrag blieb nach dem Löschen bestehen")
     store.delete(name)  # Löschen eines fehlenden Eintrags ist kein Fehler
-    return "Schreiben, Lesen, Löschen in der Windows-Anmeldedaten-Verwaltung"
+    return "Schreiben, Lesen, Löschen in der " + ("Windows-Anmeldedaten-Verwaltung" if sys.platform == "win32" else "Schlüsselbund von macOS")
 
 
 def check_main_window() -> str:

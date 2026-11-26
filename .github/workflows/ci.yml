@@ -1,6 +1,6 @@
 name: CI
 # Läuft bei jedem Push auf main, bei Pull Requests und auf Knopfdruck (Actions > CI > Run workflow).
-# Linux und Windows: das Programm läuft auf Windows, die Tests laufen auch auf Linux (Qt ohne Bildschirm).
+# Linux, Windows und macOS: das Programm gibt es für Windows und macOS, die Tests laufen mit Qt ohne Bildschirm.
 on:
   push:
     branches: [main]
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
       QT_QPA_PLATFORM: offscreen

@@ -8,7 +8,8 @@ import logging
 import sys
 import threading
 
-from PySide6.QtCore import QProcess, QThread, QTimer, Signal
+from PySide6.QtCore import QProcess, QThread, QTimer, QUrl, Signal
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QApplication, QLabel, QProgressBar, QPushButton
 
 from .. import __version__
@@ -96,6 +97,9 @@ class UpdateDialog(CardDialog):
 
 
 def install_update(window, info) -> None:
+    if sys.platform == "darwin":  # der Mac hat keinen stillen Installer: die Seite der neuen Version öffnen (dort liegt die Mac-Datei)
+        QDesktopServices.openUrl(QUrl(info.page_url))
+        return
     dialog = UpdateDialog(window, info)
     path = dialog.run()
     if path is None:

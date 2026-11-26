@@ -1,7 +1,8 @@
-"""Speicherorte. Unter Windows: %LOCALAPPDATA%\\CLAUDIOS."""
+"""Speicherorte. Windows: %LOCALAPPDATA%\\CLAUDIOS, macOS: ~/Library/Application Support/CLAUDIOS, sonst ~/.local/share/CLAUDIOS."""
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 APP_FOLDER = "CLAUDIOS"
@@ -24,7 +25,10 @@ def _normalize_case(path: Path) -> None:
 
 
 def data_dir() -> Path:
-    base = os.environ.get("LOCALAPPDATA") or str(Path.home() / ".local" / "share")
+    if sys.platform == "darwin":
+        base = str(Path.home() / "Library" / "Application Support")
+    else:
+        base = os.environ.get("LOCALAPPDATA") or os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
     path = Path(base) / APP_FOLDER
     _normalize_case(path)
     path.mkdir(parents=True, exist_ok=True)

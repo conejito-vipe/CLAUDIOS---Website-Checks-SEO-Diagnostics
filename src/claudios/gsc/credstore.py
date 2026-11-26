@@ -90,10 +90,102 @@ class WindowsStore:
             raise ClaudiosError(E.FS_ERROR, reason="credential delete")
 
 
+ERR_SEC_NOT_FOUND = -25300  # errSecItemNotFound
+ERR_SEC_DUPLICATE = -25299  # errSecDuplicateItem
+
+
+class MacStore:
+    """Schlüsselbund von macOS (Security.framework, nur Programmschnittstellen; das Geheimnis steht nie in einer
+    Kommandozeile). Dienstname CLAUDIOS, Kontoname = Name des Eintrags."""
+    persistent = True
+    SERVICE = b"CLAUDIOS"
+
+    def __init__(self, sec=None, cf=None) -> None:
+        import ctypes
+        import ctypes.util
+
+        if sec is None or cf is None:
+            sec = ctypes.CDLL(ctypes.util.find_library("Security") or "/System/Library/Frameworks/Security.framework/Security")
+            cf = ctypes.CDLL(ctypes.util.find_library("CoreFoundation")
+                             or "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")
+            u32, vp, cp = ctypes.c_uint32, ctypes.c_void_p, ctypes.c_char_p
+            sec.SecKeychainAddGenericPassword.argtypes = [vp, u32, cp, u32, cp, u32, vp, ctypes.POINTER(vp)]
+            sec.SecKeychainAddGenericPassword.restype = ctypes.c_int32
+            sec.SecKeychainFindGenericPassword.argtypes = [vp, u32, cp, u32, cp, ctypes.POINTER(u32),
+                                                           ctypes.POINTER(vp), ctypes.POINTER(vp)]
+            sec.SecKeychainFindGenericPassword.restype = ctypes.c_int32
+            sec.SecKeychainItemModifyAttributesAndData.argtypes = [vp, vp, u32, vp]
+            sec.SecKeychainItemModifyAttributesAndData.restype = ctypes.c_int32
+            sec.SecKeychainItemFreeContent.argtypes = [vp, vp]
+            sec.SecKeychainItemFreeContent.restype = ctypes.c_int32
+            sec.SecKeychainItemDelete.argtypes = [vp]
+            sec.SecKeychainItemDelete.restype = ctypes.c_int32
+            cf.CFRelease.argtypes = [vp]
+        self._ct, self._sec, self._cf = ctypes, sec, cf
+
+    def _find(self, name: str, want_data: bool):
+        """(Status, Wert oder None, Eintragsverweis oder None)."""
+        ct = self._ct
+        account = name.encode("utf-8")
+        length, data, item = ct.c_uint32(0), ct.c_void_p(), ct.c_void_p()
+        status = self._sec.SecKeychainFindGenericPassword(
+            None, len(self.SERVICE), self.SERVICE, len(account), account,
+            ct.byref(length) if want_data else None, ct.byref(data) if want_data else None, ct.byref(item))
+        if status != 0:
+            return status, None, None
+        value = None
+        if want_data:
+            value = ct.string_at(data, length.value).decode("utf-8", "replace")
+            self._sec.SecKeychainItemFreeContent(None, data)
+        return 0, value, item
+
+    def write(self, name: str, text: str) -> None:
+        raw, account = text.encode("utf-8"), name.encode("utf-8")
+        status = self._sec.SecKeychainAddGenericPassword(None, len(self.SERVICE), self.SERVICE, len(account), account,
+                                                         len(raw), raw, None)
+        if status == ERR_SEC_DUPLICATE:  # vorhanden: Wert ersetzen
+            found, _value, item = self._find(name, want_data=False)
+            if found != 0:
+                raise ClaudiosError(E.FS_ERROR, reason="credential write")
+            try:
+                status = self._sec.SecKeychainItemModifyAttributesAndData(item, None, len(raw), raw)
+            finally:
+                self._cf.CFRelease(item)
+        if status != 0:
+            raise ClaudiosError(E.FS_ERROR, reason="credential write")
+
+    def read(self, name: str) -> str | None:
+        status, value, item = self._find(name, want_data=True)
+        if status == ERR_SEC_NOT_FOUND:
+            return None
+        if status != 0:
+            raise ClaudiosError(E.FS_ERROR, reason="credential read")
+        self._cf.CFRelease(item)
+        return value
+
+    def delete(self, name: str) -> None:
+        """Wie unter Windows: „nicht vorhanden“ ist in Ordnung, jeder andere Fehler wird gemeldet."""
+        status, _value, item = self._find(name, want_data=False)
+        if status == ERR_SEC_NOT_FOUND:
+            return
+        if status != 0:
+            raise ClaudiosError(E.FS_ERROR, reason="credential delete")
+        try:
+            if self._sec.SecKeychainItemDelete(item) != 0:
+                raise ClaudiosError(E.FS_ERROR, reason="credential delete")
+        finally:
+            self._cf.CFRelease(item)
+
+
 def get_store():
     if sys.platform == "win32":
         try:
             return WindowsStore()
+        except (OSError, AttributeError):
+            pass
+    if sys.platform == "darwin":
+        try:
+            return MacStore()
         except (OSError, AttributeError):
             pass
     return MemoryStore(persistent=False)

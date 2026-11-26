@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import re
+import sys
 import time
 from pathlib import Path
 
@@ -534,7 +535,7 @@ class DocPage(QWidget):
         self.view = LinkText()
         self.view.setReadOnly(True)
         if mode == "tech":
-            self.view.setFont(QFont("Consolas", 10))
+            self.view.setFont(QFont("Menlo" if sys.platform == "darwin" else "Consolas", 10))
             self.view.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
         columns = QHBoxLayout()
         columns.setSpacing(12)
