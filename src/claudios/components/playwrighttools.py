@@ -7,22 +7,20 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
 import tempfile
 import threading
 from collections.abc import Callable
-from datetime import UTC, datetime
 from importlib import resources
 from pathlib import Path
 
 from .. import paths
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.toolrunner import run_tool
+from ._shared import marker_status, replace_dir, require_cancel_free, require_npm, require_pinned, write_marker
 from .dlwatch import SizeWatcher
 from .lock import Component
 from .npmtools import node_env
 
-MARKER = ".claudios-installed.json"
 REGISTRY_URL = "https://registry.npmjs.org/"
 FILES = (("pw-package.json", "package.json"), ("pw-package-lock.json", "package-lock.json"),
          ("browser_probe.js", "browser_probe.js"))
@@ -55,17 +53,7 @@ def _node_exe() -> Path | None:
 
 def status(comp: Component, root: Path | None = None) -> str:
     """installed | missing | outdated | not_pinned"""
-    digest = lock_hash()
-    if not digest:
-        return "not_pinned"
-    base = (root or paths.tools_dir()) / comp.name
-    try:
-        info = json.loads((base / MARKER).read_text("utf-8"))
-    except (OSError, ValueError):
-        return "missing"
-    if next(iter(base.glob(comp.exe)), None) is None or next(iter((base / "browsers").glob("chromium*")), None) is None:
-        return "missing"
-    return "installed" if info.get("sha256") == digest else "outdated"
+    return marker_status(comp, lock_hash(), root, lambda base: next(iter((base / "browsers").glob("chromium*")), None) is not None)
 
 
 def install(comp: Component, *, root: Path | None = None,
@@ -73,16 +61,10 @@ def install(comp: Component, *, root: Path | None = None,
             cancel: threading.Event | None = None) -> None:
     report = progress or (lambda *_: None)
     digest = lock_hash()
-    if not digest:
-        raise ClaudiosError(E.COMPONENT_NOT_PINNED, reason=comp.name)
+    require_pinned(comp, digest)
     node = _node_exe()
-    if node is None:
-        raise ClaudiosError(E.COMPONENT_MISSING, reason="node")
-    npm_cli = node.parent / "node_modules" / "npm" / "bin" / "npm-cli.js"
-    if not npm_cli.is_file():
-        raise ClaudiosError(E.TOOL_FAILED, reason="npm-cli.js not found")
-    if cancel is not None and cancel.is_set():
-        raise ClaudiosError(E.INSTALL_CANCELLED)
+    npm_cli = require_npm(node)
+    require_cancel_free(cancel)
     target = (root or paths.tools_dir()) / comp.name
     try:
         with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as tmp_name:
@@ -115,13 +97,8 @@ def install(comp: Component, *, root: Path | None = None,
                                   extra_env=env)
             if result.returncode != 0:
                 raise ClaudiosError(E.TOOL_FAILED, reason=f"browser download exit code {result.returncode}")
-            (stage / MARKER).write_text(json.dumps({
-                "version": comp.version, "sha256": digest,
-                "installed": datetime.now(UTC).isoformat(timespec="seconds"),
-            }), "utf-8")
-            if target.exists():
-                shutil.rmtree(target)
-            shutil.move(str(stage), str(target))
+            write_marker(stage, comp, digest)
+            replace_dir(stage, target)
             report(comp.name, "extract", 1, 1)
     except OSError as exc:
         raise ClaudiosError(E.FS_ERROR, reason=type(exc).__name__) from None

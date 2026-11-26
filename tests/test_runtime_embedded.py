@@ -6,6 +6,7 @@ import pytest
 
 from claudios.components import (
     _runtimelock,
+    _shared,
     extra_pipwheel,
     extra_pythonruntime,
     extra_sslyze,
@@ -105,7 +106,7 @@ def test_install_runs_pip_with_hashes_into_the_copy_and_writes_the_marker(env, m
     assert args[0].endswith("python.exe") and args[1:4] == ["-m", "pip", "install"]
     assert "--require-hashes" in args and "--no-deps" in args and "--no-binary=sslyze" in args and "--target" in args
     assert "--hash=sha256:" in requirements and kwargs["root"] == root
-    marker = json.loads((root / "sslyze" / piptools.MARKER).read_text("utf-8"))
+    marker = json.loads((root / "sslyze" / _shared.MARKER).read_text("utf-8"))
     assert marker["sha256"] == piptools.lock_hash() and pipembedtools.status(comp, root) == "installed"
 
 

@@ -11,20 +11,19 @@ Quellarchiv). Ungeprüft: ob das unter Windows gelingt. Fehler, das Ende der pip
 ._pth-Datei stehen im Protokoll."""
 from __future__ import annotations
 
-import json
 import logging
 import shutil
 import tempfile
 import threading
 from collections.abc import Callable
 from dataclasses import replace
-from datetime import UTC, datetime
 from pathlib import Path
 
 from .. import paths
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.toolrunner import run_tool
 from . import piptools, sslyzewheel
+from ._shared import write_marker
 from .lock import Component
 
 WHEEL_NAME = "pip.whl"
@@ -170,10 +169,7 @@ def install(comp: Component, *, root: Path | None = None,
                     error = _fail("pip", result)
                     _diagnose(python, tmp, base)
                     raise error
-        (target / piptools.MARKER).write_text(json.dumps({
-            "version": comp.version, "sha256": digest,
-            "installed": datetime.now(UTC).isoformat(timespec="seconds"),
-        }), "utf-8")
+        write_marker(target, comp, digest)
         report(comp.name, "extract", 1, 1)
     except (ClaudiosError, OSError) as exc:
         shutil.rmtree(target, ignore_errors=True)  # kein halb installierter Zustand

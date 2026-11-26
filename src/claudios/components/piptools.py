@@ -15,16 +15,15 @@ import sys
 import tempfile
 import threading
 from collections.abc import Callable
-from datetime import UTC, datetime
 from importlib import resources
 from pathlib import Path
 
 from .. import paths
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.toolrunner import run_tool
+from ._shared import marker_status, require_cancel_free, require_pinned, write_marker
 from .lock import Component
 
-MARKER = ".claudios-installed.json"
 INDEX_URL = "https://pypi.org/simple"
 PIP_TIMEOUT = 900.0
 VENV_TIMEOUT = 300.0
@@ -66,17 +65,7 @@ def _make_venv(python: Path, target: Path) -> None:
 
 def status(comp: Component, root: Path | None = None) -> str:
     """installed | missing | outdated | not_pinned"""
-    digest = lock_hash()
-    if not digest:
-        return "not_pinned"
-    base = (root or paths.tools_dir()) / comp.name
-    try:
-        info = json.loads((base / MARKER).read_text("utf-8"))
-    except (OSError, ValueError):
-        return "missing"
-    if next(iter(base.glob(comp.exe)), None) is None:
-        return "missing"
-    return "installed" if info.get("sha256") == digest else "outdated"
+    return marker_status(comp, lock_hash(), root)
 
 
 def install(comp: Component, *, root: Path | None = None,
@@ -84,11 +73,9 @@ def install(comp: Component, *, root: Path | None = None,
             cancel: threading.Event | None = None) -> None:
     report = progress or (lambda *_: None)
     digest = lock_hash()
-    if not digest:
-        raise ClaudiosError(E.COMPONENT_NOT_PINNED, reason=comp.name)
+    require_pinned(comp, digest)
     python = _base_python()
-    if cancel is not None and cancel.is_set():
-        raise ClaudiosError(E.INSTALL_CANCELLED)
+    require_cancel_free(cancel)
     base = root or paths.tools_dir()
     target = base / comp.name
     try:
@@ -110,10 +97,7 @@ def install(comp: Component, *, root: Path | None = None,
                 extra_env={"PIP_DISABLE_PIP_VERSION_CHECK": "1", "PIP_NO_INPUT": "1", "PYTHONNOUSERSITE": "1"})
         if result.returncode != 0:
             raise ClaudiosError(E.TOOL_FAILED, reason=f"pip exit code {result.returncode}")
-        (target / MARKER).write_text(json.dumps({
-            "version": comp.version, "sha256": digest,
-            "installed": datetime.now(UTC).isoformat(timespec="seconds"),
-        }), "utf-8")
+        write_marker(target, comp, digest)
         report(comp.name, "extract", 1, 1)
     except (ClaudiosError, OSError) as exc:
         shutil.rmtree(target, ignore_errors=True)  # kein halb installierter Zustand

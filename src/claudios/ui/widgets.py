@@ -293,11 +293,11 @@ class HeartWidget(QWidget):
 
 
 class Footer(QWidget):
-    """Fußzeile, im Fenster zentriert. with_grip bleibt aus Kompatibilitätsgründen, die Größe ändert man am Rand."""
+    """Fußzeile, im Fenster zentriert."""
 
     clicked = Signal()
 
-    def __init__(self, with_grip: bool = False) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         lay = QHBoxLayout(self)
