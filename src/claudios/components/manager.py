@@ -170,10 +170,13 @@ def extract(archive: Path, dest: Path, strip_top: bool) -> None:
     """Entpackt ein Archiv sicher (ZIP oder tar.gz, nach Inhalt erkannt)."""
     with archive.open("rb") as fh:
         magic = fh.read(2)
-    if magic == b"\x1f\x8b":
-        _extract_tar(archive, dest, strip_top)
-    else:
-        _extract_zip(archive, dest, strip_top)
+    try:
+        if magic == b"\x1f\x8b":
+            _extract_tar(archive, dest, strip_top)
+        else:
+            _extract_zip(archive, dest, strip_top)
+    except (FileExistsError, NotADirectoryError, IsADirectoryError):  # widersprüchliche Einträge (Datei und Ordner gleichen Namens)
+        raise ClaudiosError(E.UNSAFE_ARCHIVE, reason="conflicting entries") from None
 
 
 def _extract_tar(archive: Path, dest: Path, strip_top: bool) -> None:

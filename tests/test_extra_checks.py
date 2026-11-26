@@ -347,3 +347,18 @@ def test_the_cms_probe_stores_only_paths_and_kinds():
     assert {h["kind"] for h in data["hits"]} == {"xmlrpc", "users"} and "body" not in str(data)
     assert all(kw["follow"] is False and url.startswith("https://") for url, kw in gk.calls)  # nie Weiterleitungen, nur HTTPS
     assert asyncio.run(probe_cms.collect(gk, snap_of(level=2), None)) is None
+
+
+def test_untrusted_values_of_the_new_checks_are_escaped_in_the_report():
+    from claudios.core.engine import ScanResult
+    from claudios.core.scoring import compute_scores
+    from claudios.report.report import build_report, render_html
+
+    evil = '"><script>alert(1)</script>'
+    snap = snap_of()
+    snap.extra["extra"] = {**GOOD_EXTRA, "variants": {"host": "example.com", "alt": None,
+                                                         "items": {"http": {"status": 302, "location": evil}}}}
+    found, executed = run_checks(snap, 1, "standard")
+    assert any(evil[:20] in f.evidence for f in found if f.check_id == "SEO-VAR-001")
+    page = render_html(build_report(ScanResult(snap, found, executed, compute_scores(found, executed)), "en"), "en")
+    assert "<script>alert(1)</script>" not in page and "&lt;script&gt;" in page
