@@ -40,3 +40,9 @@ def test_secret_scan_covers_the_whole_history_with_a_pinned_tool():
     text = (ROOT / ".github" / "workflows" / "security.yml").read_text("utf-8")
     assert "fetch-depth: 0" in text and "gitleaks" in text and "sha256sum -c" in text
     assert (ROOT / ".gitleaks.toml").is_file()
+
+
+def test_linux_test_jobs_install_the_qt_system_libraries_first():
+    for name in ("ci.yml", "build-windows.yml"):
+        text = (ROOT / ".github" / "workflows" / name).read_text("utf-8")
+        assert "libegl1" in text and text.index("libegl1") < text.index("pytest -q"), name
