@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claudios"
-version = "0.2.0"
+version = "1.0.0"
 description = "Website checks, SEO & diagnostics (HTML, CSS, JS, security)"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }

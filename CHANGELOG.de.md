@@ -2,7 +2,7 @@
 
 English version: [CHANGELOG.md](CHANGELOG.md)
 
-## 0.2.0 (unveröffentlicht)
+## 1.0.0 (unveröffentlicht)
 
 - **Oberfläche:** dunkles Design (Entwurf B): Symbolleiste mit Beschriftung und Logo, neuer Startscreen, Hilfe mit Inhaltsverzeichnis und gemeinsamer Suche, Wertungsring und Kategorie-Karten auf der Ergebnisseite, Erklärspalte neben der Befundliste.
 - **Verwaltung:** Schnittstelle von CONEJITO (Admin): signierte Lizenzschlüssel (`CL1`) und signierte Schaltdatei (`SW1`, Ed25519, Prüfung offline, HTTPS-GET nur auf Knopfdruck). Neue Seite „Pro und Lizenz“, ausgeliefert inaktiv (kein Navigationseintrag, keine Sperren, keine Preise), bis die Verwaltung sie einschaltet. Öffentlicher Schlüssel, Adresse der Schaltdatei und der Pro-Schalter kommen nur aus der lokalen Datei `verwaltung.json` im Datenordner; Lizenzdaten gehören nie ins Repository (`.gitignore`, Repository-Test).
