@@ -1,6 +1,11 @@
 name: Laufzeit-Sperrdatei erzeugen (Python-Laufzeit und pip)
 on:
   workflow_dispatch:
+    inputs:
+      mac_only:
+        description: Nur die Mac-Laufzeit eintragen, Windows unverändert
+        type: boolean
+        default: false
 permissions:
   contents: write
 jobs:
@@ -12,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Prüfsummen ermitteln
-        run: python tools/make_runtime_lock.py
+        run: python tools/make_runtime_lock.py ${{ inputs.mac_only && '--mac-only' || '' }}
       - name: Datei hochladen
         run: |
           git config user.name "github-actions[bot]"
