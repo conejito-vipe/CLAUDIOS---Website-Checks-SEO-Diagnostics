@@ -102,6 +102,7 @@ class FakeDialog:
 def install(monkeypatch):
     state = {"errors": [], "started": [], "quit": 0, "cards": [], "start_ok": True}
     FakeDialog.path, FakeDialog.error = None, None
+    monkeypatch.setattr(update_check.sys, "platform", "win32")  # der stille Installer gilt nur unter Windows
     monkeypatch.setattr(update_check, "UpdateDialog", FakeDialog)
     monkeypatch.setattr(update_check, "error_info", lambda exc: {"error": str(exc)})
     monkeypatch.setattr(update_check, "show_error", lambda _window, data: state["errors"].append(data))
