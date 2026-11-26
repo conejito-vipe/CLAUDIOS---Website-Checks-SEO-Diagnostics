@@ -16,6 +16,7 @@ from claudios.ui import uninstall, update_check
 def test_data_folder_follows_the_system(monkeypatch, tmp_path):
     monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
     monkeypatch.setattr(paths, "_normalized", True)
+    monkeypatch.delenv("LOCALAPPDATA", raising=False)
     monkeypatch.setattr(paths.sys, "platform", "darwin")
     assert paths.data_dir() == tmp_path / "Library" / "Application Support" / paths.APP_FOLDER
     monkeypatch.setattr(paths.sys, "platform", "win32")
@@ -28,6 +29,7 @@ def test_data_folder_follows_the_system(monkeypatch, tmp_path):
 
 
 def test_the_mac_offers_only_components_that_are_marked_for_it(monkeypatch):
+    monkeypatch.delenv("CLAUDIOS_PLATFORM")
     monkeypatch.setattr(lock.sys, "platform", "linux")
     assert lock.host_platform() == "windows" and len(lock.load_lock()) >= 9
     monkeypatch.setattr(lock.sys, "platform", "darwin")
@@ -181,3 +183,11 @@ def test_on_the_mac_the_manual_uninstall_hint_names_the_app_and_the_folder_is_th
         assert "CLAUDIOS.app" in TEXTS[lang]["app.uninstall.manual.mac"] and "{folder}" in TEXTS[lang]["app.uninstall.partial"]
     monkeypatch.setattr(uninstall.sys, "platform", "win32")
     assert "LOCALAPPDATA" in uninstall.display_folder()
+
+
+def test_the_platform_can_be_forced_for_tests(monkeypatch):
+    monkeypatch.setattr(lock.sys, "platform", "darwin")
+    monkeypatch.setenv("CLAUDIOS_PLATFORM", "windows")
+    assert lock.host_platform() == "windows"
+    monkeypatch.setenv("CLAUDIOS_PLATFORM", "unsinn")  # ungültiger Wert wird ignoriert
+    assert lock.host_platform() == "macos"

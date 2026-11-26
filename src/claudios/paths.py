@@ -25,10 +25,11 @@ def _normalize_case(path: Path) -> None:
 
 
 def data_dir() -> Path:
-    if sys.platform == "darwin":
+    base = os.environ.get("LOCALAPPDATA")  # unter Windows gesetzt; gesetzt gilt es überall (so lenken Tests den Ordner um)
+    if not base and sys.platform == "darwin":
         base = str(Path.home() / "Library" / "Application Support")
-    else:
-        base = os.environ.get("LOCALAPPDATA") or os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
+    if not base:
+        base = os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
     path = Path(base) / APP_FOLDER
     _normalize_case(path)
     path.mkdir(parents=True, exist_ok=True)

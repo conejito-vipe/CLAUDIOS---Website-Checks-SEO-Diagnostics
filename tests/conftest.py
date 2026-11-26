@@ -1,6 +1,7 @@
 import os
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ.setdefault("CLAUDIOS_PLATFORM", "windows")  # die Tests nutzen die Windows-Sperrdatei, auch auf dem Mac
 
 import gc  # noqa: E402
 import sys  # noqa: E402

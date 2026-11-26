@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import os
 import pkgutil
 import re
 import sys
@@ -37,6 +38,9 @@ class Component:
 
 def host_platform() -> str:
     """"macos" auf dem Mac, sonst "windows" (Linux dient nur der Entwicklung und den Tests und nutzt die Windows-Sperrdatei)."""
+    forced = os.environ.get("CLAUDIOS_PLATFORM")  # nur für Tests und Fehlersuche
+    if forced in ("windows", "macos"):
+        return forced
     return "macos" if sys.platform == "darwin" else "windows"
 
 
