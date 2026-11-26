@@ -14,9 +14,35 @@ const ENGINES = [["firefox", firefox], ["webkit", webkit]];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const sameSite = (host) => host === REG || host.endsWith("." + REG);
-const isLocalName = (host) =>
-  host === "localhost" || host.endsWith(".local") || host.endsWith(".internal") ||
-  host.startsWith("[") || /^\d+\.\d+\.\d+\.\d+$/.test(host);
+// BEGIN-NETGUARD (in allen Browser-Skripten identisch; tests/test_netguard_js.py prüft das)
+const dns = require("dns").promises;
+const LOCAL_SUFFIXES = [".localhost", ".local", ".internal", ".lan", ".home", ".home.arpa", ".corp", ".intranet", ".private"];
+const isLocalName = (raw) => {
+  const host = String(raw).toLowerCase().replace(/\.+$/, "");
+  return host === "" || host === "localhost" || !host.includes(".") || host.startsWith("[") ||
+    /^\d+\.\d+\.\d+\.\d+$/.test(host) || LOCAL_SUFFIXES.some((s) => host.endsWith(s));
+};
+const privateIp = (ip) => {
+  const a = String(ip).toLowerCase();
+  const m = a.match(/^(?:::ffff:)?(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (m) {
+    const [x, y] = [Number(m[1]), Number(m[2])];
+    return x === 0 || x === 10 || x === 127 || (x === 169 && y === 254) || (x === 172 && y >= 16 && y <= 31) ||
+      (x === 192 && y === 168) || (x === 100 && y >= 64 && y <= 127) || x >= 224;
+  }
+  return a === "::" || a === "::1" || a.startsWith("fc") || a.startsWith("fd") || a.startsWith("fe8") ||
+    a.startsWith("fe9") || a.startsWith("fea") || a.startsWith("feb") || a.startsWith("::ffff:");
+};
+const dnsCache = new Map();
+const resolvesPrivate = (host) => {
+  if (!dnsCache.has(host)) {
+    dnsCache.set(host, dns.lookup(host, { all: true }).then((list) => list.some((r) => privateIp(r.address)), () => false));
+  }
+  return dnsCache.get(host);
+};
+// Blockiert lokale Namen und Namen, die auf private Adressen zeigen. Der geprüfte Zielhost (input.host) ist per IP festgelegt.
+const blockedHost = async (host) => isLocalName(host) || (host !== String(input.host || "").toLowerCase() && await resolvesPrivate(host));
+// END-NETGUARD
 const message = (e) => String((e && e.message) || e).slice(0, 200);
 
 function userAgent(name, version) {
@@ -44,7 +70,7 @@ async function checkPage(browser, url, ua) {
         if (rec.insecure_blocked.length < 10) { rec.insecure_blocked.push(u.href.slice(0, 200)); }
         return route.abort();
       }
-      if (u.protocol === "https:" && isLocalName(host)) { return route.abort(); }
+      if (u.protocol === "https:" && await blockedHost(host)) { return route.abort(); }
       return route.continue();
     });
     const page = await context.newPage();
