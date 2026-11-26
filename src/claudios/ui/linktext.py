@@ -34,7 +34,7 @@ class LinkText(QPlainTextEdit):
 
     def underline_links(self) -> None:
         fmt = QTextCharFormat()
-        fmt.setForeground(QColor("#0B5CAD"))
+        fmt.setForeground(QColor("#8EC0FF"))
         fmt.setFontUnderline(True)
         selections = []
         for start, end in url_spans(self.toPlainText()):

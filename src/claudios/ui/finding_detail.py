@@ -37,7 +37,7 @@ LINE = re.compile(r"\b(?:Line|Zeile)\s+(\d+)\b")
 MAX_EVIDENCE = 400
 MAX_LINE = 240
 FLAG = "cl_detail"
-COLORS = {"red": "#F4B6BC", "yellow": "#FFE69C", "blue": "#D6E4F0"}
+COLORS = {"red": "#5A2226", "yellow": "#4A3F12", "blue": "#1B3350"}
 _NOCODE = {"result": "detail.nocode_result", "source": "detail.nocode_source", "range": "detail.nocode_range"}
 _FACTS = {"result": "detail.facts_result", "source": "detail.facts_source", "range": "detail.facts_range"}
 

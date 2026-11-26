@@ -7,7 +7,7 @@ import importlib
 import pkgutil
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QAbstractScrollArea,
     QFrame,
@@ -33,6 +33,7 @@ from .footer_link import LinkFooter
 from .heartbeat import Heartbeat
 from .helppage import HelpPage
 from .highlight import attach
+from .navicons import RAIL_ITEM, SIZE, RailDelegate, nav_icon
 from .pages import ScanPage, SettingsPage
 from .results_page import ResultsPage
 from .uninstall import run_uninstall
@@ -105,39 +106,49 @@ class MainWindow(CardWindow):
 
         self.nav = QListWidget()
         self.nav.setObjectName("nav")
+        self.nav.setItemDelegate(RailDelegate(self.nav))
+        self.nav.setIconSize(QSize(SIZE, SIZE))
+        self.nav.setSpacing(2)
+        self.nav.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.nav.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.nav.setMouseTracking(True)
         for _key in self.nav_keys:
-            self.nav.addItem(QListWidgetItem(""))
+            _item = QListWidgetItem("")
+            _item.setIcon(nav_icon(_key))
+            self.nav.addItem(_item)
         self.nav.item(self.nav_keys.index("nav.help")).setHidden(True)  # „Hilfe“ öffnet der Knopf in der Titelleiste
         self.uninstall_btn = QPushButton()
-        self.uninstall_btn.setObjectName("danger")
+        self.uninstall_btn.setObjectName("railbtn")
+        self.uninstall_btn.setIcon(nav_icon("uninstall", normal="#E57373", active="#FF8A80"))
+        self.uninstall_btn.setIconSize(QSize(SIZE, SIZE))
+        self.uninstall_btn.setFixedSize(RAIL_ITEM, RAIL_ITEM)
         self.uninstall_btn.clicked.connect(self.uninstall_all)
         side = QWidget()
-        side.setFixedWidth(190)
+        side.setFixedWidth(RAIL_ITEM + 8)
         side_lay = QVBoxLayout(side)
         side_lay.setContentsMargins(0, 0, 0, 0)
         side_lay.setSpacing(8)
         self.nav.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self.live_box = QWidget()  # Anzeige eines laufenden Scans, auf jeder Seite sichtbar
-        live_lay = QVBoxLayout(self.live_box)
-        live_lay.setContentsMargins(8, 0, 8, 0)
-        live_lay.setSpacing(4)
+        self.live_box = QWidget()  # Anzeige eines laufenden Scans, auf jeder Seite sichtbar (Leiste unter dem Inhalt)
+        live_lay = QHBoxLayout(self.live_box)
+        live_lay.setContentsMargins(24, 0, 24, 6)
+        live_lay.setSpacing(12)
         self.live_title = QLabel()
         self.live_title.setObjectName("h2")
         self.live_text = QLabel()
         self.live_text.setObjectName("muted")
-        self.live_text.setWordWrap(True)
         self.live_text.setTextFormat(Qt.TextFormat.PlainText)
         self.live_bar = QProgressBar()
         self.live_bar.setRange(0, 100)
         self.live_bar.setTextVisible(False)
-        for widget in (self.live_title, self.live_text, self.live_bar):
+        self.live_bar.setFixedWidth(220)
+        for widget in (self.live_title, self.live_bar):
             live_lay.addWidget(widget)
+        live_lay.addWidget(self.live_text, 1)
         self.live_box.setVisible(False)
         side_lay.addWidget(self.nav)
-        side_lay.addSpacing(14)
-        side_lay.addWidget(self.live_box)
         side_lay.addStretch(1)
-        side_lay.addWidget(self.uninstall_btn)
+        side_lay.addWidget(self.uninstall_btn, 0, Qt.AlignmentFlag.AlignHCenter)
 
         self.stack = QStackedWidget()
         for page in self.pages:
@@ -150,6 +161,7 @@ class MainWindow(CardWindow):
         middle.addWidget(side)
         middle.addWidget(self.stack, 1)
         self.body.addLayout(middle, 1)
+        self.body.addWidget(self.live_box)
         self.body.addWidget(self.footer)
 
         self.titlebar.langChanged.connect(self.set_language)
@@ -174,7 +186,9 @@ class MainWindow(CardWindow):
         self.titlebar.set_help_text(t("nav.help"))
         for index, key in enumerate(self.nav_keys):
             self.nav.item(index).setText(t(key))
-        self.uninstall_btn.setText(t("app.uninstall"))
+            self.nav.item(index).setToolTip(t(key))
+        self.uninstall_btn.setToolTip(t("app.uninstall"))
+        self.uninstall_btn.setAccessibleName(t("app.uninstall"))
         self.live_title.setText(t("nav.running"))
         for page in self.pages:
             page.retranslate()

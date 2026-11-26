@@ -1,0 +1,74 @@
+"""Symbole der Navigationsleiste (Entwurf B): schmale Icon-Leiste. Die Symbole sind Strichgrafiken (SVG-Pfade), die zur
+Laufzeit in der Farbe des Zustands gezeichnet werden. Der Text der Einträge bleibt gesetzt (Tooltip, Screenreader, Tests);
+der Delegate zeichnet nur das Symbol."""
+from __future__ import annotations
+
+from PySide6.QtCore import QRectF, QSize, Qt
+from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtWidgets import QStyle, QStyledItemDelegate
+
+from .theme import MUTED, ORANGE_HI, ORANGE_SOFT, SURFACE2
+
+SIZE = 22
+RAIL_ITEM = 48
+PATHS = {
+    "nav.scan": "M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z",
+    "nav.results": "M4 20V10M10 20V4M16 20v-7M22 20H2",
+    "nav.findings": "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
+    "nav.services": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z",
+    "nav.gsc": "M3 17l6-6 4 4 8-8M15 7h6v6",
+    "nav.components": "M21 8l-9-5-9 5v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v8",
+    "nav.export": "M12 3v12M7 10l5 5 5-5M4 21h16",
+    "nav.settings": "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4",
+    "nav.help": "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM19 19v2H6",
+    "nav.about": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01",
+    "uninstall": "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
+}
+FALLBACK = "M12 12h.01"
+
+
+def _pixmap(path: str, color: str, size: int, ratio: float = 2.0) -> QPixmap:
+    svg = (f'<svg viewBox="0 0 24 24" fill="none" stroke="{color}" '
+           f'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{path}"/></svg>')
+    pixmap = QPixmap(int(size * ratio), int(size * ratio))
+    pixmap.setDevicePixelRatio(ratio)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    QSvgRenderer(svg.encode("utf-8")).render(painter, QRectF(0, 0, size, size))
+    painter.end()
+    return pixmap
+
+
+def nav_icon(key: str, normal: str = MUTED, active: str = ORANGE_HI, size: int = SIZE) -> QIcon:
+    path = PATHS.get(key, FALLBACK)
+    icon = QIcon()
+    icon.addPixmap(_pixmap(path, normal, size), QIcon.Mode.Normal)
+    icon.addPixmap(_pixmap(path, active, size), QIcon.Mode.Selected)
+    icon.addPixmap(_pixmap(path, active, size), QIcon.Mode.Active)
+    return icon
+
+
+class RailDelegate(QStyledItemDelegate):
+    """Zeichnet je Eintrag nur ein Symbol auf einer abgerundeten Fläche (gewählt: Akzent, darüber: Hover)."""
+
+    def sizeHint(self, option, index) -> QSize:  # noqa: N802 (Qt-Name)
+        return QSize(RAIL_ITEM, RAIL_ITEM)
+
+    def paint(self, painter, option, index) -> None:  # noqa: N802 (Qt-Name)
+        selected = bool(option.state & QStyle.StateFlag.State_Selected)
+        hover = bool(option.state & QStyle.StateFlag.State_MouseOver)
+        painter.save()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        if selected or hover:
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(ORANGE_SOFT if selected else SURFACE2))
+            painter.drawRoundedRect(QRectF(option.rect).adjusted(1, 1, -1, -1), 10, 10)
+        icon = index.data(Qt.ItemDataRole.DecorationRole)
+        if isinstance(icon, QIcon):
+            mode = QIcon.Mode.Selected if selected else QIcon.Mode.Normal
+            side = SIZE
+            left = option.rect.x() + (option.rect.width() - side) // 2
+            top = option.rect.y() + (option.rect.height() - side) // 2
+            icon.paint(painter, left, top, side, side, Qt.AlignmentFlag.AlignCenter, mode)
+        painter.restore()

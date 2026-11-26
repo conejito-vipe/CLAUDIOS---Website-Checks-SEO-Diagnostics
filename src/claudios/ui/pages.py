@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
     QFrame,
+    QHBoxLayout,
     QHeaderView,
     QLabel,
     QLineEdit,
@@ -48,6 +49,7 @@ from .urlinput import clean_input
 from .worker import ScanThread
 
 PROFILES = ("quick", "standard", "deep")
+INFO_ITEMS = 4
 
 
 def _plain(label: QLabel) -> QLabel:
@@ -107,15 +109,53 @@ class ScanPage(QWidget):
         self.log = QPlainTextEdit()
         self.log.setReadOnly(True)
         self.log.setMinimumHeight(160)
-        inner = QWidget()
-        lay = QVBoxLayout(inner)
-        lay.setContentsMargins(0, 0, 8, 0)
+        self.title = _plain(QLabel())
+        self.subtitle = _plain(QLabel())
+        self.subtitle.setObjectName("subtitle")
+        self.info_title = _plain(QLabel())
+        self.info_title.setObjectName("h2")
+        self.info_heads = [_plain(QLabel()) for _ in range(INFO_ITEMS)]
+        self.info_bodies = [_plain(QLabel()) for _ in range(INFO_ITEMS)]
+        form = QFrame()
+        form.setObjectName("panel")
+        lay = QVBoxLayout(form)
+        lay.setContentsMargins(20, 18, 20, 18)
         lay.setSpacing(8)
         for widget in (self.url_lbl, self.url, self.profile_lbl, self.profile, self.profile_info, self.confirm,
                        self.level_lbl, self.expert, self.google, self.start_btn, self.cancel_btn, self.cool_lbl,
                        self.cool_bar, self.bar, self.status):
             lay.addWidget(widget)
         lay.addWidget(self.log, 1)
+        info = QFrame()
+        info.setObjectName("panel")
+        info_lay = QVBoxLayout(info)
+        info_lay.setContentsMargins(20, 18, 20, 18)
+        info_lay.setSpacing(14)
+        info_lay.addWidget(self.info_title)
+        for head, body in zip(self.info_heads, self.info_bodies, strict=True):
+            item = QFrame()
+            item.setObjectName("infoitem")
+            item_lay = QVBoxLayout(item)
+            item_lay.setContentsMargins(12, 0, 0, 0)
+            item_lay.setSpacing(2)
+            head.setObjectName("infohead")
+            body.setObjectName("muted")
+            item_lay.addWidget(head)
+            item_lay.addWidget(body)
+            info_lay.addWidget(item)
+        info_lay.addStretch(1)
+        columns = QHBoxLayout()
+        columns.setSpacing(16)
+        columns.addWidget(form, 3)
+        columns.addWidget(info, 2, Qt.AlignmentFlag.AlignTop)
+        inner = QWidget()
+        page_lay = QVBoxLayout(inner)
+        page_lay.setContentsMargins(4, 0, 12, 4)
+        page_lay.setSpacing(6)
+        page_lay.addWidget(self.title)
+        page_lay.addWidget(self.subtitle)
+        page_lay.addSpacing(10)
+        page_lay.addLayout(columns, 1)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
@@ -134,6 +174,12 @@ class ScanPage(QWidget):
         self.status_key = "scan.idle"
 
     def retranslate(self) -> None:
+        self.title.setText(t("scan.title"))
+        self.subtitle.setText(t("scan.subtitle"))
+        self.info_title.setText(t("scan.info.title"))
+        for index in range(INFO_ITEMS):
+            self.info_heads[index].setText(t(f"scan.info.{index + 1}.h"))
+            self.info_bodies[index].setText(t(f"scan.info.{index + 1}.b"))
         self.url_lbl.setText(t("scan.url"))
         self.url.setPlaceholderText(t("scan.url_ph"))
         self.profile_lbl.setText(t("scan.profile"))
