@@ -76,6 +76,8 @@ async def collect_dns(resolver, host: str, domain: str) -> dict:
         "aaaa": (host, "AAAA"),
         "mta_sts": (f"_mta-sts.{domain}", "TXT"),
         "tls_rpt": (f"_smtp._tls.{domain}", "TXT"),
+        "bimi": (f"default._bimi.{domain}", "TXT"),
+        "tlsa": (f"_443._tcp.{host}", "TLSA"),
     }
     for selector in DKIM_SELECTORS:
         wanted[f"dkim:{selector}"] = (f"{selector}._domainkey.{domain}", "TXT")

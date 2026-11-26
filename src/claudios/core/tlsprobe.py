@@ -14,6 +14,7 @@ from .guard import resolve_public
 def _handshake(host: str, ips: list[str]) -> dict:
     ctx = ssl.create_default_context()
     ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    ctx.set_alpn_protocols(["h2", "http/1.1"])  # nur zur Anzeige: welches HTTP-Protokoll der Server wählt
     last: Exception | None = None
     for ip in ips[:3]:
         try:
@@ -22,13 +23,15 @@ def _handshake(host: str, ips: list[str]) -> dict:
                 cert = tls.getpeercert() or {}
                 version = tls.version() or ""
                 cipher = tls.cipher()
+                alpn = tls.selected_alpn_protocol() or ""
         except OSError as exc:  # enthält ssl.SSLError
             last = exc
             continue
         expires = ssl.cert_time_to_seconds(cert["notAfter"])
         issuer = {key: value for part in cert.get("issuer", ()) for key, value in part}
         return {
-            "version": version, "cipher": cipher[0] if cipher else "",
+            "version": version, "cipher": cipher[0] if cipher else "", "alpn": alpn,
+            "san": [str(v).lower() for k, v in cert.get("subjectAltName", ()) if k == "DNS"][:50],
             "days_left": int((expires - time.time()) // 86400),
             "issuer": issuer.get("organizationName") or issuer.get("commonName", ""),
             "error": None,

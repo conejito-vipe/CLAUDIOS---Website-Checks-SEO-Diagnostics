@@ -21,6 +21,7 @@ from .snapshot import CookieInfo, parse_set_cookie
 log = logging.getLogger("claudios.net")
 REDIRECTS = {301, 302, 303, 307, 308}
 DROP_HEADERS = {"authorization", "proxy-authorization", "cookie", "set-cookie"}
+EXTRA_HEADERS = {"sec-gpc"}  # nur dieses eine zusätzliche Anfrage-Signal ist erlaubt (Global Privacy Control)
 
 
 @dataclass
@@ -89,13 +90,14 @@ class Gatekeeper:
                 await asyncio.sleep(wait)
             self._next = max(now, self._next) + self._interval
 
-    async def _validate(self, url: str, external: bool) -> list[str]:
+    async def _validate(self, url: str, external: bool, plain: bool = False) -> list[str]:
         p = urlsplit(url)
         host = (p.hostname or "").lower()
         loop = is_loopback_host(host)
         if p.username or p.password:
             raise ClaudiosError(E.INPUT_CREDENTIALS)
-        if p.scheme != "https" and not (loop and self.allow_localhost and p.scheme == "http"):
+        if p.scheme != "https" and not (plain and p.scheme == "http") \
+                and not (loop and self.allow_localhost and p.scheme == "http"):
             raise ClaudiosError(E.NET_DOWNGRADE, url=redact_url(url))
         if not loop and p.port not in (None, 443):
             raise ClaudiosError(E.INPUT_INVALID, reason="port")
@@ -123,10 +125,11 @@ class Gatekeeper:
         log.error("unexpected network error: %r", exc)
         return ClaudiosError(E.INTERNAL, reason=type(exc).__name__)
 
-    async def _once(self, url: str, method: str, ips: list[str], max_bytes: int | None) -> Response:
+    async def _once(self, url: str, method: str, ips: list[str], max_bytes: int | None,
+                    extra: dict[str, str] | None = None) -> Response:
         p = urlsplit(url)
         host = p.hostname or ""
-        req_url, headers, ext = url, {}, {}
+        req_url, headers, ext = url, dict(extra or {}), {}
         if not is_loopback_host(host):  # IP-Pinning: zur geprüften IP verbinden, Zertifikat gegen den Hostnamen prüfen
             ip = ips[0]
             netloc = (f"[{ip}]" if ":" in ip else ip) + (f":{p.port}" if p.port else "")
@@ -165,15 +168,23 @@ class Gatekeeper:
         return Response(url, status, hdrs, cookies, bytes(body), truncated, int((time.monotonic() - t0) * 1000))
 
     async def fetch(self, url: str, *, method: str = "GET", follow: bool = True,
-                    max_bytes: int | None = None, external: bool = False) -> Response:
+                    max_bytes: int | None = None, external: bool = False, plain: bool = False,
+                    headers: dict[str, str] | None = None) -> Response:
+        """plain=True erlaubt EINE unverschlüsselte Anfrage ohne Weiterleitung (Test der http-Variante der eigenen
+        Domain). headers: nur Signale aus EXTRA_HEADERS."""
         if method not in ("GET", "HEAD"):
             raise ClaudiosError(E.INTERNAL, reason="method not allowed")
+        if plain and (follow or external):
+            raise ClaudiosError(E.INTERNAL, reason="plain needs follow=False and no external host")
+        extra = {k: str(v) for k, v in (headers or {}).items()}
+        if any(k.lower() not in EXTRA_HEADERS for k in extra):
+            raise ClaudiosError(E.INTERNAL, reason="header not allowed")
         chain: list[str] = []
         cur = url
         while True:
             self._check_cancel()
-            ips = await self._validate(cur, external)
-            resp = await self._once(cur, method, ips, max_bytes)
+            ips = await self._validate(cur, external, plain)
+            resp = await self._once(cur, method, ips, max_bytes, extra)
             resp.chain = list(chain)
             loc = resp.header("location")
             if not (follow and resp.status in REDIRECTS and loc):

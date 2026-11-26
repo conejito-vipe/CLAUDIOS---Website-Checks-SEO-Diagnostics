@@ -2,6 +2,13 @@
 
 English version: [CHANGELOG.md](CHANGELOG.md)
 
+## 1.1.0 (unveröffentlicht)
+
+- **Neue Prüfungen (passiv):** Adress-Varianten (http, www; `SEO-VAR-001`), Sitemap im Abgleich mit dem Crawl (`SEO-SMX-001`), Bilder (`HTM-IMG-002`), Caching und Kompression von CSS/JS (`SEO-ACH-001`), HTTP-Protokoll und Antwortzeit (`SEO-HTV-001`), HSTS-Preload und Zertifikatsnamen (`TLS-EXT-001`), Tastaturbedienung und Bewegung (`HTM-KEY-001`), Seitengewicht und blockierende Skripte (`SEO-WGT-001`), Barrierefreiheitserklärung (`PRV-BFS-001`), Global Privacy Control (`PRV-GPC-001`), BIMI (`DNS-BIM-001`), DANE/TLSA (`DNS-DAN-001`), Ablauf der Domains eingebundener Fremdskripte (`SEC-SUP-001`, nur mit dem RDAP-Schalter).
+- **Neue Prüfung (aktiv, Stufe 2):** CMS-Zusatzpfade für WordPress und Joomla (`SEC-CMX-001`), in einer eigenen Probe `probe_cms` und in der geprüften Liste der aktiven Prüfungen.
+- **Gatekeeper:** eine unverschlüsselte http-Anfrage ohne Weiterleitung (nur für die eigene Domain, zum Test der http-Variante) und der einzige zusätzliche Anfrage-Header `Sec-GPC`; alles andere bleibt verboten.
+- **Mac:** Die per Download eingerichteten Werkzeuge laufen auf dem Mac (siehe 1.0.0).
+
 ## 1.0.0 (unveröffentlicht)
 
 - **Oberfläche:** dunkles Design (Entwurf B): Symbolleiste mit Beschriftung und Logo, neuer Startscreen, Hilfe mit Inhaltsverzeichnis und gemeinsamer Suche, Wertungsring und Kategorie-Karten auf der Ergebnisseite, Erklärspalte neben der Befundliste.

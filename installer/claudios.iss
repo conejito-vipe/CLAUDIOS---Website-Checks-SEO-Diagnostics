@@ -11,7 +11,7 @@
 #define AppShortName "CLAUDIOS"
 #define AppExeName "CLAUDIOS.exe"
 #ifndef AppVersion
-  #define AppVersion "1.0.0"
+  #define AppVersion "1.1.0"
 #endif
 #define AuthorName "conejito-vipe"
 

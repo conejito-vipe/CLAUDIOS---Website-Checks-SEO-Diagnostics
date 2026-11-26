@@ -170,3 +170,30 @@ async def test_network_errors_become_clear_error_codes(exc, code):
     with pytest.raises(ClaudiosError) as err:
         await gate.fetch("https://example.com/")
     assert err.value.code == code
+
+
+PLAIN_URL = "http" + ":" + "//example.com/"
+
+
+async def test_plain_http_is_possible_only_once_without_redirects_and_for_the_own_site():
+    gate, site = make({"/": httpx.Response(301, headers={"location": "https://example.com/"})})
+    resp = await gate.fetch(PLAIN_URL, follow=False, plain=True)
+    assert resp.status == 301 and len(site.seen) == 1  # kein zweiter Aufruf, die Weiterleitung wird nicht verfolgt
+    for kw in ({"follow": True, "plain": True}, {"follow": False, "plain": True, "external": True}):
+        with pytest.raises(ClaudiosError):
+            await gate.fetch(PLAIN_URL, **kw)
+    with pytest.raises(ClaudiosError) as err:
+        await gate.fetch("http" + ":" + "//other-site.net/", follow=False, plain=True)
+    assert err.value.code == E.NET_CROSS_SITE
+    with pytest.raises(ClaudiosError) as err:
+        await gate.fetch(PLAIN_URL)  # ohne plain bleibt http verboten
+    assert err.value.code == E.NET_DOWNGRADE
+
+
+async def test_only_the_gpc_signal_may_be_added_as_a_request_header():
+    gate, site = make({"/": httpx.Response(200)})
+    await gate.fetch("https://example.com/", headers={"Sec-GPC": "1"})
+    for bad in ({"Authorization": "x"}, {"Cookie": "a=b"}, {"X-Evil": "1"}):
+        with pytest.raises(ClaudiosError):
+            await gate.fetch("https://example.com/", headers=bad)
+    assert len(site.seen) == 1

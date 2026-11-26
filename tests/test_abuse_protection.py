@@ -15,8 +15,8 @@ from claudios.core.limits import LIMITS
 from claudios.core.quota import check_quota
 from claudios.core.registry import REGISTRY
 
-ACTIVE_CHECKS = {"EXP-PTH-001", "GSC-IDX-001", "GSC-SMP-001", "TLS-ATK-001", "ZAP-PAS-001"}
-LEVEL2_PROBES = {"paths", "zap"}
+ACTIVE_CHECKS = {"EXP-PTH-001", "SEC-CMX-001", "GSC-IDX-001", "GSC-SMP-001", "TLS-ATK-001", "ZAP-PAS-001"}
+LEVEL2_PROBES = {"paths", "zap", "cms"}
 
 
 @pytest.fixture(autouse=True)

@@ -38,6 +38,9 @@ class Tls(Conn):
     def cipher(self):
         return self._cipher
 
+    def selected_alpn_protocol(self):
+        return "h2"
+
 
 @pytest.fixture
 def net(monkeypatch):
@@ -53,6 +56,9 @@ def net(monkeypatch):
 
     class Ctx:
         minimum_version = None
+
+        def set_alpn_protocols(self, protocols):
+            self.alpn = protocols
 
         def wrap_socket(self, raw, server_hostname):
             state["host"] = server_hostname
@@ -72,7 +78,7 @@ def net(monkeypatch):
 def test_successful_handshake_reports_days_left_issuer_and_protocol(net):
     result = tlsprobe._handshake("example.com", ["93.184.216.34"])
     assert result == {"version": "TLSv1.3", "cipher": "TLS_AES_256_GCM_SHA384", "days_left": 90,
-                      "issuer": "Beispiel CA", "error": None}
+                      "issuer": "Beispiel CA", "error": None, "alpn": "h2", "san": []}
     assert net["host"] == "example.com"  # Zertifikat wird gegen den Namen geprüft, nicht gegen die IP
     assert net["ctx"].minimum_version == ssl.TLSVersion.TLSv1_2  # alte Protokolle prüft später sslyze
 
