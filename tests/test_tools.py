@@ -60,7 +60,7 @@ def test_vnu_results_are_mapped_to_pages(env, monkeypatch):
                                  components=lambda name: True)
     val = [f for f in found if f.check_id == "HTM-VAL-001"]
     assert {(f.severity, f.url) for f in val} == {(S.ERROR, "https://example.com/"), (S.NOTE, "https://example.com/p1")}
-    assert val[0].evidence == "Line 3: Bad thing" or val[1].evidence == "Line 3: Bad thing"
+    assert "Line 3: Bad thing (2 error(s) on this page)" in {f.evidence for f in val}
     assert executed["HTM-VAL-001"] == "ran"
     args = calls[0]
     assert "--stdout" in args and "p0.html" in args and "p1.html" in args

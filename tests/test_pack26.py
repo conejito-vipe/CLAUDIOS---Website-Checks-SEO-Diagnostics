@@ -49,7 +49,7 @@ def test_pages_with_errors_become_one_group_with_the_page_count(monkeypatch, tmp
     setup(monkeypatch, tmp_path, lambda i: errors(i + 1))
     found = run(make_snap(3))
     assert len(found) == 3 and {f.msg_de for f in found} == {"Seiten mit HTML-Fehlern laut W3C Nu Html Checker"}
-    assert not any(ch.isdigit() for f in found for ch in f.msg_de + f.msg_en)
+    assert not any(ch.isdigit() for f in found for ch in (f.msg_de + f.msg_en).replace("W3C", ""))
     assert all(f.severity == S.ERROR for f in found)
     groups = group_findings(found)
     assert len(groups) == 1 and groups[0]["count"] == 3
