@@ -7,7 +7,7 @@ TEXTS["de"].update({
     "boot.intro": "Fehlende Prüfwerkzeuge werden geladen und per Prüfsumme geprüft. Das kann beim ersten Start einige "
                   "Minuten dauern.",
     "boot.status": "Komponenten werden eingerichtet ({done} von {total} fertig): {active}",
-    "boot.skip": "Später fortsetzen",
+    "boot.skip": "Programm starten, Einrichtung später fortsetzen",
     "boot.failed": "{count} Komponente(n) konnten nicht eingerichtet werden:\n\n{details}\n\nDie zugehörigen Prüfungen "
                    "gelten als nicht ausgeführt. Du kannst es auf der Seite Komponenten erneut versuchen.",
     "app.uninstall": "CLAUDIOS deinstallieren",
@@ -28,7 +28,7 @@ TEXTS["de"].update({
 TEXTS["en"].update({
     "boot.intro": "Missing check tools are downloaded and verified by checksum. The first start can take a few minutes.",
     "boot.status": "Setting up components ({done} of {total} done): {active}",
-    "boot.skip": "Continue later",
+    "boot.skip": "Start the program, finish setup later",
     "boot.failed": "{count} component(s) could not be set up:\n\n{details}\n\nThe matching checks count as not "
                    "executed. You can try again on the Components page.",
     "app.uninstall": "Uninstall CLAUDIOS",

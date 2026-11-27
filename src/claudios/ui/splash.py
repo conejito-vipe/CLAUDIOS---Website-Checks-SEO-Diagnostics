@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QProgressBar, Q
 from ..i18n.strings import n, t
 from .widgets import CardWindow, load_logo
 
-WIDTH, HEIGHT = 658, 500
+WIDTH, HEIGHT = 658, 548
 LOGO_HEIGHT = 251
 LOGO_GAP = 14
 SKIP_DELAY_MS = 20000
@@ -59,7 +59,7 @@ class Splash(CardWindow):
         self.status.setObjectName("muted")
         self.status.setTextFormat(Qt.TextFormat.PlainText)
         self.status.setWordWrap(True)
-        self.status.setMinimumHeight(40)  # zwei Zeilen Platz, damit nichts überlappt
+        self.status.setFixedHeight(62)  # feste Höhe (drei Zeilen): das Logo wird nie verdrängt
         self.status.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.percent = QLabel()
         self.percent.setObjectName("muted")
@@ -91,6 +91,9 @@ class Splash(CardWindow):
     def _show(self, pct: int, message: str) -> None:
         self.bar.setValue(pct)
         self.percent.setText(f"{n(pct)} %")
+        font = self.status.font()
+        font.setPixelSize(14 if len(message) <= 110 else 12 if len(message) <= 190 else 11)  # lange Texte kleiner
+        self.status.setFont(font)
         self.status.setText(message)
 
     def show_progress(self, pct: int, message: str) -> None:

@@ -119,6 +119,13 @@ def cursor_for(edges) -> Qt.CursorShape:
     return Qt.CursorShape.SizeHorCursor if (left or right) else Qt.CursorShape.SizeVerCursor
 
 
+def win_icon(key: str) -> QIcon:
+    from .navicons import nav_icon
+    from .theme import INK
+
+    return nav_icon(key, normal=INK, active="#FFFFFF", size=16)
+
+
 class TitleBar(QWidget):
     langChanged = Signal(str)
     helpRequested = Signal()
@@ -154,11 +161,13 @@ class TitleBar(QWidget):
                 group.addButton(btn)
                 lay.addWidget(btn)
                 self._lang_buttons[code] = btn
-        self.btn_min = QPushButton("–")
-        self.btn_max = QPushButton("☐")
-        self.btn_close = QPushButton("✕")
-        for btn in (self.btn_min, self.btn_max, self.btn_close):
+        self.btn_min, self.btn_max, self.btn_close = QPushButton(), QPushButton(), QPushButton()
+        for btn, key in ((self.btn_min, "win.min"), (self.btn_max, "win.max"), (self.btn_close, "win.close")):
             btn.setObjectName("winbtn")
+            btn.setIcon(win_icon(key))
+            btn.setIconSize(QSize(16, 16))
+            btn.setFixedSize(40, 30)  # alle drei gleich groß
+            btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # kein gestrichelter Fokusrahmen
             lay.addWidget(btn)
         self.btn_max.setVisible(with_lang)  # nur das Hauptfenster lässt sich maximieren (nicht der Splash)
         self.btn_min.setProperty("role", "min")
@@ -179,7 +188,7 @@ class TitleBar(QWidget):
             win.showMaximized()
 
     def sync_maximized(self, maximized: bool) -> None:
-        self.btn_max.setText("❐" if maximized else "☐")
+        self.btn_max.setIcon(win_icon("win.restore" if maximized else "win.max"))
         self.btn_max.setToolTip(t("win.restore" if maximized else "win.maximize"))
         self.btn_max.setAccessibleName(t("win.restore" if maximized else "win.maximize"))
 

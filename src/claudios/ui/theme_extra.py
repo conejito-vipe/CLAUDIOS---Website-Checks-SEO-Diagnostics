@@ -15,6 +15,7 @@ QLabel#pill { font-size: 11px; padding: 0px 8px; border-radius: 6px; min-height:
 QLabel#logofallback { font-size: 38px; }
 QLabel#h1 { font-size: 22px; font-weight: 700; color: %INK%; }
 QLabel#h2 { font-size: 15px; font-weight: 600; color: %INK%; }
+QPushButton#winbtn { padding: 0px; border-radius: 6px; }
 QPushButton#winbtn[role="close"]:hover { background: #C62828; color: white; border-radius: 6px; }
 QPushButton#winbtn[role="max"]:hover { background: #EE6A12; color: white; border-radius: 6px; }
 QFrame#card[maximized="true"] { border-radius: 0px; border: none; }
