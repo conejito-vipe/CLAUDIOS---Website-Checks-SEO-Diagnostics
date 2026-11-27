@@ -13,6 +13,7 @@ from .. import __version__
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.limits import LIMITS
 from ..core.redact import find_leaks
+from . import shots
 from .prompts import PREFIXES, prompt_for
 from .report import build_report, render_html, render_summary
 
@@ -56,6 +57,7 @@ def build_focus_zip(result, dest: Path | str, lang: str = "de", focus: str = "ge
         with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as archive:
             for name, text in files.items():
                 archive.writestr(name, text)
+            shots.add_to_archive(result, archive)
     except ClaudiosError:
         raise
     except OSError as exc:

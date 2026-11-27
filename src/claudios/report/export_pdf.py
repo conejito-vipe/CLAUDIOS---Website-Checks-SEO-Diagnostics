@@ -9,6 +9,7 @@ from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.names import check_title
 from ..core.numfmt import format_bytes, format_number
 from ..core.redact import find_leaks
+from . import shots
 from .export_common import LABELS, SEVERITY, STATUS
 from .report import build_report
 
@@ -50,6 +51,8 @@ def pdf_html(rep: dict, lang: str) -> str:
     if skipped:
         items = "".join(f"<li>{esc(c['id'])}: {esc(c['title_' + lang])} ({esc(c['status'])})</li>" for c in skipped)
         parts.append(f"<h2>{esc(labels['notrun'])}</h2><ul>{items}</ul>")
+    for index, name in enumerate(rep.get("screenshots") or []):  # die Bilder werden in build_pdf als Ressource geladen
+        parts.append(f'<h2>{esc(name.split("/")[-1])}</h2><img src="shot{index}" width="{480 if "desktop" in name else 180}">')
     parts.append(f"<p><small>{esc(labels['disc'])}</small></p>")
     return "".join(parts)
 
@@ -62,7 +65,7 @@ def build_pdf(result, dest: Path | str, lang: str = "de") -> Path:
     if leaks:
         raise ClaudiosError(E.EXPORT_FAILED, reason=f"possible secret in the export: {leaks[0]}")
     try:
-        from PySide6.QtCore import QMarginsF
+        from PySide6.QtCore import QMarginsF, QUrl
         from PySide6.QtGui import QPageLayout, QPageSize, QPdfWriter, QTextDocument
     except ImportError:
         raise ClaudiosError(E.EXPORT_FAILED, reason="PySide6 is not installed") from None
@@ -71,6 +74,10 @@ def build_pdf(result, dest: Path | str, lang: str = "de") -> Path:
     writer.setPageMargins(QMarginsF(15, 15, 15, 15), QPageLayout.Unit.Millimeter)
     writer.setTitle(LABELS[lang]["report"])
     document = QTextDocument()
+    from PySide6.QtGui import QImage, QTextDocument as _Doc
+
+    for index, path in enumerate(shots.files_of(result)):
+        document.addResource(_Doc.ResourceType.ImageResource, QUrl(f"shot{index}"), QImage(str(path)))
     document.setHtml(markup)
     document.print_(writer)
     del document, writer  # schließt die Datei

@@ -64,3 +64,17 @@ def test_the_trash_can_has_a_label_and_the_selected_tab_is_an_orange_chip():
     from claudios.ui.theme_extra import full_style
     css = full_style()
     assert "QTabBar::tab:selected { background: " + ORANGE in css
+
+
+def test_the_navigation_rail_always_fits_without_overlap_at_the_minimum_size():
+    window = _window()
+    window.resize(window.minimumSize())
+    window.show()
+    _APP.processEvents()
+    nav, button = window.nav.geometry(), window.uninstall_btn.geometry()
+    assert nav.bottom() < button.top()
+    visible = [i for i in range(window.nav.count()) if not window.nav.item(i).isHidden()]
+    assert "nav.scan" in [window.nav_keys[i] for i in visible]
+    for i in visible:  # jeder Eintrag liegt vollständig im sichtbaren Bereich der Leiste
+        rect = window.nav.visualItemRect(window.nav.item(i))
+        assert 0 <= rect.top() and rect.bottom() <= window.nav.viewport().height()

@@ -21,6 +21,7 @@ from ..core.names import check_title
 from ..core.numfmt import format_bytes, format_number
 from ..core.redact import find_leaks, redact_url, sanitize_obj
 from ..core.registry import REGISTRY
+from . import shots
 
 CSS = ("body{font:14px/1.5 system-ui,sans-serif;background:#E9EEF2;color:#1b2a33;margin:2rem}"
        "h1{color:#EE6A12}table{border-collapse:collapse;width:100%;background:#fff}"
@@ -60,6 +61,7 @@ def build_report(result: ScanResult, lang: str = "de") -> dict:
                     "title_de": REGISTRY[cid].meta.title["de"], "title_en": REGISTRY[cid].meta.title["en"]}
                    for cid, st in sorted(result.executed.items()) if cid in REGISTRY],
         "findings": group_findings(result.findings),
+        "screenshots": [f"screenshots/{p.name}" for p in shots.files_of(result)],
         "pages": [{"url": redact_url(p.url), "status": p.status, "depth": p.depth, "elapsed_ms": p.elapsed_ms,
                    "bytes": p.size, "error": p.error} for p in s.pages],
     }
@@ -134,6 +136,8 @@ def render_summary(rep: dict, lang: str = "de") -> str:
     if sc["abort"]:
         a = sc["abort"][lang]
         lines += [f"**{a['title']}**: {a['cause']} {a['action']}", ""]
+    if rep.get("screenshots"):
+        lines += [(("Screenshots: " if lang == "en" else "Bildschirmfotos: ") + ", ".join(rep["screenshots"])), ""]
     for g in rep["findings"][:15]:
         lines.append(f"- [{g['severity_name']}] {check_title(g['check_id'], lang)} ({n(g['count'])}x): {g['msg_' + lang]}")
     return "\n".join(lines) + "\n"
@@ -199,6 +203,7 @@ def build_zip(result: ScanResult, dest: Path | str, lang: str = "de") -> Path:
         with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as z:
             for name, text in files.items():
                 z.writestr(name, text)
+            shots.add_to_archive(result, z)  # Screenshots (falls aufgenommen) gehören zum Bericht
     except ClaudiosError:
         raise
     except OSError as exc:

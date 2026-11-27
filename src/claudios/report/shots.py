@@ -27,6 +27,21 @@ def files_of(result) -> list[Path]:
     return [folder / name for name in data.get("files") or [] if name in ALLOWED_FILES and (folder / name).is_file()]
 
 
+def folder_of(result) -> Path | None:
+    """Ordner mit den Bildern dieses Scans (für die Anzeige „gespeichert in“), sonst None."""
+    files = files_of(result)
+    return files[0].parent if files else None
+
+
+def add_to_archive(result, archive: zipfile.ZipFile) -> list[str]:
+    """Legt die Bilder des Scans unter screenshots/ in ein ZIP (sie sind Teil des Berichts); gibt die Namen zurück."""
+    names = []
+    for path in files_of(result):
+        archive.write(path, f"screenshots/{path.name}")
+        names.append(f"screenshots/{path.name}")
+    return names
+
+
 def default_name(result) -> str:
     host = re.sub(r"[^a-z0-9.-]", "-", result.snapshot.target.host.lower())[:60]
     return f"CLAUDIOS-screenshots-{host}-{datetime.now().strftime('%Y%m%d-%H%M')}.zip"

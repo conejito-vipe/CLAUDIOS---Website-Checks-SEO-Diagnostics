@@ -178,6 +178,7 @@ class MainWindow(CardWindow):
         self.uninstall_lbl.setObjectName("muted")
         self.uninstall_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         side_lay.addWidget(self.uninstall_lbl)
+        self.setMinimumSize(760, max(600, side.sizeHint().height() + 130))  # die Leiste muss immer ganz passen (kein Überlauf)
 
         self.stack = QStackedWidget()
         for page in self.pages:
