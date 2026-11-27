@@ -81,7 +81,7 @@ class MainWindow(CardWindow):
         super().__init__(with_lang=True)
         self.settings = settings
         self.resize(1040, 700)
-        self.setMinimumSize(760, 520)
+        self.setMinimumSize(760, 600)
         self._prev = 0
         self._scan_running = False
         self.last_result = None

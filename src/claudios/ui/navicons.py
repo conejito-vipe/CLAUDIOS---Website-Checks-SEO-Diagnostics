@@ -13,7 +13,7 @@ from .theme import MUTED, ORANGE, ORANGE_HI, ORANGE_SOFT
 SIZE = 22
 RAIL_ITEM = 48
 RAIL_W = 116  # Breite der Leiste: Symbol mit Beschriftung darunter
-RAIL_H = 58
+RAIL_H = 52
 PATHS = {
     "nav.scan": "M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z",
     "nav.results": "M4 20V10M10 20V4M16 20v-7M22 20H2",
@@ -80,7 +80,7 @@ class RailDelegate(QStyledItemDelegate):
             mode = QIcon.Mode.Selected if lit else QIcon.Mode.Normal
             side = SIZE
             left = option.rect.x() + (option.rect.width() - side) // 2
-            top = option.rect.y() + 8
+            top = option.rect.y() + 6
             icon.paint(painter, left, top, side, side, Qt.AlignmentFlag.AlignCenter, mode)
         font = QFont(option.font)
         font.setPixelSize(11)
@@ -88,6 +88,6 @@ class RailDelegate(QStyledItemDelegate):
         painter.setPen(QColor(ORANGE_HI if lit else MUTED))
         label = painter.fontMetrics().elidedText(str(index.data(Qt.ItemDataRole.DisplayRole) or ""),
                                                  Qt.TextElideMode.ElideRight, option.rect.width() - 6)
-        text_rect = QRectF(option.rect.x() + 3, option.rect.y() + 8 + SIZE + 5, option.rect.width() - 6, 18)
+        text_rect = QRectF(option.rect.x() + 3, option.rect.y() + 6 + SIZE + 3, option.rect.width() - 6, 17)
         painter.drawText(text_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, label)
         painter.restore()

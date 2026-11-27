@@ -53,3 +53,10 @@ def test_docs_are_generated_and_filterable():
     filtered = render_doc("handbook", "en", "hsts")
     assert "SEC-HDR-002" in filtered and "SEO-CAN-001" not in filtered
     assert "No matches" in render_doc("handbook", "en", "zzz-no-match")
+
+
+def test_every_point_of_a_check_block_stands_after_a_blank_line():
+    tech = render_doc("tech", "de", "SEC-HDR-001").split("\n\n")
+    labels = ("Art:", "Methode:", "Bewertung:", "Warum?", "Behebung:", "Referenzen:")
+    starts = [part for part in tech if part.startswith(labels)]
+    assert len(starts) >= 6 and tech[0].startswith(("Technische Dokumentation", "Technical documentation"))

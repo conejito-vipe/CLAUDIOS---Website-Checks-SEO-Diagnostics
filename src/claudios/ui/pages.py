@@ -521,7 +521,7 @@ class ResultsPage(QWidget):
         QMessageBox.information(self, t("export.title"), t("export.saved", path=path))
 
 
-HEADING = re.compile(r"^\[([A-Z]{2,4}-[A-Z]{2,4}-\d{3})\] (.+)$")
+HEADING = re.compile(r"^(.+) \[([A-Z]{2,4}-[A-Z]{2,4}-\d{3})\]$")
 
 
 class DocPage(QWidget):
@@ -579,8 +579,8 @@ class DocPage(QWidget):
         while block.isValid():
             match = HEADING.match(block.text())
             if match:
-                item = QListWidgetItem(f"{match.group(1)}  {match.group(2)}")
-                item.setToolTip(f"{match.group(1)}  {match.group(2)}")
+                item = QListWidgetItem(match.group(1))  # Klartext-Titel; die Kennung steht im Hinweis
+                item.setToolTip(f"{match.group(1)} [{match.group(2)}]")
                 item.setData(Qt.ItemDataRole.UserRole, block.position())
                 self.toc.addItem(item)
             block = block.next()

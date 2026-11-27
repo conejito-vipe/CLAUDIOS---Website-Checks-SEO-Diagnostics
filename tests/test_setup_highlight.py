@@ -3,7 +3,7 @@ import pytest
 from claudios.i18n.strings import TEXTS
 
 SAMPLE = "\n".join([
-    "[SEC-HDR-001] Title", "Warum? in for if", "Code:", '@check("x")', "def f(x):", '    return "s" + 12  # note',
+    "Title [SEC-HDR-001]", "Warum? in for if", "Code:", '@check("x")', "def f(x):", '    return "s" + 12  # note',
     '    """doc', 'more"""', "", "-" * 72, "", "Warum? in for if"])
 
 

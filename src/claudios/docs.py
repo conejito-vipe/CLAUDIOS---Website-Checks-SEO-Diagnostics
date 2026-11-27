@@ -17,7 +17,7 @@ def _block(mode: str, lang: str, cid: str, rc) -> str:
         return text(lang, key)
 
     kind = lab("doc.active") if m.kind == "active" else lab("doc.passive")
-    lines = [f"[{cid}] {m.title[lang]}"]
+    lines = [f"{m.title[lang]} [{cid}]"]
     if mode == "tech":
         lines.append(f"{lab('doc.kind')}: {kind} | {lab('doc.profiles')}: {', '.join(m.profiles)}")
         lines.append(f"{lab('doc.method')}: {m.method[lang]}")
@@ -29,7 +29,7 @@ def _block(mode: str, lang: str, cid: str, rc) -> str:
         code = rc.source_code()
         if code:
             lines.append(f"{lab('doc.code')}:\n{code.rstrip()}")
-    return "\n".join(lines)
+    return "\n\n".join(lines)  # vor jedem Punkt (Art, Methode, Warum ...) steht eine Leerzeile
 
 
 def render_doc(mode: str, lang: str, query: str = "") -> str:

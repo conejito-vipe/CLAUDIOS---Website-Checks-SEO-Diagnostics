@@ -90,15 +90,28 @@ Filename: "{app}\{#AppExeName}"; Check: WizardSilent; Flags: nowait
 ; Programmdateien der alten Version entfernen (Reste verhindern); Einstellungen und Berichte liegen außerhalb und bleiben erhalten.
 Type: filesandordirs; Name: "{app}\_internal"
 
-[UninstallDelete]
-Type: filesandordirs; Name: "{localappdata}\CLAUDIOS\tools"
-Type: filesandordirs; Name: "{localappdata}\CLAUDIOS\cache"
+; Was beim Deinstallieren aus den Programmdaten gelöscht wird, wählt der Nutzer im Code unten (Standard: Werkzeuge,
+; Zwischenspeicher und Protokolle ja, Einstellungen, Verlauf und Berichte nein; still: nur der Standard).
 
 [CustomMessages]
 german.UpdateAsk={#AppShortName} %1 ist bereits installiert. Die neue Version ist %2.%nSoll auf %2 aktualisiert werden? Deine Einstellungen und Berichte bleiben erhalten.
 english.UpdateAsk={#AppShortName} %1 is already installed. The new version is %2.%nUpdate to %2? Your settings and reports are kept.
 german.SameAsk={#AppShortName} %1 ist bereits installiert.%nSoll sie neu installiert (repariert) werden? Deine Daten bleiben erhalten.
 english.SameAsk={#AppShortName} %1 is already installed.%nReinstall (repair) it? Your data is kept.
+german.UniTitle=Was soll gelöscht werden?
+english.UniTitle=What should be deleted?
+german.UniHint=Angehakte Einträge werden gelöscht. Deine eigenen Daten sind nicht vorgewählt. Gespeicherte API-Schlüssel entfernst du im Programm über den Papierkorb-Knopf.
+english.UniHint=Ticked items will be deleted. Your own data is not preselected. Remove stored API keys in the program with the trash button.
+german.UniTools=Prüfwerkzeuge und Zwischenspeicher (werden bei Bedarf neu geladen)
+english.UniTools=Check tools and cache (downloaded again on demand)
+german.UniLogs=Protokolldateien
+english.UniLogs=Log files
+german.UniConfig=Einstellungen (deine Daten)
+english.UniConfig=Settings (your data)
+german.UniHistory=Verlauf der Scans (deine Daten)
+english.UniHistory=Scan history (your data)
+german.UniReports=Gespeicherte Berichte (deine Daten)
+english.UniReports=Saved reports (your data)
 german.OlderAsk=Es ist bereits eine NEUERE Version (%1) installiert als diese (%2).%nTrotzdem auf %2 zurückstellen? Deine Daten bleiben erhalten.
 english.OlderAsk=A NEWER version (%1) is already installed than this one (%2).%nDowngrade to %2 anyway? Your data is kept.
 
@@ -139,4 +152,69 @@ begin
   else if C = 0 then Msg := FmtMessage(CustomMessage('SameAsk'), [Old])
   else Msg := FmtMessage(CustomMessage('OlderAsk'), [Old, '{#AppVersion}']);
   Result := MsgBox(Msg, mbConfirmation, MB_YESNO) = IDYES;
+end;
+
+{ ---- Deinstallation: Auswahl, was aus den Programmdaten gelöscht wird ---- }
+var
+  DelTools, DelLogs, DelConfig, DelHistory, DelReports: Boolean;
+
+function InitializeUninstall(): Boolean;
+var
+  Form: TSetupForm;
+  List: TNewCheckListBox;
+  Hint: TNewStaticText;
+  OkBtn, CancelBtn: TNewButton;
+begin
+  Result := True;
+  DelTools := True; DelLogs := True; DelConfig := False; DelHistory := False; DelReports := False;
+  if UninstallSilent then Exit;
+  Form := CreateCustomForm(ScaleX(440), ScaleY(300), False, True);
+  try
+    Form.Caption := CustomMessage('UniTitle');
+    Form.Position := poScreenCenter;
+    Hint := TNewStaticText.Create(Form);
+    Hint.Parent := Form;
+    Hint.Left := ScaleX(12); Hint.Top := ScaleY(10); Hint.Width := Form.ClientWidth - ScaleX(24);
+    Hint.AutoSize := False; Hint.WordWrap := True; Hint.Height := ScaleY(48);
+    Hint.Caption := CustomMessage('UniHint');
+    List := TNewCheckListBox.Create(Form);
+    List.Parent := Form;
+    List.Left := ScaleX(12); List.Top := ScaleY(62); List.Width := Form.ClientWidth - ScaleX(24); List.Height := ScaleY(170);
+    List.AddCheckBox(CustomMessage('UniTools'), '', 0, True, True, False, True, nil);
+    List.AddCheckBox(CustomMessage('UniLogs'), '', 0, True, True, False, True, nil);
+    List.AddCheckBox(CustomMessage('UniConfig'), '', 0, False, True, False, True, nil);
+    List.AddCheckBox(CustomMessage('UniHistory'), '', 0, False, True, False, True, nil);
+    List.AddCheckBox(CustomMessage('UniReports'), '', 0, False, True, False, True, nil);
+    OkBtn := TNewButton.Create(Form);
+    OkBtn.Parent := Form; OkBtn.Caption := SetupMessage(msgButtonOK); OkBtn.ModalResult := mrOk; OkBtn.Default := True;
+    OkBtn.Left := Form.ClientWidth - ScaleX(180); OkBtn.Top := ScaleY(250); OkBtn.Width := ScaleX(80); OkBtn.Height := ScaleY(26);
+    CancelBtn := TNewButton.Create(Form);
+    CancelBtn.Parent := Form; CancelBtn.Caption := SetupMessage(msgButtonCancel); CancelBtn.ModalResult := mrCancel;
+    CancelBtn.Cancel := True;
+    CancelBtn.Left := Form.ClientWidth - ScaleX(92); CancelBtn.Top := ScaleY(250); CancelBtn.Width := ScaleX(80); CancelBtn.Height := ScaleY(26);
+    if Form.ShowModal() = mrOk then
+    begin
+      DelTools := List.Checked[0]; DelLogs := List.Checked[1]; DelConfig := List.Checked[2];
+      DelHistory := List.Checked[3]; DelReports := List.Checked[4];
+    end
+    else
+      Result := False;
+  finally
+    Form.Free();
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var Base: String;
+begin
+  if CurUninstallStep <> usPostUninstall then Exit;
+  Base := ExpandConstant('{localappdata}\CLAUDIOS');
+  if DelTools then begin
+    DelTree(Base + '\tools', True, True, True);
+    DelTree(Base + '\cache', True, True, True);
+  end;
+  if DelLogs then DelTree(Base + '\logs', True, True, True);
+  if DelConfig then DelTree(Base + '\config', True, True, True);
+  if DelHistory then DelTree(Base + '\history', True, True, True);
+  if DelReports then DelTree(ExpandConstant('{userdocs}\CLAUDIOS\Reports'), True, True, True);
 end;

@@ -11,7 +11,7 @@ STATE_TEXT, STATE_CODE, STATE_TRIPLE_D, STATE_TRIPLE_S = 0, 1, 2, 3
 CODE_LABEL = "Code:"
 COLORS = {"keyword": "#7FB4F5", "string": "#7CD992", "comment": "#8593A0", "number": "#FFB074",
           "deco": "#C7A0E8", "header": "#FF8A3D", "label": "#E6EBF1", "rule": "#566474"}
-_HEADER = re.compile(r"^\[[A-Z]{3}-[A-Z]{3}-\d{3}\]")
+_HEADER = re.compile(r"^.+ \[[A-Z]{3}-[A-Z]{3}-\d{3}\]$")
 _LABEL = re.compile(r"^(?:Warum\?|Why\?|(?:Behebung|Fix|Referenzen|References|Methode|Method|Bewertung|Rating|"
                     r"Art|Type|Code|Profile|Profiles)(?=:))")
 _DECO = re.compile(r"\s*(@[\w.]+)")
