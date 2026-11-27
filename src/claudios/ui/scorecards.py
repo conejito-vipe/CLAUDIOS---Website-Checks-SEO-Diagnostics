@@ -9,7 +9,7 @@ from ..i18n.strings import n
 from ..i18n.strings_names import category_name
 from . import theme
 
-GOOD, WARN, BAD = "#5FD9A0", "#F2C94C", "#FF8590"
+GOOD, WARN, BAD = "#5FD9A0", "#F2C94C", "#FF9AA3"
 
 
 SEVERITY = {0: "#C0CAD6", 1: "#82BEFF", 2: WARN, 3: "#FF9A55", 4: BAD}

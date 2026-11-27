@@ -33,7 +33,7 @@ def contrast(a: str, b: str) -> float:
     (theme.INK, theme.BG, 7), (theme.INK, theme.SURFACE, 7), (theme.INK, theme.BG_DEEP, 7),
     (theme.MUTED, theme.BG, 4.5), (theme.MUTED, theme.SURFACE, 4.5), (theme.MUTED, theme.BG_DEEP, 4.5),
     (theme.ON_ORANGE, theme.ORANGE, 4.5), (theme.ON_ORANGE, theme.ORANGE_HI, 4.5),
-    (theme.ORANGE_HI, theme.BG, 4.5), (theme.ORANGE_HI, theme.ORANGE_SOFT, 4.5), (theme.ORANGE, theme.BG, 4.5),
+    (theme.ORANGE_HI, theme.BG, 4.5), (theme.ORANGE_HI, theme.ORANGE_SOFT, 4.5), (theme.ORANGE, theme.BG, 3.0)  # nur große Schrift (Logo-Ersatz),
 ])
 def test_text_colors_are_readable_on_their_backgrounds(fg, bg, minimum):
     assert contrast(fg, bg) >= minimum

@@ -1,17 +1,17 @@
 """Farben und Stil (Entwurf B): dunkel, ein orangefarbener Akzent. Texte auf dem Akzent sind dunkel (Kontrast)."""
-BG = "#1D2530"          # Fenster
-BG_DEEP = "#151C25"     # Eingabefelder, Titelleiste, Codefenster
-SURFACE = "#273140"     # Karten
-SURFACE2 = "#323F50"    # Schaltflächen, Hover
-LINE = "#3A485B"        # feine Rahmen
-LINE2 = "#4B5C72"       # Rahmen von Eingaben und Schaltflächen
+BG = "#2B3646"          # Fenster
+BG_DEEP = "#212B38"     # Eingabefelder, Titelleiste, Codefenster
+SURFACE = "#37455A"     # Karten
+SURFACE2 = "#455570"    # Schaltflächen, Hover
+LINE = "#52627A"        # feine Rahmen
+LINE2 = "#667892"       # Rahmen von Eingaben und Schaltflächen
 ORANGE = "#EE6A12"
 ORANGE_HI = "#FF8A3D"
 ON_ORANGE = "#1B1005"   # Text auf dem Akzent
-ORANGE_SOFT = "#3B2D20"  # gewählter Eintrag der Navigation
+ORANGE_SOFT = "#44362A"  # gewählter Eintrag der Navigation
 INK = "#F3F6FA"
-MUTED = "#C0CAD6"
-DISABLED = "#8996A6"
+MUTED = "#D6DEE8"
+DISABLED = "#A9B4C2"
 TRACK = LINE
 
 _TEMPLATE = """
