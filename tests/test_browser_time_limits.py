@@ -23,3 +23,28 @@ def test_the_python_side_hands_the_limits_to_the_script_and_kills_late():
     for key in ("axe_timeout_ms", "page_timeout_ms", "total_ms"):
         assert key in code
     assert "LIMITS.browser_total_seconds + 60.0" in code
+
+
+def test_axe_rule_texts_come_in_german_and_the_german_summary_uses_german_severities():
+    from types import SimpleNamespace
+
+    from claudios.checks.browserchecks import accessibility
+    from claudios.report.report import render_summary
+
+    assert "locales/de.json" in JS.read_text("utf-8") and "help_de" in JS.read_text("utf-8")
+    page = {"url": "https://example.com/", "axe": [{"id": "link-name", "impact": "serious", "help": "Links must have discernible text",
+                                                     "help_de": "Links müssen erkennbaren Text haben", "nodes": 2, "url": "u"}]}
+    snap = SimpleNamespace(target=SimpleNamespace(url="https://example.com/"))
+    from claudios.checks import browserchecks
+    original = browserchecks._pages
+    browserchecks._pages = lambda _snap: [page]
+    try:
+        finding = accessibility(snap)[0]
+    finally:
+        browserchecks._pages = original
+    assert "Links müssen erkennbaren Text haben" in finding.msg_de and "Links must have" in finding.msg_en
+    rep = {"scan": {"target": "t", "status": "limited", "abort": None, "pages_checked": 1}, "scores": {"overall": 80},
+           "findings": [{"severity": 2, "severity_name": "warning", "check_id": "BRW-AXE-001", "count": 1,
+                         "msg_de": "m", "msg_en": "m"}]}
+    text = render_summary(rep, "de")
+    assert "[Warnung]" in text and "[warning]" not in text

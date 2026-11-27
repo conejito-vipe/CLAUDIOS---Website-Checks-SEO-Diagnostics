@@ -14,6 +14,10 @@ const WIDTHS = [360, 768, 1280];
 const REG = String(input.registrable || "").toLowerCase();
 const AXE = input.axe ? fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8") : null;
 
+let DE = {};
+try {  // deutsche Regeltexte von axe-core (locales/de.json), sonst bleibt es beim englischen Text
+  DE = (JSON.parse(fs.readFileSync(require.resolve("axe-core/locales/de.json"), "utf8")).rules) || {};
+} catch (e) { DE = {}; }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const AXE_MS = Math.max(3000, Number(input.axe_timeout_ms) || 20000);   // axe-core darf nie ewig laufen
 const PAGE_MS = Math.max(15000, Number(input.page_timeout_ms) || 60000); // Obergrenze je Seite
@@ -144,6 +148,7 @@ async function checkPage(browser, url, ua) {
             id: v.id, impact: v.impact, help: String(v.help).slice(0, 120), url: v.helpUrl, nodes: v.nodes.length,
           }));
         }), AXE_MS, "axe");
+        for (const v of rec.axe) { const d = DE[v.id]; if (d && d.help) { v.help_de = String(d.help).slice(0, 160); } }
       } catch (e) { rec.axe_error = message(e); }
     }
 

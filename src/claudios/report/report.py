@@ -22,6 +22,7 @@ from ..core.numfmt import format_bytes, format_number
 from ..core.redact import find_leaks, redact_url, sanitize_obj
 from ..core.registry import REGISTRY
 from . import shots
+from .export_common import SEVERITY
 
 CSS = ("body{font:14px/1.5 system-ui,sans-serif;background:#E9EEF2;color:#1b2a33;margin:2rem}"
        "h1{color:#EE6A12}table{border-collapse:collapse;width:100%;background:#fff}"
@@ -98,7 +99,7 @@ def render_html(rep: dict, lang: str = "de") -> str:
     css_hash = base64.b64encode(hashlib.sha256(CSS.encode()).digest()).decode()
     csp = f"default-src 'none'; style-src 'sha256-{css_hash}'; base-uri 'none'; form-action 'none'"
     rows = "".join(
-        f'<tr class="s{g["severity"]}"><td>{e(g["severity_name"])}</td><td>{e(check_title(g["check_id"], lang))}</td>'
+        f'<tr class="s{g["severity"]}"><td>{e(SEVERITY[lang][g["severity"]])}</td><td>{e(check_title(g["check_id"], lang))}</td>'
         f'<td>{n(g["count"])}</td><td>{e(g["msg_" + lang])}<br><small>{e(g["evidence"])}</small></td>'
         f'<td>{e(", ".join(g["example_urls"]))}</td></tr>' for g in rep["findings"])
     notrun = "".join(f"<li>{e(c['title_' + lang])} ({e(c['status'])})</li>"
@@ -139,7 +140,7 @@ def render_summary(rep: dict, lang: str = "de") -> str:
     if rep.get("screenshots"):
         lines += [(("Screenshots: " if lang == "en" else "Bildschirmfotos: ") + ", ".join(rep["screenshots"])), ""]
     for g in rep["findings"][:15]:
-        lines.append(f"- [{g['severity_name']}] {check_title(g['check_id'], lang)} ({n(g['count'])}x): {g['msg_' + lang]}")
+        lines.append(f"- [{SEVERITY[lang][g['severity']]}] {check_title(g['check_id'], lang)} ({n(g['count'])}x): {g['msg_' + lang]}")
     return "\n".join(lines) + "\n"
 
 

@@ -7,6 +7,7 @@ English version: [CHANGELOG.md](CHANGELOG.md)
 - **GUI:** Zahnrad „Einstellungen“ in der Titelleiste (Einstellungen und Schlüssel auf einer Seite, Experteneinstellungen in einem Fenster, in dem nur „Speichern“ übernimmt), Navigationsleiste ohne Scrollen, Beschriftung „Deinstallieren“, Sicherheitsfrage beim Schließen, Ladekreis beim Sprachwechsel, Ergebnisse ohne Vorschaufenster und mit Blättern in der großen Ansicht, einheitliche Überschriften, weiße Links mit orangem Überfahren, noch hellere Farben, orange Chips für die Reiter Handbuch / Technik-Doku, Korrekturen im Startbild (Text verdeckt das Logo nicht mehr, gleich große Fensterknöpfe, kein Maximieren).
 - **Dashboard:** Entwicklung bisheriger Prüfungen je Domain und Speicherort der Bildschirmfotos; Dashboard und Experteneinstellungen als Pro-Bereiche vorbereitet (Pro bleibt aus, nichts gesperrt).
 - **Bildschirmfotos:** werden bei gesetztem Haken automatisch gespeichert und sind Teil des Berichts (ZIP und PDF).
+- **Deutsche Texte:** deutsche Schweregrade in Zusammenfassung und Bericht, deutsche axe-core-Regeltexte bei Barrierefreiheits-Befunden.
 - **Barrierefreiheitsprüfung:** Grenzen für axe-core (20 s je Seite), eine Seite (45 s) und den ganzen Browser-Lauf (8 Minuten), Teilergebnisse bleiben erhalten.
 
 ## 1.1.1 (unveröffentlicht)

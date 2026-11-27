@@ -123,7 +123,7 @@ def accessibility(snap):
                 continue
             nodes, rule, text = int(v.get("nodes", 1)), v.get("id", "?"), v.get("help", "")
             out.append(F("BRW-AXE-001", _IMPACT.get(v.get("impact"), S.NOTE), url,
-                         f"Barrierefreiheit: {text} ({nodes} Element(e), Regel {rule})",
+                         f"Barrierefreiheit: {v.get('help_de') or text} ({nodes} Element(e), Regel {rule})",
                          f"Accessibility: {text} ({nodes} element(s), rule {rule})", str(v.get("url", ""))[:120]))
     return out
 

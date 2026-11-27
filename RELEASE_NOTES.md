@@ -6,6 +6,7 @@
 - **Dashboard**: New page showing the development of past checks per domain (score over time, change per category) and where the screenshots are stored. Dashboard and expert settings are prepared as Pro areas (Pro stays switched off, nothing is locked).
 - **Screenshots**: When ticked, screenshots are saved automatically and are part of the report (ZIP and PDF).
 - **Accessibility check**: The browser run could hang for a long time. axe-core now stops after 20 s per page, a page after 45 s, the whole run after 8 minutes; partial results are kept.
+- **German texts**: The German summary and report show German severities (Warnung, Fehler, ...), and the accessibility findings use the German rule texts of axe-core.
 - **Look**: Even lighter colours in the program and on the start screen, orange chips for the selected Manual / Technical docs tab, a start screen whose text no longer covers the logo, equally large window buttons without focus frame, no maximize button on the start screen, and the button "Start the program, finish setup later".
 
 <details>
@@ -19,6 +20,7 @@
 - **Dashboard**: Neue Seite mit der Entwicklung bisheriger Prüfungen je Domain (Wertung im Zeitverlauf, Veränderung je Kategorie) und dem Speicherort der Bildschirmfotos. Dashboard und Experteneinstellungen sind als Pro-Bereiche vorbereitet (Pro bleibt ausgeschaltet, nichts ist gesperrt).
 - **Bildschirmfotos**: Wenn angehakt, werden sie automatisch gespeichert und sind Teil des Berichts (ZIP und PDF).
 - **Barrierefreiheitsprüfung**: Der Browser-Lauf konnte lange hängen. axe-core bricht jetzt nach 20 s je Seite ab, eine Seite nach 45 s, der ganze Lauf nach 8 Minuten; Teilergebnisse bleiben erhalten.
+- **Deutsche Texte**: Die deutsche Zusammenfassung und der Bericht zeigen deutsche Schweregrade (Warnung, Fehler, ...), die Barrierefreiheits-Befunde nutzen die deutschen Regeltexte von axe-core.
 - **Optik**: Noch hellere Farben im Programm und im Startbild, orange Chips für den gewählten Reiter Handbuch / Technik-Doku, Startbild-Text verdeckt das Logo nicht mehr, gleich große Fensterknöpfe ohne Fokusrahmen, kein Maximieren im Startbild und der Knopf „Programm starten, Einrichtung später fortsetzen“.
 
 </details>

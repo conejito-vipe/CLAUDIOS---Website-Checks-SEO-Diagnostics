@@ -7,6 +7,7 @@ Deutsche Fassung: [CHANGELOG.de.md](CHANGELOG.de.md)
 - **GUI:** gear "Settings" in the title bar (settings and keys on one page, expert settings in a window where only "Save" applies), navigation rail that never scrolls, label "Uninstall", close confirmation, spinner while the language is switched, results without preview panel and with paging in the large view, uniform headings, white links turning orange, even lighter colours, orange chips for the Manual / Technical docs tabs, start screen fixes (text no longer covers the logo, equal window buttons, no maximize button).
 - **Dashboard:** development of past checks per domain and the screenshot location; dashboard and expert settings prepared as Pro areas (Pro stays off, nothing locked).
 - **Screenshots:** saved automatically when ticked and part of the report (ZIP and PDF).
+- **German texts:** German severities in the German summary/report, German axe-core rule texts in accessibility findings.
 - **Accessibility check:** limits for axe-core (20 s per page), a page (45 s) and the whole browser run (8 min), partial results are kept.
 
 ## 1.1.1 (unreleased)
