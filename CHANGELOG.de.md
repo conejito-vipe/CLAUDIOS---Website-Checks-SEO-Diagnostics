@@ -8,10 +8,6 @@ English version: [CHANGELOG.md](CHANGELOG.md)
 - **Neuer Dienst (optional):** Zertifikats-Logs über crt.sh (`SEC-CTL-001`, Schalter auf der Seite Externe Dienste, Standard aus, gesendet wird nur die registrierbare Domain).
 - **Neue Prüfung (aktiv, Stufe 2):** CMS-Zusatzpfade für WordPress und Joomla (`SEC-CMX-001`), in einer eigenen Probe `probe_cms` und in der geprüften Liste der aktiven Prüfungen.
 - **Gatekeeper:** eine unverschlüsselte http-Anfrage ohne Weiterleitung (nur für die eigene Domain, zum Test der http-Variante) und der einzige zusätzliche Anfrage-Header `Sec-GPC`; alles andere bleibt verboten.
-- **Oberfläche:** hellere Farben, oranger Haken in jedem Auswahlfeld, Maximieren-Knopf, ruhigeres Überfahren in der Navigation (orange Schrift statt Kasten), Info-Knopf in der Fußzeile, Experteneinstellungen in eigenem Fenster mit OK, Zurück-Knopf auf der Seite Externe Dienste, Befund-Ansicht mit den betroffenen Stellen zuerst, dann Belege und Hilfe, "Vergrößern" mit Symbol, kräftigere Hervorhebung im Codefenster, verständliche Namen für Bereiche und Prüfungen (statt Buchstaben-Kürzeln), kein Pfeil mehr im Beleg kaputter Links.
-- **Deinstallation:** wählbare Liste (Werkzeuge, Zwischenspeicher, Protokolle, Einstellungen, Berichte, Verlauf, Schlüssel, Programm) im Programm und im Windows-Deinstaller; eigene Daten sind nicht vorgewählt.
-- **Dokumentation:** Leerzeile vor jedem Punkt in Handbuch und Technik-Doku; die Überschriften zeigen zuerst den verständlichen Titel.
-- **Release-Text:** `RELEASE_NOTES.md` (Englisch, Deutsch aufklappbar) und `tools/release_body.py` erzeugen den GitHub-Release-Text wie bei CLAUDIA.
 - **Mac:** Die per Download eingerichteten Werkzeuge laufen auf dem Mac (siehe 1.0.0).
 
 ## 1.0.0 (unveröffentlicht)

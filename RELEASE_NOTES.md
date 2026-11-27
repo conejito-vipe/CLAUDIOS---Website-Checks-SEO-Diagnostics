@@ -1,24 +1,20 @@
-# CLAUDIOS 1.1.0 - 15 new checks, certificate logs, Mac tools, lighter design and clearer results
+# CLAUDIOS 1.1.1 - Lighter design, clearer results, selectable uninstall
 
-- **15 new checks**: address variants (http, www), sitemap compared with the crawl, images, caching and compression of CSS/JS, HTTP protocol and response time, HSTS preload and certificate names, keyboard operation and motion, page weight and blocking scripts, accessibility statement, Global Privacy Control, BIMI, DANE/TLSA, expiry of the domains of third-party scripts, extra CMS paths for WordPress and Joomla (active, level 2 only). Why: These are the points that most often decide whether a site is found, loaded quickly, usable without a mouse and safe to visit.
-- **Certificate logs (optional)**: With the new switch "Certificate logs via crt.sh" (default: off) CLAUDIOS shows subdomains with an internal-sounding name and new certificates from several issuers. Only the registrable domain is sent, and only after you confirm. Why: Forgotten or foreign certificates are an early sign of problems.
-- **Mac**: All tools (Java, Node, validators, ZAP, ESLint, Stylelint, Playwright, sslyze) now also run on the Mac (Apple silicon). Why: The Mac app is as complete as the Windows version.
-- **Design**: Lighter colours for better readability, an orange tick in every checkbox, a maximize button, a calmer hover in the navigation, the info button moved into the footer, expert settings in their own window with OK.
-- **Results**: Areas and checks are shown with plain-language names instead of letter codes; the finding view shows the affected places first, then the evidence and further help; "Enlarge" opens the larger code window.
-- **Uninstall**: You choose what is removed (tools, cache, logs, settings, reports, history, keys, program). Your own data is not preselected.
+- **Design**: Lighter colours for better readability (also on the start screen), an orange tick in every checkbox, a maximize button, a calmer hover in the navigation (orange text instead of a box), the info button moved into the footer, expert settings in their own window with OK, a back button on the External services page. Why: Texts were hard to read on the very dark background, and some elements were cut off.
+- **Results**: The areas at the top and the checks in the list show plain-language names instead of letter codes. The finding view shows the affected places first, then the evidence and further help; "Enlarge" (with an icon) opens the larger code window, and the marked line is much easier to see. The arrow in the evidence of broken links is gone. Why: The results should be understandable at first glance, also for non-experts.
+- **Uninstall**: You choose what is removed (tools, cache, logs, settings, reports, history, keys, program), in the program and in the Windows uninstaller. Your own data is not preselected. Why: Nothing should be deleted that you want to keep.
 - **Documentation**: Every point of the manual and the technical documentation stands after a blank line; headings show the plain title first.
+- **Release text**: This text is built from `RELEASE_NOTES.md` (English, German in a collapsible block) like in CLAUDIA.
 
 <details>
 <summary>Deutsch</summary>
 
-# CLAUDIOS 1.1.0 - 15 neue Prüfungen, Zertifikats-Logs, Mac-Werkzeuge, hellere Oberfläche und klarere Ergebnisse
+# CLAUDIOS 1.1.1 - Hellere Oberfläche, klarere Ergebnisse, wählbare Deinstallation
 
-- **15 neue Prüfungen**: Adress-Varianten (http, www), Sitemap im Abgleich mit dem Crawl, Bilder, Caching und Kompression von CSS/JS, HTTP-Protokoll und Antwortzeit, HSTS-Preload und Zertifikatsnamen, Tastaturbedienung und Bewegung, Seitengewicht und blockierende Skripte, Barrierefreiheitserklärung, Global Privacy Control, BIMI, DANE/TLSA, Ablauf der Domains eingebundener Fremdskripte, zusätzliche CMS-Pfade für WordPress und Joomla (aktiv, nur Stufe 2). Warum: Das sind die Punkte, die am häufigsten entscheiden, ob eine Seite gefunden wird, schnell lädt, ohne Maus bedienbar und sicher zu besuchen ist.
-- **Zertifikats-Logs (optional)**: Mit dem neuen Schalter "Zertifikats-Logs über crt.sh" (Standard: aus) zeigt CLAUDIOS Subdomains mit internem Namen und neue Zertifikate mehrerer Aussteller. Gesendet wird nur die registrierbare Domain, und erst nach deiner Bestätigung. Warum: Vergessene oder fremde Zertifikate sind ein frühes Warnzeichen.
-- **Mac**: Alle Werkzeuge (Java, Node, Validatoren, ZAP, ESLint, Stylelint, Playwright, sslyze) laufen jetzt auch auf dem Mac (Apple Silicon). Warum: Die Mac-App ist so vollständig wie die Windows-Version.
-- **Oberfläche**: Hellere Farben für bessere Lesbarkeit, ein oranger Haken in jedem Auswahlfeld, ein Maximieren-Knopf, ruhigeres Überfahren in der Navigation, der Info-Knopf wandert in die Fußzeile, Experteneinstellungen in einem eigenen Fenster mit OK.
-- **Ergebnisse**: Bereiche und Prüfungen erscheinen mit verständlichen Namen statt Buchstaben-Kürzeln; die Befund-Ansicht zeigt zuerst die betroffenen Stellen, dann die Belege und weitere Hilfe; "Vergrößern" öffnet das größere Codefenster.
-- **Deinstallation**: Du wählst, was entfernt wird (Werkzeuge, Zwischenspeicher, Protokolle, Einstellungen, Berichte, Verlauf, Schlüssel, Programm). Deine eigenen Daten sind nicht vorgewählt.
+- **Oberfläche**: Hellere Farben für bessere Lesbarkeit (auch im Startbild), ein oranger Haken in jedem Auswahlfeld, ein Maximieren-Knopf, ruhigeres Überfahren in der Navigation (orange Schrift statt Kasten), der Info-Knopf wandert in die Fußzeile, Experteneinstellungen in einem eigenen Fenster mit OK, ein Zurück-Knopf auf der Seite Externe Dienste. Warum: Texte waren auf dem sehr dunklen Grund schlecht lesbar, und einige Elemente waren abgeschnitten.
+- **Ergebnisse**: Die Bereiche oben und die Prüfungen in der Liste erscheinen mit verständlichen Namen statt Buchstaben-Kürzeln. Die Befund-Ansicht zeigt zuerst die betroffenen Stellen, dann die Belege und weitere Hilfe; "Vergrößern" (mit Symbol) öffnet das größere Codefenster, die markierte Zeile ist viel besser zu erkennen. Der Pfeil im Beleg kaputter Links entfällt. Warum: Die Ergebnisse sollen auf den ersten Blick verständlich sein, auch für Laien.
+- **Deinstallation**: Du wählst, was entfernt wird (Werkzeuge, Zwischenspeicher, Protokolle, Einstellungen, Berichte, Verlauf, Schlüssel, Programm), im Programm und im Windows-Deinstaller. Deine eigenen Daten sind nicht vorgewählt. Warum: Es soll nichts gelöscht werden, was du behalten möchtest.
 - **Dokumentation**: Jeder Punkt in Handbuch und Technik-Doku steht nach einer Leerzeile; die Überschriften zeigen zuerst den verständlichen Titel.
+- **Release-Text**: Dieser Text wird wie bei CLAUDIA aus `RELEASE_NOTES.md` (Englisch, Deutsch aufklappbar) erzeugt.
 
 </details>

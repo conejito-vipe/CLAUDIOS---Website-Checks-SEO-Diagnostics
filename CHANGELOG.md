@@ -2,16 +2,19 @@
 
 Deutsche Fassung: [CHANGELOG.de.md](CHANGELOG.de.md)
 
-## 1.1.0 (unreleased)
+## 1.1.1 (unreleased)
+
+- **GUI:** lighter colours, orange tick in every checkbox, maximize button, calmer hover in the navigation (orange text instead of a box), info button in the footer, expert settings in their own window with OK, back button on the External services page, finding view with the affected places first, then evidence and help, "Enlarge" with icon, stronger highlight in the code window, plain-language names for areas and checks (instead of letter codes), no arrow in the evidence of broken links.
+- **Uninstall:** selectable list (tools, cache, logs, settings, reports, history, keys, program) in the program and in the Windows uninstaller; your own data is not preselected.
+- **Documentation:** blank line before every point of the manual and the technical documentation; headings show the plain title first.
+- **Release text:** `RELEASE_NOTES.md` (English, German in a collapsible block) and `tools/release_body.py` build the GitHub release text like in CLAUDIA.
+
+## 1.1.0
 
 - **New checks (passive):** address variants (http, www; `SEO-VAR-001`), sitemap compared with the crawl (`SEO-SMX-001`), images (`HTM-IMG-002`), caching and compression of CSS/JS (`SEO-ACH-001`), HTTP protocol and response time (`SEO-HTV-001`), HSTS preload and certificate names (`TLS-EXT-001`), keyboard operation and motion (`HTM-KEY-001`), page weight and blocking scripts (`SEO-WGT-001`), accessibility statement (`PRV-BFS-001`), Global Privacy Control (`PRV-GPC-001`), BIMI (`DNS-BIM-001`), DANE/TLSA (`DNS-DAN-001`), expiry of the domains of third-party scripts (`SEC-SUP-001`, only with the RDAP switch).
 - **New opt-in service:** certificate logs via crt.sh (`SEC-CTL-001`, switch on the External services page, default off, only the registrable domain is sent).
 - **New check (active, level 2):** CMS extra paths for WordPress and Joomla (`SEC-CMX-001`), in its own probe `probe_cms` and in the reviewed list of active checks.
 - **Gatekeeper:** one plain http request without following redirects (only for the own domain, to test the http variant) and the single request header `Sec-GPC`; everything else stays refused.
-- **GUI:** lighter colours, orange tick in every checkbox, maximize button, calmer hover in the navigation (orange text instead of a box), info button in the footer, expert settings in their own window with OK, back button on the External services page, finding view with the affected places first, then evidence and help, "Enlarge" with icon, stronger highlight in the code window, plain-language names for areas and checks (instead of letter codes), no arrow in the evidence of broken links.
-- **Uninstall:** selectable list (tools, cache, logs, settings, reports, history, keys, program) in the program and in the Windows uninstaller; your own data is not preselected.
-- **Documentation:** blank line before every point of the manual and the technical documentation; headings show the plain title first.
-- **Release text:** `RELEASE_NOTES.md` (English, German in a collapsible block) and `tools/release_body.py` build the GitHub release text like in CLAUDIA.
 - **Mac:** download-based tools run on the Mac (see 1.0.0).
 
 ## 1.0.0 (unreleased)
