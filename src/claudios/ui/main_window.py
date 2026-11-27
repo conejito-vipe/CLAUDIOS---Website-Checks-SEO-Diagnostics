@@ -10,11 +10,13 @@ from pathlib import Path
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QAbstractScrollArea,
+    QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
+    QMessageBox,
     QProgressBar,
     QPushButton,
     QScrollArea,
@@ -84,6 +86,7 @@ class MainWindow(CardWindow):
         self.setMinimumSize(760, 600)
         self._prev = 0
         self._scan_running = False
+        self.confirm_close = False  # app.py schaltet die Sicherheitsfrage ein
         self.last_result = None
 
         self.scan = ScanPage(lambda: self.settings)
@@ -171,6 +174,10 @@ class MainWindow(CardWindow):
         side_lay.addWidget(self.nav)
         side_lay.addStretch(1)
         side_lay.addWidget(self.uninstall_btn, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.uninstall_lbl = QLabel()
+        self.uninstall_lbl.setObjectName("muted")
+        self.uninstall_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        side_lay.addWidget(self.uninstall_lbl)
 
         self.stack = QStackedWidget()
         for page in self.pages:
@@ -214,11 +221,13 @@ class MainWindow(CardWindow):
         for index, key in enumerate(self.nav_keys):
             self.nav.item(index).setText(t(key))
             self.nav.item(index).setToolTip(t(key))
+        self.uninstall_lbl.setText(t("app.uninstall.short"))
         self.uninstall_btn.setToolTip(t("app.uninstall"))
         self.uninstall_btn.setAccessibleName(t("app.uninstall"))
         self.live_title.setText(t("nav.running"))
         for page in self.pages:
             page.retranslate()
+            QApplication.processEvents()  # lässt den Ladekreis beim Sprachwechsel weiterdrehen
         self.footer.retranslate()
         self._attach_details()
 
@@ -229,7 +238,11 @@ class MainWindow(CardWindow):
         self.settings["language"] = lang
         save_settings(self.settings)
         self.titlebar.set_lang(lang)
-        self.retranslate()
+        self.titlebar.spinner.start()
+        try:
+            self.retranslate()
+        finally:
+            self.titlebar.spinner.stop()
 
     def show_help(self) -> None:
         self.nav.setCurrentRow(self.nav_keys.index("nav.help"))
@@ -277,7 +290,22 @@ class MainWindow(CardWindow):
         self._attach_details()
         self.nav.setCurrentRow(1)  # erst nach dem Ende des Scans in die Ergebnisse wechseln
 
+    def _really_close(self) -> bool:
+        """Sicherheitsfrage vor dem Schließen (nur im echten Programm; Tests und das Aufräumen fragen nicht)."""
+        if not self.confirm_close:
+            return True
+        text = t("close.running") if self._scan_running else t("close.ask")
+        box = QMessageBox(QMessageBox.Icon.Question, t("close.title"), text, parent=self)
+        yes, no = box.addButton(t("close.yes"), QMessageBox.ButtonRole.AcceptRole), box.addButton(
+            t("close.no"), QMessageBox.ButtonRole.RejectRole)
+        box.setDefaultButton(no)
+        box.exec()
+        return box.clickedButton() is yes
+
     def closeEvent(self, event) -> None:  # noqa: N802
+        if not self._really_close():
+            event.ignore()
+            return
         for page in self.pages:
             stop = getattr(page, "shutdown", None)
             if callable(stop):

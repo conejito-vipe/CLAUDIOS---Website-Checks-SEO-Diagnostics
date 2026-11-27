@@ -130,6 +130,7 @@ def main() -> int:
         if windows:
             return
         window = MainWindow(settings)
+        window.confirm_close = True  # Sicherheitsfrage beim Schließen
         windows.append(window)
         window.show()
         splash.dismiss()

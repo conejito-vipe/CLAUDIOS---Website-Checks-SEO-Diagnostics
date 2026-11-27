@@ -2,7 +2,7 @@
 ändert man am Rand (die äußeren Pixel der Karte); ein festgelegter Größenbereich (Splash) schaltet das ab."""
 from __future__ import annotations
 
-from PySide6.QtCore import QEvent, QPointF, QRectF, QSize, Qt, Signal
+from PySide6.QtCore import QEvent, QPointF, QRectF, QSize, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPainterPath, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
@@ -126,6 +126,48 @@ def win_icon(key: str) -> QIcon:
     return nav_icon(key, normal=INK, active="#FFFFFF", size=16)
 
 
+class Spinner(QWidget):
+    """Kleiner Ladekreis (nur sichtbar, solange gearbeitet wird)."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.setFixedSize(20, 20)
+        self._angle = 0
+        self._timer = QTimer(self)
+        self._timer.setInterval(60)
+        self._timer.timeout.connect(self._tick)
+        self.setVisible(False)
+
+    @property
+    def active(self) -> bool:
+        return self._timer.isActive()
+
+    def start(self) -> None:
+        self._timer.start()
+        self.setVisible(True)
+        self.repaint()
+
+    def stop(self) -> None:
+        self._timer.stop()
+        self.setVisible(False)
+
+    def _tick(self) -> None:
+        self._angle = (self._angle + 40) % 360
+        self.update()
+
+    def paintEvent(self, _event) -> None:  # noqa: N802 (Qt-Name)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        from PySide6.QtGui import QPen
+
+        painter.setPen(QPen(QColor("#52627A"), 2.5))
+        painter.drawEllipse(QRectF(3, 3, 14, 14))
+        pen = QPen(QColor("#FF8A3D"), 2.5)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen)
+        painter.drawArc(QRectF(3, 3, 14, 14), -self._angle * 16, 100 * 16)
+
+
 class TitleBar(QWidget):
     langChanged = Signal(str)
     helpRequested = Signal()
@@ -142,6 +184,8 @@ class TitleBar(QWidget):
         lay.addWidget(self.pill)
         lay.addStretch(1)
         self._lang_buttons: dict[str, QPushButton] = {}
+        self.spinner = Spinner()
+        lay.addWidget(self.spinner)
         self.btn_settings = QPushButton(t("nav.settings"))
         self.btn_settings.setObjectName("langbtn")
         self.btn_settings.setIcon(win_icon("gear"))

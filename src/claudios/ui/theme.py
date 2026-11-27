@@ -49,9 +49,9 @@ QCheckBox::indicator { width: 16px; height: 16px; border: 1.5px solid %MUTED%; b
 QCheckBox::indicator:checked { background: %ORANGE%; border-color: %ORANGE%; }
 QCheckBox::indicator:hover { border-color: %ORANGE%; }
 QTabWidget::pane { border: 1px solid %LINE%; border-radius: 8px; top: -1px; }
-QTabBar::tab { background: transparent; color: %MUTED%; padding: 8px 16px; border: none; border-bottom: 2px solid transparent; }
-QTabBar::tab:selected { color: %INK%; border-bottom: 2px solid %ORANGE%; }
-QTabBar::tab:hover { color: %INK%; }
+QTabBar::tab { background: transparent; color: %MUTED%; padding: 6px 18px; margin: 4px 6px 6px 0px; border: 1px solid %LINE2%; border-radius: 13px; }
+QTabBar::tab:selected { background: %ORANGE%; color: %ON_ORANGE%; border: 1px solid %ORANGE%; font-weight: 700; }
+QTabBar::tab:hover:!selected { color: %INK%; border-color: %ORANGE%; }
 QScrollBar:vertical { background: transparent; width: 10px; margin: 0; }
 QScrollBar::handle:vertical { background: %LINE2%; border-radius: 5px; min-height: 30px; }
 QScrollBar::handle:vertical:hover { background: %MUTED%; }

@@ -11,6 +11,11 @@ TEXTS["de"].update({
     "boot.failed": "{count} Komponente(n) konnten nicht eingerichtet werden:\n\n{details}\n\nDie zugehörigen Prüfungen "
                    "gelten als nicht ausgeführt. Du kannst es auf der Seite Komponenten erneut versuchen.",
     "app.uninstall": "CLAUDIOS deinstallieren",
+    "app.uninstall.short": "Deinstallieren",
+    "close.title": "CLAUDIOS beenden",
+    "close.ask": "Möchtest du CLAUDIOS wirklich beenden?",
+    "close.running": "Es läuft noch ein Scan. Beenden bricht ihn ab. Wirklich beenden?",
+    "close.yes": "Beenden", "close.no": "Weiter arbeiten",
     "app.uninstall.confirm": "CLAUDIOS wird mit allen eingerichteten Werkzeugen (Komponenten), dem Cache, den "
                              "Einstellungen, Berichten, dem Verlauf und gespeicherten API-Schlüsseln entfernt. Danach "
                              "startet die Deinstallation des Programms. Das Scan-Protokoll mit den Tageslimits bleibt "
@@ -32,6 +37,11 @@ TEXTS["en"].update({
     "boot.failed": "{count} component(s) could not be set up:\n\n{details}\n\nThe matching checks count as not "
                    "executed. You can try again on the Components page.",
     "app.uninstall": "Uninstall CLAUDIOS",
+    "app.uninstall.short": "Uninstall",
+    "close.title": "Quit CLAUDIOS",
+    "close.ask": "Do you really want to quit CLAUDIOS?",
+    "close.running": "A scan is still running. Quitting cancels it. Really quit?",
+    "close.yes": "Quit", "close.no": "Keep working",
     "app.uninstall.confirm": "CLAUDIOS is removed together with all installed tools (components), the cache, settings, "
                              "reports, history and stored API keys. Then the uninstallation of the program starts. "
                              "The scan log with the daily limits is deliberately kept so that a reinstallation does "
