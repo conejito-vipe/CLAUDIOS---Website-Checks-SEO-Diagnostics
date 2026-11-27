@@ -57,7 +57,9 @@ class Limits:
     tool_min_pause_seconds: float = 15.0    # Mindestpause zwischen zwei solchen Läufen
     tool_min_run_seconds: float = 30.0      # weniger Restzeit: kein weiterer Lauf
     tool_runs_per_kind: int = 4             # Läufe je Werkzeugart und Scan (Browser: Chromium, Bilder, Engines)
-    browser_timeout_seconds: float = 60.0
+    browser_timeout_seconds: float = 45.0   # je Seite
+    axe_timeout_seconds: float = 20.0       # axe-core je Seite (BRW-AXE hing früher ohne Grenze)
+    browser_total_seconds: float = 480.0    # ganzer Browser-Lauf; danach Teilergebnis
     sslyze_timeout_seconds: float = 300.0
     browser_sample_standard: int = 10
     browser_sample_deep: int = 25

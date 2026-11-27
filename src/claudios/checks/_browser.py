@@ -60,8 +60,11 @@ def _run(snap) -> dict:
     if node is None or not script.is_file():
         raise CheckSkipped("tool_not_found")
     payload = {"urls": urls, "host": snap.target.host, "registrable": snap.target.registrable,
-               "ip": _pin_ip(snap), "ua_suffix": USER_AGENT, "axe": True}
-    timeout = min(LIMITS.browser_timeout_seconds * len(urls) + 120.0, 1800.0)
+               "ip": _pin_ip(snap), "ua_suffix": USER_AGENT, "axe": True,
+               "axe_timeout_ms": int(LIMITS.axe_timeout_seconds * 1000),
+               "page_timeout_ms": int(LIMITS.browser_timeout_seconds * 1000),
+               "total_ms": int(LIMITS.browser_total_seconds * 1000)}
+    timeout = LIMITS.browser_total_seconds + 60.0  # das Skript beendet sich vorher selbst und liefert ein Teilergebnis
     with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as tmp:
         source, target = Path(tmp) / "in.json", Path(tmp) / "out.json"
         source.write_text(json.dumps(payload), "utf-8")

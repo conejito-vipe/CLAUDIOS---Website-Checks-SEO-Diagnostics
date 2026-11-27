@@ -15,6 +15,14 @@ const REG = String(input.registrable || "").toLowerCase();
 const AXE = input.axe ? fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8") : null;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const AXE_MS = Math.max(3000, Number(input.axe_timeout_ms) || 20000);   // axe-core darf nie ewig laufen
+const PAGE_MS = Math.max(15000, Number(input.page_timeout_ms) || 60000); // Obergrenze je Seite
+const DEADLINE = Date.now() + (Number(input.total_ms) || 600000);        // Obergrenze für den ganzen Lauf
+const within = (promise, ms, what) => {
+  let timer = null;
+  const limit = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(what + "_timeout")), ms); });
+  return Promise.race([promise, limit]).finally(() => clearTimeout(timer));
+};
 const sameSite = (host) => host === REG || host.endsWith("." + REG);
 // BEGIN-NETGUARD (in allen Browser-Skripten identisch; tests/test_netguard_js.py prüft das)
 const dns = require("dns").promises;
@@ -126,15 +134,16 @@ async function checkPage(browser, url, ua) {
         if (!(await page.evaluate(() => typeof window.axe !== "undefined"))) {
           await page.addScriptTag({ content: AXE });
         }
-        rec.axe = await page.evaluate(async () => {
+        rec.axe = await within(page.evaluate(async () => {
           const result = await window.axe.run(document, {
             runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] },
             resultTypes: ["violations"],
+            iframes: false,
           });
           return result.violations.map((v) => ({
             id: v.id, impact: v.impact, help: String(v.help).slice(0, 120), url: v.helpUrl, nodes: v.nodes.length,
           }));
-        });
+        }), AXE_MS, "axe");
       } catch (e) { rec.axe_error = message(e); }
     }
 
@@ -163,7 +172,13 @@ async function checkPage(browser, url, ua) {
     const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" +
       result.browser + " Safari/537.36 " + input.ua_suffix;
     for (const url of input.urls) {
-      result.pages.push(await checkPage(browser, url, ua));
+      if (Date.now() > DEADLINE) { result.error = result.error || "time_budget"; break; }  // Rest weglassen, Teilergebnis behalten
+      try {
+        result.pages.push(await within(checkPage(browser, url, ua), PAGE_MS, "page"));
+      } catch (e) {
+        result.pages.push({ url, error: message(e), axe: null, third_party: {}, insecure_blocked: [], cookies: [], overflow: {}, metrics: {} });
+      }
+      fs.writeFileSync(outPath, JSON.stringify(result));  // nach jeder Seite sichern: ein Abbruch verliert nichts
       await sleep(700);
     }
   } catch (e) {
