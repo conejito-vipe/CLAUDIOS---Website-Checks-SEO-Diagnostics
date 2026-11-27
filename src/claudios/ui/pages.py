@@ -47,7 +47,6 @@ from .checknames import check_title
 from .cooldown import remaining as cooldown_remaining
 from .dialogs import error_info, show_error
 from .expert_box import ExpertBox
-from .explainpanel import ExplainPanel
 from .levelinfo import KEYS as LEVEL_KEYS, level_info
 from .linktext import LinkText
 from .scanprogress import PhaseClock, format_duration, overall_percent
@@ -442,12 +441,7 @@ class ResultsPage(QWidget):
         lay.addWidget(self.head)
         lay.addWidget(self.summary)
         lay.addWidget(self.notrun)
-        self.explain = ExplainPanel()
-        body = QHBoxLayout()
-        body.setSpacing(16)
-        body.addWidget(self.table, 1)
-        body.addWidget(self.explain)
-        lay.addLayout(body, 1)
+        lay.addWidget(self.table, 1)
         lay.addWidget(self.export_btn)
 
     def show_result(self, result) -> None:
@@ -458,13 +452,11 @@ class ResultsPage(QWidget):
         self.table.setHorizontalHeaderLabels(
             [t("res.col.sev"), t("res.col.check"), t("res.col.count"), t("res.col.finding")])
         self.export_btn.setText(t("res.export"))
-        self.explain.retranslate()
         self.refresh()
 
     def refresh(self) -> None:
         result = self.result
         self.table.setRowCount(0)
-        self.explain.show_for(None)
         self.export_btn.setEnabled(result is not None)
         if result is None:
             self.summary.setText(t("res.empty"))

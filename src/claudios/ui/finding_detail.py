@@ -17,9 +17,19 @@ from collections.abc import Callable
 from functools import partial
 from html import escape
 
-from PySide6.QtCore import QObject, Qt, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QLabel, QListWidget, QPushButton, QTableWidget, QTextBrowser, QTreeWidget, QWidget
+from PySide6.QtCore import QEvent, QObject, Qt, QUrl
+from PySide6.QtGui import QColor, QDesktopServices, QTextCursor
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QPushButton,
+    QTableWidget,
+    QTextBrowser,
+    QTextEdit,
+    QTreeWidget,
+    QWidget,
+)
 
 from ..checks import load_all
 from ..core.numfmt import format_number
@@ -38,8 +48,9 @@ MAX_EVIDENCE = 400
 MAX_LINE = 240
 FLAG = "cl_detail"
 COLORS = {"red": "#8A2B33", "yellow": "#7A6410", "blue": "#2A5A9A"}
-HEAD = "font-size:15px;font-weight:700;margin-top:14px;margin-bottom:2px;"
-SMALL_HEAD = "font-size:12px;font-weight:600;color:#9AA7B5;margin-top:0px;margin-bottom:0px;"
+HEAD = "font-size:15px;font-weight:700;margin-top:14px;margin-bottom:2px;"  # alle Überschriften gleich
+LINK_CSS = "a { color: #FFFFFF; text-decoration: none; }"
+HOVER = "#FF8A3D"
 _NOCODE = {"result": "detail.nocode_result", "source": "detail.nocode_source", "range": "detail.nocode_range"}
 _FACTS = {"result": "detail.facts_result", "source": "detail.facts_source", "range": "detail.facts_range"}
 
@@ -275,7 +286,7 @@ def _group_html(group: dict, lang: str) -> str:
     count = int(group.get("count") or 1)
     if count > 1:
         head += " (" + text(lang, "detail.times", count=count) + ")"
-    parts = [f"<p><b>{escape(head)}</b></p>"]
+    parts = [f"<p>{escape(head)}</p>"]
     urls = [str(url) for url in group.get("example_urls") or []]
     if urls:
         items = "".join("<li>" + (_link(url) if url.startswith("https://") else escape(url)) + "</li>" for url in urls)
@@ -289,7 +300,7 @@ def _group_html(group: dict, lang: str) -> str:
 
 def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=None, result=None) -> str:
     ordered = _ordered(check_id, groups, row_texts, lang)
-    parts = [f'<p style="{SMALL_HEAD}">{escape(text(lang, "detail.found"))}</p>']
+    parts = [f'<p style="{HEAD}margin-top:0px;">{escape(text(lang, "detail.found"))}</p>']
     parts += [_group_html(group, lang) for group in ordered] or [_para(text(lang, "detail.none"))]
     if not ordered and result is not None:  # ein Scan liegt vor, aber die Befund-Liste fehlt: nicht stumm bleiben
         parts.append(_para(text(lang, "detail.nogroups")))
@@ -326,28 +337,103 @@ def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=N
     return "".join(parts)
 
 
+class LinkHover(QObject):
+    """Links in der Erklärung: weiß ohne Unterstreichung, orange unter der Maus (Qt kennt kein :hover für Links)."""
+
+    def __init__(self, browser: QTextBrowser) -> None:
+        super().__init__(browser)
+        self.browser = browser
+        browser.document().setDefaultStyleSheet(LINK_CSS)
+        browser.viewport().setMouseTracking(True)
+        browser.viewport().installEventFilter(self)
+
+    def eventFilter(self, obj, event) -> bool:  # noqa: N802 (Qt-Name)
+        kind = event.type()
+        if kind == QEvent.Type.MouseMove:
+            self.mark(event.position().toPoint())
+        elif kind == QEvent.Type.Leave:
+            self.browser.setExtraSelections([])
+        return False
+
+    def mark(self, pos) -> None:
+        href = self.browser.anchorAt(pos)
+        selections = []
+        if href:
+            cursor = self.browser.cursorForPosition(pos)
+            block = cursor.block()
+            it = block.begin()
+            while not it.atEnd():
+                fragment = it.fragment()
+                fmt = fragment.charFormat()
+                if (fmt.anchorHref() == href and fragment.position() <= cursor.position() <= fragment.position() + fragment.length()):
+                    sel = QTextEdit.ExtraSelection()
+                    sel.cursor = QTextCursor(self.browser.document())
+                    sel.cursor.setPosition(fragment.position())
+                    sel.cursor.setPosition(fragment.position() + fragment.length(), QTextCursor.MoveMode.KeepAnchor)
+                    sel.format.setForeground(QColor(HOVER))
+                    selections.append(sel)
+                    break
+                it += 1
+        self.browser.setExtraSelections(selections)
+
+
 class FindingDialog(CardDialog):
-    def __init__(self, parent, check_id: str, groups: list[dict], row_texts, result=None) -> None:
+    """Ein Befund in der Vollansicht. Mit mehreren Zeilen (rows) lässt sich durch die Ergebnisse blättern."""
+
+    def __init__(self, parent, check_id: str, groups: list[dict], row_texts, result=None, rows=None, index: int = 0) -> None:
         super().__init__(parent, t("detail.title"))
+        self.groups, self.result = groups, result
+        self.rows = list(rows) if rows else [row_texts]
+        self.index = index if 0 <= index < len(self.rows) else 0
         self.check_id = check_id
         self.resize(2 * MARGIN + 740, 2 * MARGIN + 620)
-        lang = get_lang()
-        meta = meta_for(check_id)
-        heading = QLabel(f"{meta_text(meta, 'title', lang) or check_id} ({check_id})")
-        heading.setObjectName("h1")
-        heading.setTextFormat(Qt.TextFormat.PlainText)
-        heading.setWordWrap(True)
-        self.content.addWidget(heading)
+        self.heading = QLabel()
+        self.heading.setObjectName("h1")
+        self.heading.setTextFormat(Qt.TextFormat.PlainText)
+        self.heading.setWordWrap(True)
+        self.content.addWidget(self.heading)
         self.view = QTextBrowser()
         self.view.setOpenLinks(False)
         self.view.setOpenExternalLinks(False)
         self.view.anchorClicked.connect(self._open)
-        self.view.setHtml(explain_html(check_id, groups, row_texts, lang, meta, result))
+        self.hover = LinkHover(self.view)
         self.content.addWidget(self.view, 1)
+        nav = QHBoxLayout()
+        self.prev_btn, self.next_btn = QPushButton(t("detail.prev")), QPushButton(t("detail.next"))
+        self.pos = QLabel()
+        self.pos.setObjectName("muted")
         close = QPushButton(t("card.close"))
         close.setObjectName("primary")
         close.clicked.connect(self.accept)
-        self.content.addWidget(close)
+        for widget in (self.prev_btn, self.pos, self.next_btn):
+            nav.addWidget(widget)
+        nav.addStretch(1)
+        nav.addWidget(close)
+        self.prev_btn.clicked.connect(lambda: self.step(-1))
+        self.next_btn.clicked.connect(lambda: self.step(1))
+        self.content.addLayout(nav)
+        self.show_row()
+
+    def step(self, delta: int) -> None:
+        target = self.index + delta
+        if 0 <= target < len(self.rows):
+            self.index = target
+            self.show_row()
+
+    def show_row(self) -> None:
+        texts = self.rows[self.index]
+        lang = get_lang()
+        self.check_id = find_id(texts) or self.check_id
+        meta = meta_for(self.check_id)
+        self.heading.setText(meta_text(meta, "title", lang) or self.check_id)
+        self.view.document().setDefaultStyleSheet(LINK_CSS)
+        self.view.setHtml(explain_html(self.check_id, self.groups, texts, lang, meta, self.result))
+        many = len(self.rows) > 1
+        for widget in (self.prev_btn, self.next_btn, self.pos):
+            widget.setVisible(many)
+        self.prev_btn.setEnabled(self.index > 0)
+        self.next_btn.setEnabled(self.index < len(self.rows) - 1)
+        self.pos.setText(f"{self.index + 1} / {len(self.rows)}")
 
     @staticmethod
     def _open(url: QUrl) -> None:
@@ -419,12 +505,18 @@ class DetailLinker(QObject):
     def _list_click(self, item) -> None:
         self.open_for([item.text()])
 
-    def attach_panel(self, table: QTableWidget, panel) -> None:
-        """Die Ergebnistabelle füllt die Erklärspalte; der Dialog öffnet nur über deren Knopf."""
+    def attach_results(self, table: QTableWidget) -> None:
+        """Die Ergebnistabelle öffnet die Vollansicht; darin lässt sich durch alle Zeilen blättern."""
         self._decorate(table)
-        table.setProperty(FLAG, True)
-        panel.groups, panel.result, panel.open_dialog = self._groups, self._get_result, self.open_for
-        table.cellClicked.connect(lambda row, _c: panel.show_for(row_texts(table, row)))
+        if self._mark(table):
+            table.cellClicked.connect(lambda row, _c: self._open_paged(table, row))
+
+    def _open_paged(self, table: QTableWidget, row: int) -> None:
+        rows = [row_texts(table, r) for r in range(table.rowCount()) if not table.isRowHidden(r)]
+        rows = [texts for texts in rows if find_id(texts)]
+        clicked = row_texts(table, row)
+        index = next((i for i, texts in enumerate(rows) if texts == clicked), 0)
+        self.open_for(clicked, rows, index)
 
     def _groups(self) -> list[dict]:
         result, lang = self._get_result(), get_lang()
@@ -441,9 +533,9 @@ class DetailLinker(QObject):
             self._cached = (result, lang, groups)
         return self._cached[2]
 
-    def open_for(self, texts) -> bool:
+    def open_for(self, texts, rows=None, index: int = 0) -> bool:
         check_id = find_id(texts)
         if check_id is None:
             return False
-        FindingDialog(self._window, check_id, self._groups(), texts, self._get_result()).exec()
+        FindingDialog(self._window, check_id, self._groups(), texts, self._get_result(), rows, index).exec()
         return True

@@ -200,7 +200,7 @@ class MainWindow(CardWindow):
         self.nav.setCurrentRow(0)
 
     def _attach_details(self) -> None:
-        self.detail.attach_panel(self.results.table, self.results.explain)  # Spalte rechts statt Dialog
+        self.detail.attach_results(self.results.table)  # Klick: Vollansicht mit Blättern
         for page in self.pages:
             if type(page).__name__ != "ComponentsPage":
                 self.detail.attach(page)

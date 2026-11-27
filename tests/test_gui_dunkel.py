@@ -191,22 +191,18 @@ def test_navigation_shows_the_logo_on_top_and_a_label_under_every_icon():
     assert len({c.name() for c in band}) > 2
 
 
-def test_clicking_a_result_row_fills_the_explanation_column_and_the_button_opens_the_dialog():
+def test_clicking_a_result_row_opens_the_full_view_with_paging_and_no_side_panel():
     from PySide6.QtWidgets import QTableWidgetItem
     window = MainWindow({"language": "de", "allow_localhost": False})
     page = window.results
-    cid = next(iter(REGISTRY))
-    assert page.explain.title.text() == t("explain.title") and not page.explain.open_btn.isEnabled()
-    page.table.setRowCount(1)
-    for col, value in enumerate(("Fehler", cid, "1", "Beispiel")):
-        page.table.setItem(0, col, QTableWidgetItem(value))
-    page.table.cellClicked.emit(0, 0)
-    assert cid in page.explain.title.text() and page.explain.open_btn.isEnabled()
-    assert page.explain.view.toPlainText() != t("explain.hint")
+    assert not hasattr(page, "explain")
+    ids = list(REGISTRY)[:3]
+    page.table.setRowCount(3)
+    for row, cid in enumerate(ids):
+        for col, value in enumerate(("Fehler", cid, "1", "Beispiel")):
+            page.table.setItem(row, col, QTableWidgetItem(value))
     opened = []
-    page.explain.open_dialog = lambda texts: opened.append(texts) or True
-    page.explain.open_btn.click()
-    assert opened and opened[0][1] == cid
-    page.table.setRowCount(0)
-    page.refresh()
-    assert page.explain.title.text() == t("explain.title")  # neue Anzeige: keine veraltete Erklärung
+    window.detail.open_for = lambda texts, rows=None, index=0: opened.append((texts, rows, index)) or True
+    page.table.cellClicked.emit(1, 0)
+    texts, rows, index = opened[0]
+    assert texts[1] == ids[1] and index == 1 and len(rows) == 3
