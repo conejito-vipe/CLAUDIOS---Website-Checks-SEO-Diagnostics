@@ -72,11 +72,15 @@ def test_the_expert_box_asks_before_it_switches_a_service_on(qapp, env, monkeypa
     box.retranslate()
     monkeypatch.setattr(expert_box, "_confirm", lambda parent, text: False)
     box.rdap.setChecked(True)
-    assert not services.enabled("rdap") and not box.rdap.isChecked()
+    assert not services.enabled("rdap")  # ohne „Speichern“ ändert sich nichts
+    box.save()
+    assert not services.enabled("rdap") and not box.rdap.isChecked()  # Bestätigung verweigert
     monkeypatch.setattr(expert_box, "_confirm", lambda parent, text: True)
     box.rdap.setChecked(True)
     box.sb.setChecked(True)
     box.psi.setChecked(True)
+    assert not services.enabled("rdap")
+    box.save()
     assert services.enabled("rdap") and services.enabled("safebrowsing") and services.enabled("pagespeed")
     assert len(box.external_names()) == 2  # Safe Browsing ohne Schlüssel sendet nichts
     assert box.hint.text().strip() != ""

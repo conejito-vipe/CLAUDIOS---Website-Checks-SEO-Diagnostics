@@ -3,8 +3,8 @@ from . import strings
 
 strings.TEXTS["de"].update({
     "win.maximize": "Maximieren", "win.restore": "Verkleinern",
-    "expert.open": "Experteneinstellungen …", "expert.title": "Experteneinstellungen", "expert.ok": "OK",
-    "expert.keys_hint": "Die Schlüssel verwaltest du auf der Seite „Externe Dienste“. Dieses Fenster schließt sich dann.",
+    "expert.open": "Experteneinstellungen …", "expert.title": "Experteneinstellungen", "expert.ok": "Speichern",
+    "expert.keys_hint": "Die Schlüssel verwaltest du unter „Einstellungen“ (Zahnrad oben). Dieses Fenster schließt sich dann, ungespeicherte Änderungen entfallen.",
     "uni.title": "CLAUDIOS deinstallieren",
     "uni.intro": "Hier siehst du alles, was CLAUDIOS auf diesem Computer angelegt hat. Angehakte Einträge werden "
                  "gelöscht. Deine Daten (Einstellungen, Berichte, Verlauf, Schlüssel) sind nicht vorgewählt.",
@@ -25,8 +25,8 @@ strings.TEXTS["de"].update({
 })
 strings.TEXTS["en"].update({
     "win.maximize": "Maximize", "win.restore": "Restore",
-    "expert.open": "Expert settings …", "expert.title": "Expert settings", "expert.ok": "OK",
-    "expert.keys_hint": "Manage keys on the “External services” page. This window closes then.",
+    "expert.open": "Expert settings …", "expert.title": "Expert settings", "expert.ok": "Save",
+    "expert.keys_hint": "Manage keys under “Settings” (gear at the top). This window closes then, unsaved changes are dropped.",
     "uni.title": "Uninstall CLAUDIOS",
     "uni.intro": "Here is everything CLAUDIOS created on this computer. Ticked items will be deleted. Your data "
                  "(settings, reports, history, keys) is not preselected.",

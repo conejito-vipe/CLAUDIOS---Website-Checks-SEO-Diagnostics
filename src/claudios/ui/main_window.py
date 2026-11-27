@@ -34,7 +34,7 @@ from .footer_link import LinkFooter
 from .heartbeat import Heartbeat
 from .helppage import HelpPage
 from .highlight import attach
-from .navicons import RAIL_ITEM, RAIL_W, SIZE, RailDelegate, nav_icon
+from .navicons import RAIL_H, RAIL_ITEM, RAIL_W, SIZE, RailDelegate, nav_icon
 from .pages import ScanPage, SettingsPage
 from .results_page import ResultsPage
 from .uninstall import run_uninstall
@@ -94,7 +94,12 @@ class MainWindow(CardWindow):
         self.settings_page = SettingsPage(settings)
         self.pages = [self.scan, self.results, self.help, self.components, self.settings_page]
         keys = list(BASE_KEYS)
+        self.services = None
         for key, page in _discover_pages(self):
+            if key == "nav.services":  # Schlüssel und Dienste stehen innerhalb der einen Seite „Einstellungen“
+                self.services = page
+                self.settings_page.embed(page)
+                continue
             keys.append(key)
             self.pages.append(page)
         keys.append("nav.about")
@@ -120,6 +125,7 @@ class MainWindow(CardWindow):
         if "nav.pro" in self.nav_keys:  # ausgeliefert inaktiv: erst die Verwaltung schaltet die Seite frei
             self.nav.item(self.nav_keys.index("nav.pro")).setHidden(not angebot.AKTIV)
         self.nav.item(self.nav_keys.index("nav.help")).setHidden(True)  # „Hilfe“ öffnet der Knopf in der Titelleiste
+        self.nav.item(self.nav_keys.index("nav.settings")).setHidden(True)  # „Einstellungen“: Zahnrad in der Titelleiste
         self.nav.item(self.about_row).setHidden(True)  # „Info“ steht klein in der Fußzeile
         self.uninstall_btn = QPushButton()
         self.uninstall_btn.setObjectName("railbtn")
@@ -132,6 +138,8 @@ class MainWindow(CardWindow):
         side_lay = QVBoxLayout(side)
         side_lay.setContentsMargins(0, 0, 0, 0)
         side_lay.setSpacing(8)
+        visible = sum(1 for i in range(self.nav.count()) if not self.nav.item(i).isHidden())
+        self.nav.setFixedHeight(visible * RAIL_H + 4)  # alle Einträge immer sichtbar: die Leiste scrollt nie
         self.nav.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.live_box = QWidget()  # Anzeige eines laufenden Scans, auf jeder Seite sichtbar (Leiste unter dem Inhalt)
         live_lay = QHBoxLayout(self.live_box)
@@ -180,6 +188,7 @@ class MainWindow(CardWindow):
 
         self.titlebar.langChanged.connect(self.set_language)
         self.titlebar.helpRequested.connect(self.show_help)
+        self.titlebar.settingsRequested.connect(self.show_settings)
         self.footer.clicked.connect(self.show_about)
         self.nav.currentRowChanged.connect(self._on_nav)
         self.scan.scan_finished.connect(self._on_result)
@@ -198,7 +207,9 @@ class MainWindow(CardWindow):
 
     def retranslate(self) -> None:
         self.setWindowTitle(t("app.title"))
-        self.titlebar.set_help_text(t("nav.help"))
+        self.titlebar.set_help_text(t("nav.help"), t("nav.settings"))
+        if self.services is not None:
+            self.services.retranslate()
         self.titlebar.sync_maximized(self.isMaximized())
         for index, key in enumerate(self.nav_keys):
             self.nav.item(index).setText(t(key))
@@ -222,6 +233,9 @@ class MainWindow(CardWindow):
 
     def show_help(self) -> None:
         self.nav.setCurrentRow(self.nav_keys.index("nav.help"))
+
+    def show_settings(self) -> None:
+        self.nav.setCurrentRow(self.nav_keys.index("nav.settings"))
 
     def show_about(self) -> None:
         AboutDialog(self).exec()

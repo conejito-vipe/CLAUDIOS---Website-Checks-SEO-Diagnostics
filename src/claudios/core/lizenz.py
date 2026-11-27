@@ -28,7 +28,7 @@ REVOKED_EXTRA: tuple[str, ...] = ()
 SCHALT_AKTIV = False
 
 # Bereiche, die sich sperren lassen (Name -> Schlüssel des Anzeigetexts). Die Prüfung selbst ist nie sperrbar.
-BEREICHE: tuple[str, ...] = ("export", "verlauf", "aktive_pruefungen")
+BEREICHE: tuple[str, ...] = ("export", "verlauf", "aktive_pruefungen", "dashboard", "experten")
 GESPERRT_OHNE_LIZENZ: tuple[str, ...] = ()
 IMMER_FREI = ("pruefung", "hilfe", "sprache", "lizenz", "beenden")
 

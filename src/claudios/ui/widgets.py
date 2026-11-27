@@ -129,6 +129,7 @@ def win_icon(key: str) -> QIcon:
 class TitleBar(QWidget):
     langChanged = Signal(str)
     helpRequested = Signal()
+    settingsRequested = Signal()
 
     def __init__(self, with_lang: bool) -> None:
         super().__init__()
@@ -141,6 +142,14 @@ class TitleBar(QWidget):
         lay.addWidget(self.pill)
         lay.addStretch(1)
         self._lang_buttons: dict[str, QPushButton] = {}
+        self.btn_settings = QPushButton(t("nav.settings"))
+        self.btn_settings.setObjectName("langbtn")
+        self.btn_settings.setIcon(win_icon("gear"))
+        self.btn_settings.setIconSize(QSize(16, 16))
+        self.btn_settings.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.btn_settings.clicked.connect(lambda _checked=False: self.settingsRequested.emit())
+        self.btn_settings.setVisible(with_lang)
+        lay.addWidget(self.btn_settings)
         self.btn_help = QPushButton(t("nav.help"))
         self.btn_help.setObjectName("langbtn")
         self.btn_help.clicked.connect(lambda _checked=False: self.helpRequested.emit())
@@ -195,8 +204,10 @@ class TitleBar(QWidget):
     def _close(self) -> None:
         self.window().close()
 
-    def set_help_text(self, text: str) -> None:
+    def set_help_text(self, text: str, settings: str | None = None) -> None:
         self.btn_help.setText(text)
+        if settings is not None:
+            self.btn_settings.setText(settings)
 
     def set_lang(self, lang: str) -> None:
         btn = self._lang_buttons.get(lang)

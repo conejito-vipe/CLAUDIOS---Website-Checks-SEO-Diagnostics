@@ -28,8 +28,8 @@ TEXTS["de"].update({
     "scan.cooldown": "Nächster Scan in {seconds} s möglich (Abkühlzeit).",
     "scan.expert": "Experteneinstellungen",
     "scan.expert.intro": "Externe Dienste senden Daten an Dritte und sind standardmäßig aus. Ist einer eingeschaltet, "
-                         "fragt CLAUDIOS vor jedem Scan noch einmal nach.",
-    "scan.expert.keys": "Schlüssel und Details …",
+                         "fragt CLAUDIOS vor jedem Scan noch einmal nach. Dauerhaft ändern: Einstellungen (Zahnrad oben) → Experteneinstellungen.",
+    "scan.expert.keys": "Schlüssel verwalten (Einstellungen) …",
     "scan.expert.nokey_sb": "Safe Browsing braucht einen eigenen Schlüssel, sonst wird die Prüfung übersprungen.",
     "scan.expert.nokey_psi": "PageSpeed hat ohne eigenen Schlüssel kaum Kontingent (HTTP 429), die Prüfung wird dann "
                              "übersprungen.",
@@ -59,8 +59,8 @@ TEXTS["en"].update({
     "scan.cooldown": "Next scan possible in {seconds} s (cool-down).",
     "scan.expert": "Expert settings",
     "scan.expert.intro": "External services send data to third parties and are off by default. If one is on, "
-                         "CLAUDIOS asks again before every scan.",
-    "scan.expert.keys": "Keys and details …",
+                         "CLAUDIOS asks again before every scan. Permanent changes: Settings (gear at the top) → Expert settings.",
+    "scan.expert.keys": "Manage keys (Settings) …",
     "scan.expert.nokey_sb": "Safe Browsing needs your own key, otherwise the check is skipped.",
     "scan.expert.nokey_psi": "PageSpeed has hardly any quota without your own key (HTTP 429), the check is then "
                              "skipped.",

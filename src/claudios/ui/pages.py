@@ -255,7 +255,7 @@ class ScanPage(QWidget):
         self._goto("nav.gsc")
 
     def open_services(self) -> None:
-        self._goto("nav.services")
+        self._goto("nav.settings")
 
     def busy(self) -> bool:
         return self._thread is not None
@@ -627,9 +627,17 @@ class SettingsPage(QWidget):
         lay.addWidget(self.update_note)
         lay.addSpacing(16)
         lay.addWidget(self.limits)
-        lay.addStretch(1)
+        self._lay = lay
         self.localhost.toggled.connect(self._toggle)
         self.updates.toggled.connect(self._toggle_updates)
+
+    def embed(self, page: QWidget) -> None:
+        """Die Seite für Schlüssel und externe Dienste gehört zu den Einstellungen (eine Seite statt zwei)."""
+        self._lay.addSpacing(16)
+        self._lay.addWidget(page)
+        self._lay.addStretch(1)
+        if hasattr(page, "back_btn"):
+            page.back_btn.setVisible(False)  # ein Weg zurück ist nicht mehr nötig: die Leiste bleibt sichtbar
 
     def _toggle_updates(self, checked: bool) -> None:
         """Aus wird gespeichert, an ist der Normalfall (Schlüssel fehlt)."""

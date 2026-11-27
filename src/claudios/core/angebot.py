@@ -16,6 +16,8 @@ FEATURES: tuple[dict[str, Any], ...] = (
     {"id": "export", "normal": True, "pro": True},
     {"id": "verlauf", "normal": True, "pro": True},
     {"id": "aktive_pruefungen", "normal": True, "pro": True},
+    {"id": "dashboard", "normal": False, "pro": True},
+    {"id": "experten", "normal": False, "pro": True},
 )
 
 

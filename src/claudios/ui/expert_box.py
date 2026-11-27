@@ -38,7 +38,7 @@ class ExpertDialog(CardDialog):
         self.content.addStretch(1)
         self.ok = QPushButton()
         self.ok.setObjectName("primary")
-        self.ok.clicked.connect(self.accept)
+        self.ok.clicked.connect(self.accept)  # nur „Speichern“ übernimmt; Schließen verwirft
         self.content.addWidget(self.ok)
 
     def retranslate(self) -> None:
@@ -71,16 +71,24 @@ class ExpertBox(QWidget):
         outer.addWidget(self.toggle)
         self.toggle.clicked.connect(self.open_dialog)
         self.keys_btn.clicked.connect(self._open_services)
-        for attr, name, ask, local in SWITCHES:
-            getattr(self, attr).toggled.connect(
-                lambda checked, n=name, a=ask, loc=local: self._switch(n, a, loc, checked))
 
     def open_dialog(self) -> None:
         self.refresh()
-        self.dialog.exec()
+        if self.dialog.exec():
+            self.save()
+        else:
+            self.refresh()  # Schließen ohne Speichern: nichts wird übernommen
+
+    def save(self) -> None:
+        """Übernimmt die Schalter; jedes neu Eingeschaltete wird einzeln bestätigt."""
+        wanted = [(name, ask, local, getattr(self, attr).isChecked()) for attr, name, ask, local in SWITCHES]
+        for name, ask, local, on in wanted:  # erst alle Wünsche merken: jedes Übernehmen setzt die Anzeige neu
+            if on != self._enabled(name, local):
+                self._switch(name, ask, local, on)
+        self.refresh()
 
     def _open_services(self) -> None:
-        self.dialog.accept()  # erst das Fenster schließen, dann zur Seite „Externe Dienste“
+        self.dialog.reject()  # erst das Fenster schließen (ohne Übernahme), dann zu den Einstellungen
         if self._open is not None:
             self._open()
 
