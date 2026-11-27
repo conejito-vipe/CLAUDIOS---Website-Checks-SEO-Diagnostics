@@ -6,6 +6,7 @@ import html
 from pathlib import Path
 
 from ..core.errors import ClaudiosError, ErrorCode as E
+from ..core.names import check_title
 from ..core.numfmt import format_bytes, format_number
 from ..core.redact import find_leaks
 from .export_common import LABELS, SEVERITY, STATUS
@@ -38,7 +39,7 @@ def pdf_html(rep: dict, lang: str) -> str:
             example = esc(group["example_urls"][0][:70]) if group["example_urls"] else ""
             rows.append(
                 f'<tr><td bgcolor="{ROW_COLORS[group["severity"]]}">{esc(SEVERITY[lang][group["severity"]])}</td>'
-                f'<td>{esc(group["check_id"])}</td><td>{num(group["count"])}</td>'
+                f'<td>{esc(check_title(group["check_id"], lang))}</td><td>{num(group["count"])}</td>'
                 f'<td>{esc(group["msg_" + lang])}<br><small>{esc(group["evidence"])}</small></td>'
                 f"<td><small>{example}</small></td></tr>")
         parts.append('<table border="1" cellspacing="0" cellpadding="4" width="100%">'

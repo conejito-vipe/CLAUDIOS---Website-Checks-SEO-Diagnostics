@@ -55,7 +55,7 @@ def test_detail_text_contains_the_registry_texts():
     try:
         set_lang("de")
         text = pf.detail_text(pf.collect(result())[1], "de")
-        assert "[SEC-HDR-002]" in text and "HSTS" in text and "Betroffene Seiten" in text
+        assert "SEC-HDR-002" not in text and text.startswith("HSTS") and "HSTS" in text and "Betroffene Seiten" in text
         assert "https://" in text and URL + "a" in text
         text = pf.detail_text(pf.not_run(result())[0], "de")
         assert "security_txt_unreachable" in text
@@ -93,13 +93,13 @@ def test_the_page_fills_after_a_scan_and_filters(qapp):
         page.retranslate()
         assert page.table.rowCount() == 0
         scan.scan_finished.emit(result())
-        assert page.table.rowCount() == 3 and "[HTM-IMG-001]" in page.detail.toPlainText()
+        assert page.table.rowCount() == 3 and "HTM-IMG-001" not in page.detail.toPlainText() and "Bilder ohne Alternativtext" in page.detail.toPlainText()
         page.search.setText("hsts")
-        assert page.table.rowCount() == 1 and "[SEC-HDR-002]" in page.detail.toPlainText()
+        assert page.table.rowCount() == 1 and "SEC-HDR-002" not in page.detail.toPlainText() and "HSTS" in page.detail.toPlainText()
         page.search.setText("")
         page.sev.setCurrentIndex(2)  # ab Warnung
         assert page.table.rowCount() == 2
         page.notrun.setChecked(True)
-        assert page.table.rowCount() == 1 and "SEC-TXT-001" in page.detail.toPlainText()
+        assert page.table.rowCount() == 1 and "SEC-TXT-001" not in page.detail.toPlainText() and "security.txt" in page.detail.toPlainText()
     finally:
         set_lang(old)

@@ -17,6 +17,7 @@ from ..checks import load_all
 from ..core.engine import ScanResult
 from ..core.errors import ClaudiosError, ErrorCode as E
 from ..core.limits import LIMITS
+from ..core.names import check_title
 from ..core.numfmt import format_bytes, format_number
 from ..core.redact import find_leaks, redact_url, sanitize_obj
 from ..core.registry import REGISTRY
@@ -95,10 +96,10 @@ def render_html(rep: dict, lang: str = "de") -> str:
     css_hash = base64.b64encode(hashlib.sha256(CSS.encode()).digest()).decode()
     csp = f"default-src 'none'; style-src 'sha256-{css_hash}'; base-uri 'none'; form-action 'none'"
     rows = "".join(
-        f'<tr class="s{g["severity"]}"><td>{e(g["severity_name"])}</td><td>{e(g["check_id"])}</td>'
+        f'<tr class="s{g["severity"]}"><td>{e(g["severity_name"])}</td><td>{e(check_title(g["check_id"], lang))}</td>'
         f'<td>{n(g["count"])}</td><td>{e(g["msg_" + lang])}<br><small>{e(g["evidence"])}</small></td>'
         f'<td>{e(", ".join(g["example_urls"]))}</td></tr>' for g in rep["findings"])
-    notrun = "".join(f"<li>{e(c['id'])}: {e(c['title_' + lang])} ({e(c['status'])})</li>"
+    notrun = "".join(f"<li>{e(c['title_' + lang])} ({e(c['status'])})</li>"
                      for c in rep["checks"] if c["status"] != "ran")
     abort = ""
     if sc["abort"]:
@@ -134,7 +135,7 @@ def render_summary(rep: dict, lang: str = "de") -> str:
         a = sc["abort"][lang]
         lines += [f"**{a['title']}**: {a['cause']} {a['action']}", ""]
     for g in rep["findings"][:15]:
-        lines.append(f"- [{g['severity_name']}] {g['check_id']} ({n(g['count'])}x): {g['msg_' + lang]}")
+        lines.append(f"- [{g['severity_name']}] {check_title(g['check_id'], lang)} ({n(g['count'])}x): {g['msg_' + lang]}")
     return "\n".join(lines) + "\n"
 
 

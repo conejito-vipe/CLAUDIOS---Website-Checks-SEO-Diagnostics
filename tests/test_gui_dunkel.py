@@ -91,8 +91,8 @@ def test_help_toc_lists_every_check_and_a_click_scrolls_to_it():
     last = toc.count() - 1
     toc.setCurrentRow(last)
     _APP.processEvents()
-    check_id = toc.item(last).toolTip().rsplit("[", 1)[1].rstrip("]")
-    assert check_id in view.textCursor().block().text()  # der Cursor steht auf der Überschrift des Eintrags
+    title = toc.item(last).text()
+    assert title == view.textCursor().block().text()  # der Cursor steht auf der Überschrift des Eintrags
     assert view.verticalScrollBar().value() > 0
 
 
@@ -103,7 +103,7 @@ def test_shared_search_filters_both_tabs_marks_hits_and_clears():
     page.search.setText("hsts")
     _APP.processEvents()
     assert 0 < page.handbook.toc.count() < full
-    assert "[SEC-" in page.handbook.toc.item(0).toolTip()
+    assert "HSTS" in page.handbook.toc.item(0).text()
     marked = [s.cursor.selectedText().lower() for s in page.handbook.view.extraSelections()
               if s.format.background().color().name() == "#6b4310"]
     assert marked and set(marked) == {"hsts"}

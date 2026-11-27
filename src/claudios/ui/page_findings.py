@@ -20,8 +20,10 @@ from PySide6.QtWidgets import (
 )
 
 from ..checks import load_all
+from ..core.names import check_title
 from ..core.registry import REGISTRY
 from ..i18n.strings import get_lang, n, t
+from ..i18n.strings_names import category_name
 
 NAV_KEY = "nav.findings"
 MAX_URLS = 200
@@ -88,7 +90,7 @@ def detail_text(row: dict, lang: str) -> str:
     def pick(block: dict) -> str:
         return block.get(lang) or block.get("en", "")
 
-    lines = [f"[{row['check_id']}] {pick(meta.title) if meta else ''}".rstrip()]
+    lines = [(pick(meta.title) if meta else row["check_id"]).rstrip()]
     if row["state"] is not None:
         lines += [f"{t('fnd.status')}: {row['state']}"]
     else:
@@ -176,7 +178,7 @@ class FindingsPage(QWidget):
         self.cat.clear()
         self.cat.addItem(t("fnd.cat_all"), "")
         for cat in sorted({row["check_id"][:3] for row in self._rows()}):
-            self.cat.addItem(cat, cat)
+            self.cat.addItem(category_name(cat), cat)
         index = self.cat.findData(cat_data) if cat_data else -1
         self.cat.setCurrentIndex(max(index, 0))
         self.sev.blockSignals(False)
@@ -211,11 +213,14 @@ class FindingsPage(QWidget):
             index = self.table.rowCount()
             self.table.insertRow(index)
             if row["state"] is None:
-                cells = (t(f"sev.{row['severity']}"), row["check_id"], n(row["count"]), row["msg_" + lang])
+                cells = (t(f"sev.{row['severity']}"), check_title(row["check_id"], lang), n(row["count"]), row["msg_" + lang])
             else:
-                cells = (t("fnd.state"), row["check_id"], "–", row["msg_" + lang])
+                cells = (t("fnd.state"), check_title(row["check_id"], lang), "–", row["msg_" + lang])
             for col, value in enumerate(cells):
-                self.table.setItem(index, col, QTableWidgetItem(value))
+                cell = QTableWidgetItem(value)
+                if col == 1:
+                    cell.setData(Qt.ItemDataRole.UserRole, row["check_id"])
+                self.table.setItem(index, col, cell)
         self.count.setText(t("fnd.count", shown=n(len(rows)), total=n(len(self._rows()))) if self.result else "")
         if rows:
             self.table.selectRow(0)

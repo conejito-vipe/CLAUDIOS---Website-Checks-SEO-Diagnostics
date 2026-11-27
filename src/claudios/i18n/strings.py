@@ -75,7 +75,7 @@ TEXTS: dict[str, dict[str, str]] = {
                      "steht unten, warum sie wichtig ist.",
         "doc.tech_intro": "Technische Dokumentation, automatisch aus der Check-Registry erzeugt.",
         "doc.why": "Warum?", "doc.fix": "Behebung", "doc.refs": "Referenzen", "doc.method": "Methode",
-        "doc.logic": "Bewertung", "doc.kind": "Art", "doc.profiles": "Profile", "doc.passive": "passiv",
+        "doc.logic": "Bewertung", "doc.kind": "Art", "doc.profiles": "Prüfprofile", "doc.passive": "passiv",
         "doc.active": "aktiv", "doc.code": "Code", "doc.none": "Keine Treffer.",
         "about.title": "Über CLAUDIOS",
         "about.text": "CLAUDIOS {version}\nWebsite Checks, SEO & Diagnostics\n\n"

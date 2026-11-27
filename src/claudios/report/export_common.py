@@ -4,6 +4,7 @@ Formel-Injektion und eine letzte Prüfung auf erkennbare Geheimnisse. In CSV und
 from __future__ import annotations
 
 from ..core.errors import ClaudiosError, ErrorCode as E
+from ..core.names import check_title
 from ..core.redact import find_leaks
 
 DANGEROUS = ("=", "+", "-", "@", "\t", "\r")
@@ -49,7 +50,7 @@ def safe_cell(value):
 def finding_table(rep: dict, lang: str) -> tuple[list, list[list]]:
     labels = LABELS[lang]
     header = [labels["sev"], labels["check"], labels["cnt"], labels["msg"], labels["evidence"], labels["ex"]]
-    rows = [[SEVERITY[lang][g["severity"]], g["check_id"], g["count"], g["msg_" + lang], g["evidence"],
+    rows = [[SEVERITY[lang][g["severity"]], check_title(g["check_id"], lang), g["count"], g["msg_" + lang], g["evidence"],
              " ".join(g["example_urls"])] for g in rep["findings"]]
     return header, rows
 

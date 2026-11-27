@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..core.names import check_title
 from ..core.numfmt import format_bytes
 from ..core.redact import redact_url
 from ..i18n.strings import get_lang, n, t
@@ -62,7 +63,7 @@ def diff_text(diff: dict, lang: str) -> str:
             lines.append(t("exp.cmp.more", count=n(len(items) - MAX_LINES)))
 
     def entry(finding: dict) -> str:
-        return f"- [{t('sev.' + str(finding['severity']))}] {finding['check_id']}: {finding['msg_' + lang]}"
+        return f"- [{t('sev.' + str(finding['severity']))}] {check_title(finding['check_id'], lang)}: {finding['msg_' + lang]}"
 
     section("exp.cmp.new", [entry(f) for f in diff["added"]])
     section("exp.cmp.resolved", [entry(f) for f in diff["resolved"]])

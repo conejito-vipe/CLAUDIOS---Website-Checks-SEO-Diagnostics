@@ -326,7 +326,7 @@ class ScanPage(QWidget):
         try:
             from ..core.registry import REGISTRY
 
-            return f"{check_id} {REGISTRY[check_id].meta.title[get_lang()]}"
+            return REGISTRY[check_id].meta.title[get_lang()]
         except (KeyError, AttributeError):
             return check_id
 
@@ -521,7 +521,6 @@ class ResultsPage(QWidget):
         QMessageBox.information(self, t("export.title"), t("export.saved", path=path))
 
 
-HEADING = re.compile(r"^(.+) \[([A-Z]{2,4}-[A-Z]{2,4}-\d{3})\]$")
 
 
 class DocPage(QWidget):
@@ -573,14 +572,19 @@ class DocPage(QWidget):
             self.refresh()
 
     def _fill_toc(self) -> None:
+        """Inhaltsverzeichnis aus den Überschriften: die Zeile nach der Trennlinie (und einer Leerzeile) ist der Titel."""
         self.toc.blockSignals(True)
         self.toc.clear()
         block = self.view.document().begin()
+        after_rule = False
         while block.isValid():
-            match = HEADING.match(block.text())
-            if match:
-                item = QListWidgetItem(match.group(1))  # Klartext-Titel; die Kennung steht im Hinweis
-                item.setToolTip(f"{match.group(1)} [{match.group(2)}]")
+            text = block.text()
+            if len(text) >= 20 and set(text) == {"-"}:
+                after_rule = True
+            elif text.strip() and after_rule:
+                after_rule = False
+                item = QListWidgetItem(text.strip())
+                item.setToolTip(text.strip())
                 item.setData(Qt.ItemDataRole.UserRole, block.position())
                 self.toc.addItem(item)
             block = block.next()

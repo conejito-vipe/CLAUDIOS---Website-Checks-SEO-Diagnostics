@@ -108,7 +108,7 @@ def test_the_history_view_lists_domains_days_and_scans(env):
     assert day.text(0) == "2026-11-22" and day.childCount() == 1
     view.tree.setCurrentItem(day.child(0))
     detail = view.detail.toPlainText()
-    assert "SEC-HDR-001" in detail and "2.019x" in detail
+    assert "Content-Security-Policy" in detail and "SEC-HDR-001" not in detail and "2.019x" in detail
 
 
 def test_the_history_view_says_so_when_it_is_empty(env):

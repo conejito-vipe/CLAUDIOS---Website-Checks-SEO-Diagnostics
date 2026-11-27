@@ -59,7 +59,7 @@ def test_csv_has_a_delimiter_per_language_and_defuses_formulas(tmp_path):
     result = make_result(BAD, [EVIL])
     rows = list(csv.reader(io.StringIO(csv_text(build_report(result, "de"), "de")), delimiter=";"))
     assert len(rows[0]) == 6 and rows[0][0] == "Schwere"
-    hit = next(r for r in rows if r[1] == "HTM-IMG-001" and "SUM" in r[3])
+    hit = next(r for r in rows if r[1] == "Bilder ohne Alternativtext" and "SUM" in r[3])
     assert hit[3] == "'=SUM(1+1)" and hit[2] == "1"
     english = csv_text(build_report(result, "en"), "en")
     assert english.splitlines()[0].count(",") == 5
@@ -117,7 +117,9 @@ def test_focus_zip_filters_the_summary_but_keeps_the_full_report(tmp_path):
         texts = {name: archive.read(name).decode("utf-8") for name in archive.namelist()}
     assert set(texts) == {"prompt.md", "summary.md", "report.json", "report.html", "manifest.json"}
     assert "focus on SEO" in texts["prompt.md"]
-    assert "SEO-MET-001" in texts["summary.md"] and "SEC-" not in texts["summary.md"]
+    from claudios.core.names import check_title
+    assert check_title("SEO-MET-001", "en") in texts["summary.md"] and check_title("SEC-HDR-001", "en") not in texts["summary.md"]
+    assert "SEO-MET-001" not in texts["summary.md"]
     assert any(g["check_id"].startswith("SEC-") for g in json.loads(texts["report.json"])["findings"])
     manifest = json.loads(texts["manifest.json"])
     assert manifest["focus"] == "seo"

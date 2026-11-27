@@ -7,11 +7,10 @@ import re
 
 from PySide6.QtGui import QColor, QFont, QSyntaxHighlighter, QTextCharFormat, QTextDocument
 
-STATE_TEXT, STATE_CODE, STATE_TRIPLE_D, STATE_TRIPLE_S = 0, 1, 2, 3
+STATE_TEXT, STATE_CODE, STATE_TRIPLE_D, STATE_TRIPLE_S, STATE_RULE = 0, 1, 2, 3, 4
 CODE_LABEL = "Code:"
 COLORS = {"keyword": "#7FB4F5", "string": "#7CD992", "comment": "#8593A0", "number": "#FFB074",
           "deco": "#C7A0E8", "header": "#FF8A3D", "label": "#E6EBF1", "rule": "#566474"}
-_HEADER = re.compile(r"^.+ \[[A-Z]{3}-[A-Z]{3}-\d{3}\]$")
 _LABEL = re.compile(r"^(?:Warum\?|Why\?|(?:Behebung|Fix|Referenzen|References|Methode|Method|Bewertung|Rating|"
                     r"Art|Type|Code|Profile|Profiles)(?=:))")
 _DECO = re.compile(r"\s*(@[\w.]+)")
@@ -48,7 +47,14 @@ class CodeHighlighter(QSyntaxHighlighter):
         previous = max(self.previousBlockState(), STATE_TEXT)
         if _is_rule(text):
             self.setFormat(0, len(text), self._f["rule"])
-            self.setCurrentBlockState(STATE_TEXT)
+            self.setCurrentBlockState(STATE_RULE)  # die nächste nicht leere Zeile ist ein Titel
+            return
+        if previous == STATE_RULE:
+            if text.strip():
+                self.setFormat(0, len(text), self._f["header"])
+                self.setCurrentBlockState(STATE_TEXT)
+            else:
+                self.setCurrentBlockState(STATE_RULE)
             return
         if previous == STATE_TEXT:
             self.setCurrentBlockState(STATE_CODE if text.strip() == CODE_LABEL else STATE_TEXT)
@@ -57,9 +63,6 @@ class CodeHighlighter(QSyntaxHighlighter):
         self.setCurrentBlockState(self._code(text, previous))
 
     def _prose(self, text: str) -> None:
-        if _HEADER.match(text):
-            self.setFormat(0, len(text), self._f["header"])
-            return
         label = _LABEL.match(text)
         if label:
             self.setFormat(0, label.end(), self._f["label"])

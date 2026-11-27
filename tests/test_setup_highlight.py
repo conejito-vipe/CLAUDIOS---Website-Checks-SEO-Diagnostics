@@ -3,8 +3,8 @@ import pytest
 from claudios.i18n.strings import TEXTS
 
 SAMPLE = "\n".join([
-    "Title [SEC-HDR-001]", "Warum? in for if", "Code:", '@check("x")', "def f(x):", '    return "s" + 12  # note',
-    '    """doc', 'more"""', "", "-" * 72, "", "Warum? in for if"])
+    "Einleitung in for", "-" * 72, "", "Title", "Warum? in for if", "Code:", '@check("x")', "def f(x):", '    return "s" + 12  # note',
+    '    """doc', 'more"""', "", "-" * 72, "", "Zweiter Titel", "Warum? in for if"])
 
 
 @pytest.fixture
@@ -42,15 +42,17 @@ def test_only_the_code_part_is_highlighted_as_python(qapp):
     doc = QTextDocument()
     doc.setPlainText(SAMPLE)
     CodeHighlighter(doc).rehighlight()
-    blocks = [doc.findBlockByNumber(i) for i in range(12)]
-    assert (blocks[0].text(), color("header")) in ranges(blocks[0])
-    assert ranges(blocks[1]) == [("Warum?", color("label"))]  # in/for/if im Fließtext bleiben ungefärbt
-    assert ("@check", color("deco")) in ranges(blocks[3]) and ('"x"', color("string")) in ranges(blocks[3])
-    assert ("def", color("keyword")) in ranges(blocks[4])
+    blocks = [doc.findBlockByNumber(i) for i in range(16)]
+    assert ranges(blocks[0]) == [] and ranges(blocks[1]) == [("-" * 72, color("rule"))]  # Fließtext vor dem ersten Titel
+    assert (blocks[3].text(), color("header")) in ranges(blocks[3])
+    assert ranges(blocks[4]) == [("Warum?", color("label"))]  # in/for/if im Fließtext bleiben ungefärbt
+    assert ("@check", color("deco")) in ranges(blocks[6]) and ('"x"', color("string")) in ranges(blocks[6])
+    assert ("def", color("keyword")) in ranges(blocks[7])
     assert [("return", color("keyword")), ('"s"', color("string")), ("12", color("number")),
-            ("# note", color("comment"))] == ranges(blocks[5])
-    assert blocks[6].userState() == 2 and blocks[7].userState() == 1  # Docstring über zwei Zeilen
-    assert blocks[9].userState() == 0 and ranges(blocks[11]) == [("Warum?", color("label"))]
+            ("# note", color("comment"))] == ranges(blocks[8])
+    assert blocks[9].userState() == 2 and blocks[10].userState() == 1  # Docstring über zwei Zeilen
+    assert blocks[12].userState() == 4 and ranges(blocks[14]) == [("Zweiter Titel", color("header"))]
+    assert ranges(blocks[15]) == [("Warum?", color("label"))]
 
 
 def test_main_window_has_no_setup_page_and_a_highlighted_technical_doc(qapp, env):

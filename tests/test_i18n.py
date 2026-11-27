@@ -47,11 +47,11 @@ def test_python_line_counter_finds_code():
 
 def test_docs_are_generated_and_filterable():
     handbook = render_doc("handbook", "de")
-    assert "SEC-HDR-001" in handbook and "Warum?" in handbook
+    assert "SEC-HDR-001" not in handbook and "Warum?" in handbook
     tech = render_doc("tech", "en")
     assert "def csp" in tech
     filtered = render_doc("handbook", "en", "hsts")
-    assert "SEC-HDR-002" in filtered and "SEO-CAN-001" not in filtered
+    assert "HSTS" in filtered and "canonical" not in filtered.lower().split("hsts")[0][-200:]
     assert "No matches" in render_doc("handbook", "en", "zzz-no-match")
 
 

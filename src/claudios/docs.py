@@ -5,7 +5,7 @@ from .checks import load_all
 from .core.limits import LIMITS
 from .core.numfmt import format_number
 from .core.registry import REGISTRY
-from .i18n.strings import text
+from .i18n.strings import TEXTS, text
 
 RULE = "-" * 72
 
@@ -17,9 +17,10 @@ def _block(mode: str, lang: str, cid: str, rc) -> str:
         return text(lang, key)
 
     kind = lab("doc.active") if m.kind == "active" else lab("doc.passive")
-    lines = [f"{m.title[lang]} [{cid}]"]
+    lines = [m.title[lang]]  # nur der verständliche Titel; die Kennung bleibt intern
     if mode == "tech":
-        lines.append(f"{lab('doc.kind')}: {kind} | {lab('doc.profiles')}: {', '.join(m.profiles)}")
+        profiles = ", ".join(lab(f"profile.{p}") if f"profile.{p}" in TEXTS[lang] else p for p in m.profiles)
+        lines.append(f"{lab('doc.kind')}: {kind} | {lab('doc.profiles')}: {profiles}")
         lines.append(f"{lab('doc.method')}: {m.method[lang]}")
         lines.append(f"{lab('doc.logic')}: {m.logic[lang]}")
     lines.append(f"{lab('doc.why')} {m.why[lang]}")
@@ -36,7 +37,7 @@ def render_doc(mode: str, lang: str, query: str = "") -> str:
     load_all()
     needle = query.strip().lower()
     blocks = []
-    for cid, rc in sorted(REGISTRY.items()):
+    for cid, rc in sorted(REGISTRY.items(), key=lambda item: (item[1].meta.title[lang].casefold(), item[0])):
         block = _block(mode, lang, cid, rc)
         if not needle or needle in block.lower():
             blocks.append(block)
@@ -44,5 +45,6 @@ def render_doc(mode: str, lang: str, query: str = "") -> str:
         head = text(lang, "doc.tech_intro")
     else:
         head = text(lang, "doc.intro", depth=format_number(LIMITS.max_depth, lang))
-    body = f"\n\n{RULE}\n\n".join(blocks) if blocks else text(lang, "doc.none")
-    return f"{head}\n\n{RULE}\n\n{body}\n"
+    if not blocks:
+        return f"{head}\n\n{text(lang, 'doc.none')}\n"  # ohne Treffer keine Trennlinie: sonst sähe es wie ein Titel aus
+    return f"{head}\n\n{RULE}\n\n" + f"\n\n{RULE}\n\n".join(blocks) + "\n"

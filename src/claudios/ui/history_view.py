@@ -4,6 +4,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QPlainTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 
+from ..core.names import check_title
 from ..core.numtext import localize_numbers
 from ..i18n.strings import get_lang, n, t
 from ..report.history_tree import grouped
@@ -26,7 +27,7 @@ def detail_text(host: str, day: str, clock: str, record: dict, lang: str) -> str
         times = f" ({n(item['count'])}x)" if item["count"] > 1 else ""
         message = localize_numbers(item["msg_" + lang], lang)
         severity = item["severity"]
-        lines.append(f"[{t(f'sev.{severity}')}] {item['check_id']}: {message}{times}")
+        lines.append(f"[{t(f'sev.{severity}')}] {check_title(item['check_id'], lang)}: {message}{times}")
     return "\n".join(lines)
 
 
