@@ -2,6 +2,20 @@
 
 English version: [CHANGELOG.md](CHANGELOG.md)
 
+## 1.1.2
+
+- **GUI:** Zahnrad „Einstellungen“ in der Titelleiste (Einstellungen und Schlüssel auf einer Seite, Experteneinstellungen in einem Fenster, in dem nur „Speichern“ übernimmt), Navigationsleiste ohne Scrollen, Beschriftung „Deinstallieren“, Sicherheitsfrage beim Schließen, Ladekreis beim Sprachwechsel, Ergebnisse ohne Vorschaufenster und mit Blättern in der großen Ansicht, einheitliche Überschriften, weiße Links mit orangem Überfahren, noch hellere Farben, orange Chips für die Reiter Handbuch / Technik-Doku, Korrekturen im Startbild (Text verdeckt das Logo nicht mehr, gleich große Fensterknöpfe, kein Maximieren).
+- **Dashboard:** Entwicklung bisheriger Prüfungen je Domain und Speicherort der Bildschirmfotos; Dashboard und Experteneinstellungen als Pro-Bereiche vorbereitet (Pro bleibt aus, nichts gesperrt).
+- **Bildschirmfotos:** werden bei gesetztem Haken automatisch gespeichert und sind Teil des Berichts (ZIP und PDF).
+- **Barrierefreiheitsprüfung:** Grenzen für axe-core (20 s je Seite), eine Seite (45 s) und den ganzen Browser-Lauf (8 Minuten), Teilergebnisse bleiben erhalten.
+
+## 1.1.1 (unveröffentlicht)
+
+- **GUI:** hellere Farben, oranger Haken in jedem Auswahlfeld, Maximieren-Knopf, ruhigeres Überfahren in der Navigation, Info-Knopf in der Fußzeile, Experteneinstellungen in eigenem Fenster, Befund-Ansicht mit betroffenen Stellen zuerst, verständliche Namen statt Buchstaben-Kürzeln.
+- **Deinstallation:** Auswahlliste im Programm und im Windows-Deinstaller; eigene Daten sind nicht vorgewählt.
+- **Dokumentation:** Leerzeile vor jedem Punkt in Handbuch und Technik-Doku.
+- **Release-Text:** wird aus `RELEASE_NOTES.md` und `tools/release_body.py` erzeugt.
+
 ## 1.1.0 (unveröffentlicht)
 
 - **Neue Prüfungen (passiv):** Adress-Varianten (http, www; `SEO-VAR-001`), Sitemap im Abgleich mit dem Crawl (`SEO-SMX-001`), Bilder (`HTM-IMG-002`), Caching und Kompression von CSS/JS (`SEO-ACH-001`), HTTP-Protokoll und Antwortzeit (`SEO-HTV-001`), HSTS-Preload und Zertifikatsnamen (`TLS-EXT-001`), Tastaturbedienung und Bewegung (`HTM-KEY-001`), Seitengewicht und blockierende Skripte (`SEO-WGT-001`), Barrierefreiheitserklärung (`PRV-BFS-001`), Global Privacy Control (`PRV-GPC-001`), BIMI (`DNS-BIM-001`), DANE/TLSA (`DNS-DAN-001`), Ablauf der Domains eingebundener Fremdskripte (`SEC-SUP-001`, nur mit dem RDAP-Schalter).

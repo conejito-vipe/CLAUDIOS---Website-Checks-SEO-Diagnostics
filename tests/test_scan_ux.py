@@ -158,3 +158,23 @@ def test_a_recent_scan_shows_the_countdown(qapp, env):
     audit.write_text("", "utf-8")
     page._start_cooldown()
     assert page.cool_bar.isHidden()
+
+
+def test_only_save_applies_the_expert_settings_closing_discards_them(qapp, env, monkeypatch):
+    from claudios.ui import expert_box
+
+    monkeypatch.setattr(expert_box, "_confirm", lambda parent, text: True)
+    box = expert_box.ExpertBox()
+    box.retranslate()
+    for result, expected in ((0, False), (1, True)):  # 0 = Fenster geschlossen, 1 = „Speichern“
+        services.set_enabled("rdap", False)
+        box.refresh()
+
+        def fake_exec(_self=None, value=result):
+            box.rdap.setChecked(True)
+            return value
+
+        monkeypatch.setattr(box.dialog, "exec", fake_exec)
+        box.open_dialog()
+        assert services.enabled("rdap") is expected
+        assert box.rdap.isChecked() is expected  # nach dem Verwerfen zeigt die Anzeige wieder den echten Stand
