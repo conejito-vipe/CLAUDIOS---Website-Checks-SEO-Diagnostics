@@ -1,17 +1,17 @@
 """Farben und Stil (Entwurf B): dunkel, ein orangefarbener Akzent. Texte auf dem Akzent sind dunkel (Kontrast)."""
-BG = "#0F141A"          # Fenster
-BG_DEEP = "#0B0F14"     # Eingabefelder, Titelleiste, Codefenster
-SURFACE = "#171E26"     # Karten
-SURFACE2 = "#1E2833"    # Schaltflächen, Hover
-LINE = "#243040"        # feine Rahmen
-LINE2 = "#2F3D4F"       # Rahmen von Eingaben und Schaltflächen
+BG = "#1D2530"          # Fenster
+BG_DEEP = "#151C25"     # Eingabefelder, Titelleiste, Codefenster
+SURFACE = "#273140"     # Karten
+SURFACE2 = "#323F50"    # Schaltflächen, Hover
+LINE = "#3A485B"        # feine Rahmen
+LINE2 = "#4B5C72"       # Rahmen von Eingaben und Schaltflächen
 ORANGE = "#EE6A12"
 ORANGE_HI = "#FF8A3D"
 ON_ORANGE = "#1B1005"   # Text auf dem Akzent
-ORANGE_SOFT = "#2A2017"  # gewählter Eintrag der Navigation
-INK = "#E6EBF1"
-MUTED = "#9AA7B5"
-DISABLED = "#6F7C8A"
+ORANGE_SOFT = "#3B2D20"  # gewählter Eintrag der Navigation
+INK = "#F3F6FA"
+MUTED = "#C0CAD6"
+DISABLED = "#8996A6"
 TRACK = LINE
 
 _TEMPLATE = """
@@ -28,7 +28,7 @@ QPushButton:hover { border-color: %ORANGE%; }
 QPushButton:disabled { color: %DISABLED%; background: %SURFACE%; border-color: %LINE%; }
 QPushButton#primary { background: %ORANGE%; color: %ON_ORANGE%; border: none; font-weight: 700; padding: 8px 18px; }
 QPushButton#primary:hover { background: %ORANGE_HI%; }
-QPushButton#primary:disabled { background: #4A3322; color: #9C8068; }
+QPushButton#primary:disabled { background: #5A4128; color: #C9AE92; }
 QPushButton#winbtn { border: none; background: transparent; font-size: 16px; padding: 4px 10px; }
 QPushButton#winbtn:hover { background: %LINE%; border-radius: 6px; }
 QPushButton#langbtn { border: none; background: transparent; padding: 3px 8px; font-weight: 600; color: %MUTED%; }

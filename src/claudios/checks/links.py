@@ -41,7 +41,7 @@ def internal_links(snap):
             continue
         first = norm(pg.chain[0] if pg.chain else pg.url)
         sources = [p.url for p in snap.pages if p is not pg and first in link_sets[id(p)]][:3]
-        evidence = f"← {sources[0]}" if sources else ""
+        evidence = f"Link steht auf / link found on: {sources[0]}" if sources else ""
         if failed:
             out.append(F("LNK-INT-001", S.WARNING, pg.url, "Interne Seite nicht erreichbar",
                          "Internal page unreachable", evidence))

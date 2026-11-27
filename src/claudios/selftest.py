@@ -135,12 +135,11 @@ def check_main_window() -> str:
     from .i18n.brand import brand_all
     from .i18n.strings import TEXTS
     from .ui.main_window import MainWindow
-    from .ui.theme import STYLE
-    from .ui.theme_extra import EXTRA
+    from .ui.theme_extra import full_style
 
     app = QApplication.instance() or QApplication(sys.argv[:1])
     brand_all(TEXTS)
-    app.setStyleSheet(STYLE + EXTRA)
+    app.setStyleSheet(full_style())
     window = MainWindow({"language": "de", "allow_localhost": False})
     try:
         window.resize(1100, 720)

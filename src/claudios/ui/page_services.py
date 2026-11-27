@@ -92,6 +92,8 @@ class ServicesPage(QWidget):
         self.shots_info = _plain(QLabel())
         self.shots_info.setObjectName("muted")
         self.shots_btn = QPushButton()
+        self.back_btn = QPushButton()
+        self.back_btn.setObjectName("backbtn")
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(6)
@@ -101,6 +103,7 @@ class ServicesPage(QWidget):
                        self.local_title, self.shots, self.shots_info, self.shots_btn):
             lay.addWidget(widget)
         lay.addStretch(1)
+        lay.addWidget(self.back_btn, 0, Qt.AlignmentFlag.AlignLeft)
         self.rdap.toggled.connect(self._toggle_rdap)
         self.sb.toggled.connect(self._toggle_sb)
         self.psi.toggled.connect(self._toggle_psi)
@@ -133,6 +136,7 @@ class ServicesPage(QWidget):
         self.shots.setText(t("svc.shots.switch"))
         self.shots_info.setText(t("svc.shots.info"))
         self.shots_btn.setText(t("svc.shots.zip"))
+        self.back_btn.setText(t("svc.back"))
         self.refresh()
 
     def refresh(self) -> None:
@@ -229,4 +233,7 @@ def create(window) -> ServicesPage:
     signal = getattr(getattr(window, "scan", None), "scan_finished", None)
     if signal is not None:
         signal.connect(page.show_result)
+    nav = getattr(window, "nav", None)
+    if nav is not None:  # ein Weg zurück zum Scan (z. B. nach den Schlüsseln aus den Experteneinstellungen)
+        page.back_btn.clicked.connect(lambda _checked=False: nav.setCurrentRow(0))
     return page

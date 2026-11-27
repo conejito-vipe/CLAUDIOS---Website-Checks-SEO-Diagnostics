@@ -43,6 +43,7 @@ from ..i18n.strings import get_lang, n, t
 from ..paths import data_dir
 from ..report.report import build_zip, default_zip_name, group_findings, zip_preview
 from ..settings import save as save_settings
+from .checknames import check_title
 from .cooldown import remaining as cooldown_remaining
 from .dialogs import error_info, show_error
 from .expert_box import ExpertBox
@@ -419,9 +420,12 @@ class ResultsPage(QWidget):
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.verticalHeader().setVisible(False)
         header = self.table.horizontalHeader()
-        for col in range(3):
+        for col in (0, 2):
             header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
+        self.table.setColumnWidth(1, 230)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        self.table.setTextElideMode(Qt.TextElideMode.ElideRight)
         self.export_btn = QPushButton()
         self.export_btn.clicked.connect(self.export)
         self.ring = ScoreRing()
@@ -481,9 +485,12 @@ class ResultsPage(QWidget):
         for group in group_findings(result.findings):
             row = self.table.rowCount()
             self.table.insertRow(row)
-            cells = (t(f"sev.{group['severity']}"), group["check_id"], n(group["count"]), group["msg_" + lang])
+            cells = (t(f"sev.{group['severity']}"), check_title(group["check_id"], lang), n(group["count"]),
+                     group["msg_" + lang])
             for col, value in enumerate(cells):
                 item = QTableWidgetItem(value)
+                if col == 1:
+                    item.setData(Qt.ItemDataRole.UserRole, group["check_id"])
                 item.setToolTip("\n".join([group["evidence"], *group["example_urls"]]))
                 if col == 0:
                     style_severity(item, group["severity"])

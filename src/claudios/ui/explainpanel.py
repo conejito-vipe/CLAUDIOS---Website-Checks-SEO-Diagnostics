@@ -2,12 +2,14 @@
 Vollansicht mit Codefenster."""
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import QSize, Qt, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QFrame, QLabel, QPushButton, QTextBrowser, QVBoxLayout
 
 from ..i18n.strings import get_lang, t
 from .finding_detail import explain_html, find_id, meta_for, meta_text
+from .navicons import nav_icon
+from .theme import ORANGE_HI
 
 WIDTH = 340
 
@@ -28,6 +30,9 @@ class ExplainPanel(QFrame):
         self.view.setOpenExternalLinks(False)
         self.view.anchorClicked.connect(self._open)
         self.open_btn = QPushButton()
+        self.open_btn.setObjectName("expandbtn")
+        self.open_btn.setIcon(nav_icon("expand", normal=ORANGE_HI, active=ORANGE_HI, size=18))
+        self.open_btn.setIconSize(QSize(18, 18))
         self.open_btn.clicked.connect(self._open_dialog)
         self.open_dialog = lambda texts: False  # vom Hauptfenster auf den Erklär-Dialog gesetzt
         self.groups = lambda: []

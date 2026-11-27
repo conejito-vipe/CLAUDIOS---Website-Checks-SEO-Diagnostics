@@ -120,6 +120,7 @@ class MainWindow(CardWindow):
         if "nav.pro" in self.nav_keys:  # ausgeliefert inaktiv: erst die Verwaltung schaltet die Seite frei
             self.nav.item(self.nav_keys.index("nav.pro")).setHidden(not angebot.AKTIV)
         self.nav.item(self.nav_keys.index("nav.help")).setHidden(True)  # „Hilfe“ öffnet der Knopf in der Titelleiste
+        self.nav.item(self.about_row).setHidden(True)  # „Info“ steht klein in der Fußzeile
         self.uninstall_btn = QPushButton()
         self.uninstall_btn.setObjectName("railbtn")
         self.uninstall_btn.setIcon(nav_icon("uninstall", normal="#E57373", active="#FF8A80"))
@@ -198,6 +199,7 @@ class MainWindow(CardWindow):
     def retranslate(self) -> None:
         self.setWindowTitle(t("app.title"))
         self.titlebar.set_help_text(t("nav.help"))
+        self.titlebar.sync_maximized(self.isMaximized())
         for index, key in enumerate(self.nav_keys):
             self.nav.item(index).setText(t(key))
             self.nav.item(index).setToolTip(t(key))

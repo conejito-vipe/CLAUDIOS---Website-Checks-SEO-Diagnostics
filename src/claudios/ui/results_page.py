@@ -12,6 +12,7 @@ from ..core.numtext import localize_numbers
 from ..core.redact import redact_url
 from ..i18n.strings import get_lang, n, t
 from ..report.history_latest import latest_overall
+from .checknames import check_title
 from .pages import ResultsPage as _ResultsPage
 from .scorecards import style_severity
 
@@ -70,10 +71,12 @@ class ResultsPage(_ResultsPage):
         for item in sorted(record["findings"], key=lambda f: (-f["severity"], f["check_id"])):
             row = self.table.rowCount()
             self.table.insertRow(row)
-            cells = (t(f"sev.{item['severity']}"), item["check_id"], n(item["count"]),
+            cells = (t(f"sev.{item['severity']}"), check_title(item["check_id"], lang), n(item["count"]),
                      localize_numbers(item["msg_" + lang], lang))
             for col, value in enumerate(cells):
                 cell = QTableWidgetItem(value)
+                if col == 1:
+                    cell.setData(Qt.ItemDataRole.UserRole, item["check_id"])
                 if col == 0:
                     style_severity(cell, item["severity"])
                 self.table.setItem(row, col, cell)

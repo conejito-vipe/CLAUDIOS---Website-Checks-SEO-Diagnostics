@@ -3,15 +3,16 @@ from __future__ import annotations
 
 from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QPainter, QPen
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QProgressBar, QWidget
 
 from ..i18n.strings import n
+from ..i18n.strings_names import category_name
 from . import theme
 
-GOOD, WARN, BAD = "#4CC38A", "#E8B93C", "#F0616D"
+GOOD, WARN, BAD = "#5FD9A0", "#F2C94C", "#FF8590"
 
 
-SEVERITY = {0: "#9AA7B5", 1: "#6FB1FF", 2: WARN, 3: "#FF8A3D", 4: BAD}
+SEVERITY = {0: "#C0CAD6", 1: "#82BEFF", 2: WARN, 3: "#FF9A55", 4: BAD}
 
 
 def style_severity(item, severity: int) -> None:
@@ -64,42 +65,67 @@ class ScoreRing(QWidget):
 
 
 class CategoryCard(QFrame):
+    """Eine Karte je Bereich: Klartext-Name links, Wert rechts, darunter der Balken."""
+
     def __init__(self, name: str, score: int) -> None:
         super().__init__()
         self.setObjectName("infoitem")
         self.name, self.score = name, score
-        self.label = QLabel(name)
-        self.label.setObjectName("muted")
+        self.label = QLabel(category_name(name))
+        self.label.setObjectName("cardname")
+        self.label.setToolTip(category_name(name))
         self.number = QLabel(n(score))
-        self.number.setStyleSheet(f"font-size: 22px; font-weight: 700; color: {score_color(score)};")
+        self.number.setStyleSheet(f"font-size: 18px; font-weight: 700; color: {score_color(score)};")
         bar = QProgressBar()
         bar.setRange(0, 100)
         bar.setValue(score)
         bar.setTextVisible(False)
-        bar.setFixedHeight(6)
-        bar.setStyleSheet(f"QProgressBar::chunk {{ background: {score_color(score)}; border-radius: 3px; }}")
-        lay = QVBoxLayout(self)
-        lay.setContentsMargins(12, 8, 12, 10)
-        lay.setSpacing(4)
-        for widget in (self.label, self.number, bar):
-            lay.addWidget(widget)
+        bar.setFixedHeight(5)
+        bar.setStyleSheet(f"QProgressBar::chunk {{ background: {score_color(score)}; border-radius: 2px; }}")
+        lay = QGridLayout(self)
+        lay.setContentsMargins(10, 5, 10, 6)
+        lay.setHorizontalSpacing(8)
+        lay.setVerticalSpacing(3)
+        lay.addWidget(self.label, 0, 0)
+        lay.addWidget(self.number, 0, 1, Qt.AlignmentFlag.AlignRight)
+        lay.addWidget(bar, 1, 0, 1, 2)
+        lay.setColumnStretch(0, 1)
 
 
 class CategoryRow(QWidget):
-    """Eine Karte je bewertete Kategorie, nebeneinander."""
+    """Die Karten der Bereiche in einem Raster; die Spaltenzahl richtet sich nach der Breite (lesbar, auch maximiert)."""
+
+    MIN_CARD = 170
 
     def __init__(self) -> None:
         super().__init__()
         self.cards: list[CategoryCard] = []
-        self._lay = QHBoxLayout(self)
-        self._lay.setContentsMargins(0, 0, 0, 0)
-        self._lay.setSpacing(10)
+        self._grid = QGridLayout(self)
+        self._grid.setContentsMargins(0, 0, 0, 0)
+        self._grid.setHorizontalSpacing(10)
+        self._grid.setVerticalSpacing(6)
+        self._cols = 0
+
+    def columns(self) -> int:
+        return max(2, min(6, self.width() // self.MIN_CARD)) if self.width() > 0 else 4
+
+    def _layout_cards(self) -> None:
+        cols = self.columns()
+        self._cols = cols
+        for index, card in enumerate(self.cards):
+            self._grid.addWidget(card, index // cols, index % cols)
+        for col in range(6):
+            self._grid.setColumnStretch(col, 1 if col < cols else 0)
 
     def set_scores(self, scores: dict[str, int]) -> None:
         for card in self.cards:
-            self._lay.removeWidget(card)
+            self._grid.removeWidget(card)
             card.deleteLater()
         self.cards = [CategoryCard(name, value) for name, value in scores.items()]
-        for card in self.cards:
-            self._lay.addWidget(card, 1)
+        self._layout_cards()
         self.setVisible(bool(self.cards))
+
+    def resizeEvent(self, event) -> None:  # noqa: N802 – Qt
+        super().resizeEvent(event)
+        if self.columns() != self._cols and self.cards:
+            self._layout_cards()

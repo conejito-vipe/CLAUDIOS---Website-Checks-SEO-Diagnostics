@@ -58,11 +58,11 @@ def test_numbers_get_separators_only_in_plain_text():
         assert localize_numbers(same, "de") == same
 
 
-def test_group_html_has_a_blank_line_first_and_localized_numbers():
+def test_group_html_has_a_bold_message_first_and_localized_numbers():
     group = {"severity": 1, "msg_de": "CSS (rule, 2019x)", "msg_en": "CSS (rule, 2019x)", "count": 1, "evidence": "",
              "example_urls": []}
     html = _group_html(group, "de")
-    assert html.startswith("<p>&nbsp;</p>") and "2.019x" in html
+    assert html.startswith("<p><b>") and "2.019x" in html
 
 
 def test_the_clicked_finding_comes_first_even_with_localized_numbers():

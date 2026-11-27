@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QCheckBox, QLabel, QMessageBox, QPushButton, QVBox
 
 from ..core import apikeys, options, services
 from ..i18n.strings import t
+from .cardbox import MARGIN, CardDialog
 from .dialogs import error_info, show_error
 
 SWITCHES = (("rdap", "rdap", "svc.rdap.ask", False), ("sb", "safebrowsing", "svc.sb.ask", False),
@@ -24,15 +25,33 @@ def _confirm(parent, text: str) -> bool:
     return QMessageBox.question(parent, t("svc.title"), text) == QMessageBox.StandardButton.Yes
 
 
+class ExpertDialog(CardDialog):
+    """Die Experteneinstellungen in einem eigenen Fenster: es schließt mit „OK“ oder dem Schließen-Knopf."""
+
+    def __init__(self, parent, body: QWidget) -> None:
+        super().__init__(parent, t("expert.title"))
+        self.resize(2 * MARGIN + 560, 2 * MARGIN + 460)
+        self.heading = QLabel()
+        self.heading.setObjectName("h1")
+        self.content.addWidget(self.heading)
+        self.content.addWidget(body, 1)
+        self.ok = QPushButton()
+        self.ok.setObjectName("primary")
+        self.ok.clicked.connect(self.accept)
+        self.content.addWidget(self.ok)
+
+    def retranslate(self) -> None:
+        self.setWindowTitle(t("expert.title"))
+        self.heading.setText(t("expert.title"))
+        self.ok.setText(t("expert.ok"))
+
+
 class ExpertBox(QWidget):
     def __init__(self, open_services=None) -> None:
         super().__init__()
         self._open = open_services
         self.toggle = QPushButton()
-        self.toggle.setCheckable(True)
-        self.toggle.setFlat(True)
         self.body = QWidget()
-        self.body.setVisible(False)
         self.intro = _plain(QLabel())
         self.intro.setObjectName("muted")
         self.rdap, self.sb, self.psi, self.ct, self.shots = (QCheckBox(), QCheckBox(), QCheckBox(), QCheckBox(),
@@ -44,29 +63,31 @@ class ExpertBox(QWidget):
         inner.setContentsMargins(12, 0, 0, 0)
         for widget in (self.intro, self.rdap, self.sb, self.psi, self.ct, self.shots, self.hint, self.keys_btn):
             inner.addWidget(widget)
+        self.dialog = ExpertDialog(self, self.body)
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(self.toggle)
-        outer.addWidget(self.body)
-        self.toggle.toggled.connect(self._show_body)
+        self.toggle.clicked.connect(self.open_dialog)
         self.keys_btn.clicked.connect(self._open_services)
         for attr, name, ask, local in SWITCHES:
             getattr(self, attr).toggled.connect(
                 lambda checked, n=name, a=ask, loc=local: self._switch(n, a, loc, checked))
 
+    def open_dialog(self) -> None:
+        self.refresh()
+        self.dialog.exec()
+
     def _open_services(self) -> None:
+        self.dialog.accept()  # erst das Fenster schließen, dann zur Seite „Externe Dienste“
         if self._open is not None:
             self._open()
 
-    def _show_body(self, shown: bool) -> None:
-        self.body.setVisible(shown)
-        self._title()
-
     def _title(self) -> None:
-        self.toggle.setText(("▾ " if self.toggle.isChecked() else "▸ ") + t("scan.expert"))
+        self.toggle.setText(t("expert.open"))
 
     def retranslate(self) -> None:
         self._title()
+        self.dialog.retranslate()
         self.intro.setText(t("scan.expert.intro"))
         self.rdap.setText(t("svc.rdap.switch"))
         self.sb.setText(t("svc.sb.switch"))

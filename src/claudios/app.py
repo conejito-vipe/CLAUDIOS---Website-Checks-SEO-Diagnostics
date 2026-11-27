@@ -31,8 +31,7 @@ from .ui.instance import acquire
 from .ui.logfolder import open_logs
 from .ui.main_window import MainWindow
 from .ui.splash import Splash
-from .ui.theme import STYLE
-from .ui.theme_extra import EXTRA
+from .ui.theme_extra import full_style
 from .ui.update_check import start_update_check
 from .ui.widgets import load_icon
 
@@ -99,7 +98,7 @@ def main() -> int:
     app = QApplication(sys.argv)
     app.setApplicationName("CLAUDIOS")
     brand_all(TEXTS)  # im Programm immer CLAUDIOS (nach dem Laden aller Textdateien)
-    app.setStyleSheet(STYLE + EXTRA)
+    app.setStyleSheet(full_style())
     install_cards()  # alle Meldungen im Stil des Splash (statt Windows-Titelleiste)
     app.setFont(QFont("Helvetica Neue" if sys.platform == "darwin" else "Segoe UI", 10 if sys.platform != "darwin" else 13))
     icon = load_icon()

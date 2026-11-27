@@ -37,7 +37,9 @@ LINE = re.compile(r"\b(?:Line|Zeile)\s+(\d+)\b")
 MAX_EVIDENCE = 400
 MAX_LINE = 240
 FLAG = "cl_detail"
-COLORS = {"red": "#5A2226", "yellow": "#4A3F12", "blue": "#1B3350"}
+COLORS = {"red": "#8A2B33", "yellow": "#7A6410", "blue": "#2A5A9A"}
+HEAD = "font-size:15px;font-weight:700;margin-top:14px;margin-bottom:2px;"
+SMALL_HEAD = "font-size:12px;font-weight:600;color:#9AA7B5;margin-top:0px;margin-bottom:0px;"
 _NOCODE = {"result": "detail.nocode_result", "source": "detail.nocode_source", "range": "detail.nocode_range"}
 _FACTS = {"result": "detail.facts_result", "source": "detail.facts_source", "range": "detail.facts_range"}
 
@@ -189,11 +191,13 @@ def excerpt_html(excerpt: dict, lang: str) -> str:
     for number, line, marked in excerpt["lines"]:
         row = f"{number:>5} | {escape(line)}"
         if marked:
-            row = f'<span style="background-color:{COLORS[excerpt["color"]]};">{row}</span>'
+            row = (f'<span style="background-color:{COLORS[excerpt["color"]]};color:#FFFFFF;font-weight:bold;">'
+                   f'{row}</span>')
         rows.append(row)
     title = text(lang, "detail.code", url=redact_url(excerpt["url"]), line=excerpt["line"])
-    return (f"<h3>{escape(title)}</h3><p>{escape(text(lang, 'detail.legend'))}</p>"
-            '<pre style="font-family: Consolas, Menlo, monospace; font-size: 12px;">' + "\n".join(rows) + "</pre>")
+    return (f'<p style="{HEAD}">{escape(title)}</p><p style="color:#9AA7B5;">{escape(text(lang, "detail.legend"))}</p>'
+            '<pre style="font-family: Consolas, Menlo, monospace; font-size: 13px; background-color:#05080C;">'
+            + "\n".join(rows) + "</pre>")
 
 
 # ------------------------------------------------------------------ Texte
@@ -265,25 +269,27 @@ def _linkify(value: str) -> str:
 
 
 def _group_html(group: dict, lang: str) -> str:
+    """Ein Befund: Meldung, dann die betroffenen Stellen, danach die Belege."""
     message = localize_numbers(group.get("msg_" + lang, ""), lang)
     head = f"[{_severity(group.get('severity', 0), lang)}] {message}"
     count = int(group.get("count") or 1)
     if count > 1:
         head += " (" + text(lang, "detail.times", count=count) + ")"
-    parts = ["<p>&nbsp;</p>", f"<p><b>{escape(head)}</b></p>"]  # vor jedem Befund eine Leerzeile
-    evidence = str(group.get("evidence") or "").strip()
-    if evidence:
-        parts.append("<p>" + escape(f"{text(lang, 'detail.evidence')}: ") + _linkify(evidence[:MAX_EVIDENCE]) + "</p>")
+    parts = [f"<p><b>{escape(head)}</b></p>"]
     urls = [str(url) for url in group.get("example_urls") or []]
     if urls:
         items = "".join("<li>" + (_link(url) if url.startswith("https://") else escape(url)) + "</li>" for url in urls)
-        parts.append("<p><br>" + escape(text(lang, "detail.where")) + ":</p><ul>" + items + "</ul>")
+        parts.append(f'<p style="{HEAD}">' + escape(text(lang, "detail.where")) + "</p><ul>" + items + "</ul>")
+    evidence = str(group.get("evidence") or "").strip()
+    if evidence:
+        parts.append(f'<p style="{HEAD}">' + escape(text(lang, "detail.evidence")) + "</p><p>"
+                     + _linkify(evidence[:MAX_EVIDENCE]) + "</p>")
     return "".join(parts)
 
 
 def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=None, result=None) -> str:
     ordered = _ordered(check_id, groups, row_texts, lang)
-    parts = [f"<h3>{escape(text(lang, 'detail.found'))}</h3>"]
+    parts = [f'<p style="{SMALL_HEAD}">{escape(text(lang, "detail.found"))}</p>']
     parts += [_group_html(group, lang) for group in ordered] or [_para(text(lang, "detail.none"))]
     if not ordered and result is not None:  # ein Scan liegt vor, aber die Befund-Liste fehlt: nicht stumm bleiben
         parts.append(_para(text(lang, "detail.nogroups")))
@@ -312,10 +318,11 @@ def explain_html(check_id: str, groups: list[dict], row_texts, lang: str, meta=N
                             ("detail.logic", "logic")):
             body = meta_text(meta, name, lang)
             if body:
-                parts += [f"<h3>{escape(text(lang, label))}</h3>", _para(body)]
+                parts += [f'<p style="{HEAD}">{escape(text(lang, label))}</p>', _para(body)]
         refs = meta_refs(meta)
         if refs:
-            parts += [f"<h3>{escape(text(lang, 'detail.refs'))}</h3>", "<p>" + "<br>".join(_link(r) for r in refs) + "</p>"]
+            parts += [f'<p style="{HEAD}">{escape(text(lang, "detail.refs"))}</p>',
+                      "<p>" + "<br>".join(_link(r) for r in refs) + "</p>"]
     return "".join(parts)
 
 
@@ -346,6 +353,19 @@ class FindingDialog(CardDialog):
     def _open(url: QUrl) -> None:
         if url.scheme() == "https":  # nur https, nie ein anderes Schema aus Inhalten
             QDesktopServices.openUrl(url)
+
+
+def row_texts(table: QTableWidget, row: int) -> list[str]:
+    """Texte einer Tabellenzeile; die Prüf-ID steht (für Laien unsichtbar) in den Daten der Zelle."""
+    texts = []
+    for col in range(table.columnCount()):
+        cell = table.item(row, col)
+        if cell is not None:
+            texts.append(cell.text())
+            hidden = cell.data(Qt.ItemDataRole.UserRole)
+            if isinstance(hidden, str):
+                texts.append(hidden)
+    return texts
 
 
 def _collect(root: QWidget, kind) -> list:
@@ -391,8 +411,7 @@ class DetailLinker(QObject):
             table.viewport().setCursor(Qt.CursorShape.PointingHandCursor)
 
     def _table_click(self, table: QTableWidget, row: int, _column: int) -> None:
-        cells = (table.item(row, c) for c in range(table.columnCount()))
-        self.open_for([cell.text() if cell is not None else "" for cell in cells])
+        self.open_for(row_texts(table, row))
 
     def _tree_click(self, item, _column: int) -> None:
         self.open_for([item.text(c) for c in range(item.columnCount())])
@@ -405,8 +424,7 @@ class DetailLinker(QObject):
         self._decorate(table)
         table.setProperty(FLAG, True)
         panel.groups, panel.result, panel.open_dialog = self._groups, self._get_result, self.open_for
-        table.cellClicked.connect(lambda row, _c: panel.show_for(
-            [cell.text() if cell is not None else "" for cell in (table.item(row, c) for c in range(table.columnCount()))]))
+        table.cellClicked.connect(lambda row, _c: panel.show_for(row_texts(table, row)))
 
     def _groups(self) -> list[dict]:
         result, lang = self._get_result(), get_lang()

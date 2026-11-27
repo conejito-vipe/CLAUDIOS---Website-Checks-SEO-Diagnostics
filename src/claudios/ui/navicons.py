@@ -8,12 +8,12 @@ from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QStyle, QStyledItemDelegate
 
-from .theme import MUTED, ORANGE_HI, ORANGE_SOFT, SURFACE2
+from .theme import MUTED, ORANGE, ORANGE_HI, ORANGE_SOFT
 
 SIZE = 22
 RAIL_ITEM = 48
 RAIL_W = 116  # Breite der Leiste: Symbol mit Beschriftung darunter
-RAIL_H = 48
+RAIL_H = 58
 PATHS = {
     "nav.scan": "M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z",
     "nav.results": "M4 20V10M10 20V4M16 20v-7M22 20H2",
@@ -26,6 +26,7 @@ PATHS = {
     "nav.help": "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM19 19v2H6",
     "nav.about": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01",
     "nav.pro": "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3z",
+    "expand": "M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5",
     "uninstall": "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
 }
 FALLBACK = "M12 12h.01"
@@ -63,13 +64,20 @@ class RailDelegate(QStyledItemDelegate):
         hover = bool(option.state & QStyle.StateFlag.State_MouseOver)
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        if selected or hover:
+        if selected:
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(ORANGE_SOFT if selected else SURFACE2))
+            painter.setBrush(QColor(ORANGE_SOFT))
             painter.drawRoundedRect(QRectF(option.rect).adjusted(1, 1, -1, -1), 10, 10)
+        elif hover:  # nur ein zarter orangefarbener Schein, Symbol und Schrift werden orange
+            glow = QColor(ORANGE)
+            glow.setAlpha(34)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(glow)
+            painter.drawRoundedRect(QRectF(option.rect).adjusted(3, 3, -3, -3), 12, 12)
+        lit = selected or hover
         icon = index.data(Qt.ItemDataRole.DecorationRole)
         if isinstance(icon, QIcon):
-            mode = QIcon.Mode.Selected if selected else QIcon.Mode.Normal
+            mode = QIcon.Mode.Selected if lit else QIcon.Mode.Normal
             side = SIZE
             left = option.rect.x() + (option.rect.width() - side) // 2
             top = option.rect.y() + 8
@@ -77,9 +85,9 @@ class RailDelegate(QStyledItemDelegate):
         font = QFont(option.font)
         font.setPixelSize(11)
         painter.setFont(font)
-        painter.setPen(QColor(ORANGE_HI if selected else MUTED))
+        painter.setPen(QColor(ORANGE_HI if lit else MUTED))
         label = painter.fontMetrics().elidedText(str(index.data(Qt.ItemDataRole.DisplayRole) or ""),
                                                  Qt.TextElideMode.ElideRight, option.rect.width() - 6)
-        text_rect = QRectF(option.rect.x() + 3, option.rect.y() + 8 + SIZE + 4, option.rect.width() - 6, 16)
+        text_rect = QRectF(option.rect.x() + 3, option.rect.y() + 8 + SIZE + 5, option.rect.width() - 6, 18)
         painter.drawText(text_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, label)
         painter.restore()

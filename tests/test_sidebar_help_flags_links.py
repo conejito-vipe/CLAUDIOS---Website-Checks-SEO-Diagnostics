@@ -48,12 +48,13 @@ def test_linkify_escapes_and_keeps_trailing_dot_outside():
     assert "</a>. ok &lt;b&gt;" in html
 
 
-def test_affected_addresses_are_a_bullet_list_with_a_blank_line():
+def test_affected_places_come_first_as_a_bullet_list_then_the_evidence():
     group = {"severity": 2, "msg_de": "x", "msg_en": "x", "count": 1, "evidence": "https://dequeuniversity.com/rules",
              "example_urls": ["https://example.com/a", "https://example.com/b"]}
     html = _group_html(group, "en")
-    assert html.count("<li>") == 2 and "<ul>" in html and "<p><br>" in html
+    assert html.count("<li>") == 2 and "<ul>" in html
     assert 'href="https://dequeuniversity.com/rules"' in html
+    assert html.index("Affected places") < html.index("Evidence found") < html.index("dequeuniversity")
 
 
 def test_flags_are_drawn_and_differ():

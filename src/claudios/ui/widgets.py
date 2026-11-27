@@ -155,17 +155,33 @@ class TitleBar(QWidget):
                 lay.addWidget(btn)
                 self._lang_buttons[code] = btn
         self.btn_min = QPushButton("–")
+        self.btn_max = QPushButton("☐")
         self.btn_close = QPushButton("✕")
-        for btn in (self.btn_min, self.btn_close):
+        for btn in (self.btn_min, self.btn_max, self.btn_close):
             btn.setObjectName("winbtn")
             lay.addWidget(btn)
+        self.btn_max.setVisible(with_lang)  # nur das Hauptfenster lässt sich maximieren (nicht der Splash)
         self.btn_min.setProperty("role", "min")
+        self.btn_max.setProperty("role", "max")
         self.btn_close.setProperty("role", "close")
         self.btn_min.clicked.connect(self._minimize)
+        self.btn_max.clicked.connect(self.toggle_maximized)
         self.btn_close.clicked.connect(self._close)
 
     def _minimize(self) -> None:
         self.window().showMinimized()
+
+    def toggle_maximized(self) -> None:
+        win = self.window()
+        if win.isMaximized():
+            win.showNormal()
+        else:
+            win.showMaximized()
+
+    def sync_maximized(self, maximized: bool) -> None:
+        self.btn_max.setText("❐" if maximized else "☐")
+        self.btn_max.setToolTip(t("win.restore" if maximized else "win.maximize"))
+        self.btn_max.setAccessibleName(t("win.restore" if maximized else "win.maximize"))
 
     def _close(self) -> None:
         self.window().close()
@@ -178,8 +194,14 @@ class TitleBar(QWidget):
         if btn is not None:
             btn.setChecked(True)
 
+    def mouseDoubleClickEvent(self, event) -> None:  # noqa: N802 (Qt-Name)
+        if event.button() == Qt.MouseButton.LeftButton and self.btn_max.isVisible():
+            self.toggle_maximized()
+            return
+        super().mouseDoubleClickEvent(event)
+
     def mousePressEvent(self, event) -> None:  # noqa: N802 (Qt-Name)
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton and not self.window().isMaximized():
             handle = self.window().windowHandle()
             if handle is not None:
                 handle.startSystemMove()
@@ -192,7 +214,7 @@ class CardWindow(QWidget):
     def __init__(self, with_lang: bool) -> None:
         super().__init__()
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window
-                            | Qt.WindowType.WindowMinimizeButtonHint)
+                            | Qt.WindowType.WindowMinimizeButtonHint | Qt.WindowType.WindowMaximizeButtonHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self._centered = False
         self._filtering = False
@@ -200,11 +222,7 @@ class CardWindow(QWidget):
         outer.setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN)
         self.card = QFrame()
         self.card.setObjectName("card")
-        shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(30)
-        shadow.setOffset(0, 6)
-        shadow.setColor(QColor(0, 0, 0, 70))
-        self.card.setGraphicsEffect(shadow)
+        self.card.setGraphicsEffect(self._shadow())
         outer.addWidget(self.card)
         self.body = QVBoxLayout(self.card)
         self.body.setContentsMargins(0, 0, 0, 0)
@@ -215,10 +233,28 @@ class CardWindow(QWidget):
     def resizable(self) -> bool:
         return self.minimumSize() != self.maximumSize()
 
+    def changeEvent(self, event) -> None:  # noqa: N802 (Qt-Name)
+        super().changeEvent(event)
+        if event.type() == QEvent.Type.WindowStateChange:
+            maximized = self.isMaximized()
+            self.layout().setContentsMargins(*(0, 0, 0, 0) if maximized else (MARGIN,) * 4)
+            self.card.setGraphicsEffect(None if maximized else self._shadow())
+            self.card.setProperty("maximized", maximized)
+            self.card.style().unpolish(self.card)
+            self.card.style().polish(self.card)
+            self.titlebar.sync_maximized(maximized)
+
+    def _shadow(self) -> QGraphicsDropShadowEffect:
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(30)
+        shadow.setOffset(0, 6)
+        shadow.setColor(QColor(0, 0, 0, 70))
+        return shadow
+
     def _edges_at(self, pos):
         """Welche Fensterkanten liegen an dieser Position (leer, wenn nicht am Rand oder nicht skalierbar)?"""
         edges = Qt.Edge(0)
-        if not self.resizable():
+        if not self.resizable() or self.isMaximized():
             return edges
         if pos.x() <= MARGIN + EDGE:
             edges |= Qt.Edge.LeftEdge
